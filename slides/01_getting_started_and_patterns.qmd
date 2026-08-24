@@ -194,11 +194,14 @@ Treating a cycle as seasonality causes models to predict peaks at the wrong time
 #| fig-width: 10
 fig, axes = plt.subplots(2, 2, figsize=(10, 5.4))
 
-P.plot_series(spine, ax=axes[0, 0], title="Trend + Seasonality (Retail)")
-P.plot_series(beer, ax=axes[0, 1], title="Seasonality + Drifting Trend (Beer)")
-P.plot_series(lynx, ax=axes[1, 0], title="Cycle, No Fixed Period (Lynx)",
-              color=P.ORANGE)
-P.plot_series(noise, ax=axes[1, 1], title="No Pattern (White Noise)", color=P.GREY)
+P.plot_series(spine, ax=axes[0, 0], title="Trend + seasonality (retail)",
+              ylabel="turnover ($M)")
+P.plot_series(beer, ax=axes[0, 1], title="Seasonality + drifting trend (beer)",
+              ylabel="megalitres")
+P.plot_series(lynx, ax=axes[1, 0], title="Cycle, no fixed period (lynx)",
+              color=P.ORANGE, ylabel="pelts traded")
+P.plot_series(noise, ax=axes[1, 1], title="No pattern (white noise)",
+              color=P.GREY, ylabel="z")
 for ax in axes.ravel():
     ax.set_xlabel("")
 plt.show()
@@ -228,9 +231,9 @@ The lynx peaks occur 8–11 years apart—never the exact same gap. This is a cy
 ```{python}
 #| fig-width: 10
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.9))
-P.plot_series(beer.tail(120), ax=axes[0], color=P.BLUE,
+P.plot_series(beer.tail(120), ax=axes[0], color=P.BLUE, ylabel="megalitres",
               title="Additive: swing size is constant")
-P.plot_series(souvenirs, ax=axes[1], color=P.ORANGE,
+P.plot_series(souvenirs, ax=axes[1], color=P.ORANGE, ylabel="sales ($)",
               title="Multiplicative: swing grows with level")
 for ax in axes:
     ax.set_xlabel("")
@@ -270,9 +273,9 @@ shuffled = rng.permutation(y)
 
 fig, axes = plt.subplots(2, 2, figsize=(10, 5.2))
 axes[0, 0].plot(spine["ds"], y, color=P.BLACK, lw=0.9)
-axes[0, 0].set_title("Original Data")
+axes[0, 0].set(title="Original data", ylabel="turnover ($M)")
 axes[0, 1].plot(spine["ds"], shuffled, color=P.ORANGE, lw=0.9)
-axes[0, 1].set_title("Shuffled (Same Values)")
+axes[0, 1].set(title="Shuffled (same values)", ylabel="turnover ($M)")
 P.acf_plot(y, nlags=36, ax=axes[1, 0], highlight_every=12,
            title="Original ACF: Rich Structure")
 P.acf_plot(shuffled, nlags=36, ax=axes[1, 1], color=P.ORANGE,
@@ -322,15 +325,16 @@ Always check the time plot first for outliers, gaps, and structural breaks.
 
 ```{python}
 #| fig-width: 10
-ax = P.plot_series(spine, title=f"{D.SPINE_ID} — Monthly Turnover ($M)")
-ax.set_xlabel("")
+fig, ax = plt.subplots(figsize=(10, 3.6))
+P.plot_series(spine, ax=ax, ylabel="turnover ($M)",
+              title=f"{D.SPINE_ID}, monthly")
 plt.show()
 ```
 
 ::: {.incremental}
-- Clear upward trend
-- Seasonal swing widens as level rises
-- No abrupt level shifts or outliers
+- Upward trend, roughly eightfold over 37 years
+- The seasonal swing widens as the level rises
+- A sharp step up in 2009 and a dip around 2000: ask what happened before modelling
 :::
 
 ## 2. Seasonal plot
@@ -338,17 +342,24 @@ plt.show()
 ```{python}
 #| fig-width: 10
 sp = D.add_calendar(spine)
-fig, ax = plt.subplots(figsize=(9.5, 4.4))
-P.seasonal_plot(sp, "year", "month", ax=ax,
-                title="Monthly Pattern Across Years")
-ax.set_xticks(range(1, 13))
-ax.set_xlabel("Month")
+recent = sp[sp["year"] >= sp["year"].max() - 9]
+
+fig, ax = plt.subplots(figsize=(9.5, 3.7))
+P.seasonal_plot(recent, "year", "month", ax=ax, season_labels=P.MONTH_LABELS,
+                ylabel="turnover ($M)", xlabel="", colorbar=True,
+                title="One line per year, last 10 years")
 plt.show()
 ```
 
 ::: {.incremental}
-- December is always the peak; February is the trough
-- The seasonal shape is stable across years
+- Every year peaks in **December** and troughs in **February**
+- The shape repeats while the level climbs: that is seasonality, not cycle
+:::
+
+::: {.notes}
+Ten years, not all 37. Over the full span the level grows eightfold, so the lines
+stack by year and the shape is unreadable. Say that out loud, it is the same
+problem the next slide makes explicit.
 :::
 
 ## 3. Subseries plot: Seasonality isolated
@@ -356,7 +367,8 @@ plt.show()
 ```{python}
 #| fig-width: 10
 fig, axes = P.subseries_plot(D.add_calendar(beer), "quarter",
-                             title="Beer Production by Quarter (Horizontal line = Quarter Mean)")
+                             ylabel="megalitres", season_labels=P.QUARTER_LABELS,
+                             title="Beer production by quarter (orange line = quarter mean)")
 plt.show()
 ```
 
@@ -368,8 +380,9 @@ Differences in the horizontal means highlight the pure seasonal pattern.
 
 ```{python}
 #| fig-width: 10
-fig, axes = P.subseries_plot(sp, "month",
-                             title="Spine Turnover by Month")
+fig, axes = P.subseries_plot(sp, "month", ylabel="turnover ($M)",
+                             season_labels=P.MONTH_LABELS,
+                             title="Spine turnover by month, 1982 to 2018")
 plt.show()
 ```
 

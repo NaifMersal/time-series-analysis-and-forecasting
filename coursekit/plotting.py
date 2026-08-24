@@ -209,12 +209,21 @@ def decomposition_plot(dcmp, cols, title, ylabel="", x="ds", panel_height=1.0):
     return fig, axes
 
 
+MONTH_LABELS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
+QUARTER_LABELS = ["Q1", "Q2", "Q3", "Q4"]
+
+
 def seasonal_plot(df, period_col, season_col, y="y", ax=None, title="",
-                  cmap="viridis"):
+                  cmap="viridis", season_labels=None, ylabel=None,
+                  colorbar=False, xlabel=None):
     """Seasonal plot: one line per period (e.g. per year), x = season index.
 
     ``period_col`` is the grouping (year); ``season_col`` is the position
     within the period (month 1-12, quarter 1-4, ...).
+
+    ``season_labels`` replaces the numeric season ticks with names, and
+    ``colorbar`` adds a key for which line is which period. Without one, the
+    colour gradient is decoration rather than information.
     """
     if ax is None:
         _, ax = plt.subplots()
@@ -223,23 +232,37 @@ def seasonal_plot(df, period_col, season_col, y="y", ax=None, title="",
     for p, c in zip(periods, colors):
         g = df[df[period_col] == p].sort_values(season_col)
         ax.plot(g[season_col], g[y], color=c, lw=1.1)
-    ax.set(title=title, xlabel=season_col, ylabel=y)
+    ax.set(title=title, xlabel=season_col if xlabel is None else xlabel,
+           ylabel=y if ylabel is None else ylabel)
+    if season_labels is not None:
+        ax.set_xticks(range(1, len(season_labels) + 1))
+        ax.set_xticklabels(list(season_labels))
+    if colorbar and len(periods) > 1:
+        import matplotlib as mpl
+
+        norm = mpl.colors.Normalize(vmin=min(periods), vmax=max(periods))
+        sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+        cb = ax.figure.colorbar(sm, ax=ax, fraction=0.035, pad=0.02)
+        cb.set_label(period_col, size=9)
+        cb.ax.tick_params(labelsize=9)
     return ax
 
 
-def subseries_plot(df, season_col, y="y", x="ds", title=""):
+def subseries_plot(df, season_col, y="y", x="ds", title="", ylabel=None,
+                   season_labels=None, height=3.4):
     """Subseries plot: one small panel per season, with that season's mean."""
     seasons = sorted(df[season_col].unique())
+    labels = list(season_labels) if season_labels is not None else [str(s) for s in seasons]
     fig, axes = plt.subplots(1, len(seasons), sharey=True,
-                             figsize=(max(7.5, 1.0 + 0.7 * len(seasons)), 3.4))
+                             figsize=(max(7.5, 1.0 + 0.7 * len(seasons)), height))
     axes = np.atleast_1d(axes)
-    for ax, s in zip(axes, seasons):
+    for ax, s, lab in zip(axes, seasons, labels):
         g = df[df[season_col] == s].sort_values(x)
         ax.plot(g[x], g[y], color=BLACK, lw=0.9)
         ax.axhline(g[y].mean(), color=ORANGE, lw=1.6)
-        ax.set_title(str(s), size=9)
+        ax.set_title(lab, size=9)
         ax.set_xticks([])
-    axes[0].set_ylabel(y)
+    axes[0].set_ylabel(y if ylabel is None else ylabel)
     fig.suptitle(title, size=12, x=0.02, ha="left")
     return fig, axes
 
