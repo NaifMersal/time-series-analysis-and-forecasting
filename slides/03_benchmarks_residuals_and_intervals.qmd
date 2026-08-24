@@ -1,0 +1,337 @@
+---
+title: "Benchmarks, Residuals & Prediction Intervals"
+subtitle: "Day 2 · Segments 1–3 · fpppy Ch 5.1–5.7"
+date: today
+format: revealjs
+---
+
+```{python}
+#| include: false
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from statsforecast import StatsForecast
+from statsforecast.models import (HistoricAverage, Naive, RandomWalkWithDrift,
+                                  SeasonalNaive)
+from statsmodels.stats.diagnostic import acorr_ljungbox
+
+from coursekit import datasets as D
+from coursekit import plotting as P
+
+P.use_course_style()
+
+spine = D.spine()
+H = 24
+train, test = D.train_test(spine, h=H)
+
+sf = StatsForecast(
+    models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
+            RandomWalkWithDrift()],
+    freq=D.FREQ, n_jobs=1,
+)
+fc = sf.forecast(df=train, h=H, level=[80, 95], fitted=True)
+fv = sf.forecast_fitted_values()
+
+MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD"]
+LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
+          "SeasonalNaive": "Seasonal naive", "RWD": "Drift"}
+
+
+def as_fan(model, frame=fc):
+    return frame.rename(columns={
+        model: "mean",
+        f"{model}-lo-80": "lo-80", f"{model}-hi-80": "hi-80",
+        f"{model}-lo-95": "lo-95", f"{model}-hi-95": "hi-95",
+    })
+```
+
+## Today's roadmap
+
+::: {.incremental}
+- **Four baseline models** — the minimum floor any model must beat
+- **Residual diagnostics** — testing whether the model captured all signal
+- **Prediction intervals** — quantifying real forecast uncertainty
+:::
+
+. . .
+
+::: {.callout-important}
+## Golden Rule
+A point forecast without an interval is an incomplete guess.
+:::
+
+# A. The benchmark floor {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
+
+Ch 5.1–5.2 · Simple, strong baselines
+
+## Four essential benchmarks
+
+::: {.incremental}
+- **Mean** — Average of all historical observations
+- **Naive** — Last observed value ($\hat{y}_{T+h} = y_T$)
+- **Seasonal Naive** — Same season from previous year ($\hat{y}_{T+h} = y_{T+h-m}$)
+- **Drift** — Last value plus average historical trend slope
+:::
+
+. . .
+
+::: {.cardbox .teal}
+Always fit these 4 first. On many series, **Seasonal Naive is tough to beat**.
+:::
+
+## The four benchmarks in action
+
+```{python}
+#| fig-width: 10
+fig, ax = plt.subplots(figsize=(10, 4.6))
+hist = train.tail(72)
+ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="Observed")
+ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="Actual Holdout")
+for m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):
+    ax.plot(fc["ds"], fc[m], lw=1.7, color=c, label=LABELS[m])
+ax.set(title=f"Spine — {H}-Month Benchmark Forecasts")
+ax.legend(frameon=False, ncols=3)
+plt.show()
+```
+
+## Why benchmarks are non-negotiable
+
+::: {.incremental}
+- **Objective Evidence** — proves the complex model adds value
+- **Sanity Check** — catches complex ML models losing to naive rules
+- **Scale Baseline** — provides a standard denominator for errors (MASE)
+- **Fast** — takes just a few lines of code
+:::
+
+. . .
+
+::: {.callout-tip}
+## In Every Review Ask:
+*"What is the simple baseline, and by how much did we beat it?"*
+:::
+
+## $\rightarrow$ Exercise 2.1 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+
+::: {.incremental}
+- Fit all four baselines on the training set
+- Plot against the holdout set
+- Identify which method looks most realistic and why
+:::
+
+. . .
+
+*13 minutes.*
+
+# B. Residuals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
+
+Ch 5.3–5.4 · Has the model finished?
+
+## Fitted values vs. Forecast errors
+
+**Residual** ($e_t$): Error on *in-sample training data* (one-step ahead)
+
+$$e_t = y_t - \hat{y}_{t|t-1}$$
+
+. . .
+
+::: {.callout-important}
+## Crucial Distinction
+- **Residuals** = In-sample training errors (flattering)
+- **Forecast Errors** = Out-of-sample holdout errors (honest)
+:::
+
+## Properties of good residuals
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Essential]{.card-title}
+
+1. **Uncorrelated** ($r_k \approx 0$)  
+   $\rightarrow$ No signal left behind
+2. **Zero Mean** ($\bar{e} = 0$)  
+   $\rightarrow$ Unbiased forecast
+:::
+:::
+::: {.column width="50%"}
+::: {.cardbox}
+[For Valid Intervals]{.card-title}
+
+3. **Constant Variance**  
+   $\rightarrow$ Homoscedastic
+4. **Normally Distributed**  
+   $\rightarrow$ Gaussian intervals valid
+:::
+:::
+::::
+
+## Diagnosing the Seasonal Naive
+
+```{python}
+#| fig-width: 9.5
+resid = fv["y"] - fv["SeasonalNaive"]
+fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
+                                   title="Seasonal Naive — Residual Diagnostics")
+plt.show()
+```
+
+::: {.incremental}
+- Residuals show expanding variance over time
+- Autocorrelation spikes remain outside bounds $\rightarrow$ Signal left uncaptured
+:::
+
+## The Ljung-Box Test
+
+Statistically tests if the first $\ell$ autocorrelations are jointly zero:
+
+$$Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}$$
+
+::: {.incremental}
+- **Small $p$-value ($p < 0.05$)** $\rightarrow$ Significant autocorrelation $\rightarrow$ **Model incomplete**
+- **Large $p$-value ($p \ge 0.05$)** $\rightarrow$ Residuals are indistinguishable from white noise
+:::
+
+::: {.notes}
+Rule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data.
+:::
+
+## $\rightarrow$ Exercise 2.2 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+
+::: {.incremental}
+- Run residual diagnostics on Seasonal Naive & Drift
+- Test autocorrelation with Ljung-Box
+- Evaluate: Which properties pass? Which fail?
+:::
+
+. . .
+
+*13 minutes.*
+
+# C. Prediction intervals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+Ch 5.5 · Quantifying uncertainty
+
+## Point forecasts vs. Range forecasts
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox}
+[Point Forecast]{.card-title}
+
+*"Demand will be 340 units."*
+- Guaranteed to be wrong
+- Hides operational risk
+:::
+:::
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Interval Forecast]{.card-title}
+
+*"Demand: [300, 380] with 80% confidence."*
+- Actionable for safety stock
+- Slices uncertainty honestly
+:::
+:::
+::::
+
+::: {.notes}
+Decisions like staffing buffers, warehouse capacity, and safety inventory depend directly on the interval width.
+:::
+
+## Interval calculation
+
+For a 1-step forecast with residual standard deviation $\hat{\sigma}$:
+
+$$\hat{y}_{T+1|T} \pm c\,\hat{\sigma} \qquad (c = 1.28 \text{ for } 80\%,\; 1.96 \text{ for } 95\%)$$
+
+. . .
+
+For horizon $h$, uncertainty accumulates:
+
+$$\hat{\sigma}_h = \hat{\sigma}\sqrt{h}$$
+
+::: {.callout-note}
+Uncertainty widens with $\sqrt{h}$ — rapid growth early on, decelerating at longer horizons.
+:::
+
+## Fan Chart: Visualising uncertainty
+
+```{python}
+#| fig-width: 10
+fig, ax = plt.subplots(figsize=(10, 4.6))
+P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=ax,
+            actual=test, history_tail=72,
+            title="Seasonal Naive: 80% and 95% Prediction Intervals")
+plt.show()
+```
+
+## How intervals widen with horizon
+
+```{python}
+#| fig-width: 9.5
+fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.7))
+width = fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]
+h = np.arange(1, len(width) + 1)
+axes[0].plot(h, width, color=P.BLUE, lw=2, label="Actual Width")
+axes[0].plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls="--",
+             label=r"$\text{Width}_1 \times \sqrt{h}$")
+axes[0].set(xlabel="Horizon h", ylabel="80% Interval Width",
+            title="Seasonal Naive Interval Width")
+axes[0].legend(frameon=False)
+
+for m, c in zip(["Naive", "SeasonalNaive", "RWD"], [P.GREEN, P.BLUE, P.PINK]):
+    w = fc[f"{m}-hi-80"] - fc[f"{m}-lo-80"]
+    axes[1].plot(h, w, color=c, lw=1.8, label=LABELS[m])
+axes[1].set(xlabel="Horizon h", title="Width Growth by Benchmark")
+axes[1].legend(frameon=False)
+plt.show()
+```
+
+## Why one test window is misleading
+
+On a single small test set ($n = 24$), coverage error is large:
+
+$$\text{SE} = \sqrt{\frac{p(1-p)}{n}} = \sqrt{\frac{0.8 \times 0.2}{24}} \approx \pm 8\% \quad (\pm 16\% \text{ at } 95\% \text{ CI})$$
+
+. . .
+
+::: {.cardbox .navy}
+A nominal 80% interval could easily measure anywhere from **64% to 96%** on a single 24-point holdout by chance alone.
+:::
+
+::: {.notes}
+To properly measure coverage, we must evaluate across multiple rolling test origins.
+:::
+
+## $\rightarrow$ Exercise 2.3 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+
+::: {.incremental}
+- Compute 80% and 95% prediction intervals
+- Verify that interval width scales with $\sqrt{h}$
+- Measure holdout coverage and explain estimation uncertainty
+:::
+
+. . .
+
+*15 minutes.*
+
+## Part 2 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+::: {.incremental}
+- Always start with the **4 baseline models**
+- Check that residuals are **uncorrelated and zero-mean**
+- Report **prediction intervals**, not just single numbers
+- Recognize that interval uncertainty grows with $\sqrt{h}$
+:::
+
+. . .
+
+::: {.cardbox .teal}
+Next: Forecast evaluation metrics and rolling-origin cross-validation.
+:::

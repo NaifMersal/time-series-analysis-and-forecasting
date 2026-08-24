@@ -1,0 +1,8 @@
+# Pin Quarto's Python to this project's uv-managed venv.
+#
+# Without this, Quarto auto-discovers whatever python is first on PATH — here
+# C:\Envs\gvenv — and starts its "Global Env" (gvenv) kernel. That kernel can
+# still `import coursekit` (execute-dir: project puts the repo root on sys.path)
+# but has none of the course deps, so decks die on `ModuleNotFoundError:
+# No module named 'pyreadr'`.
+QUARTO_PYTHON=.venv/Scripts/python.exe

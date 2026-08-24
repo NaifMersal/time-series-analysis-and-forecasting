@@ -1,0 +1,429 @@
+---
+title: "Getting Started & Time Series Patterns"
+subtitle: "Day 1 · Segments 1–2 · fpppy Ch 1–2"
+date: today
+format: revealjs
+---
+
+```{python}
+#| include: false
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from coursekit import datasets as D
+from coursekit import plotting as P
+
+P.use_course_style()
+
+spine = D.spine()
+beer = D.beer()
+lynx = D.lynx()
+souvenirs = D.souvenirs()
+noise = D.white_noise(n=len(spine), seed=7)
+```
+
+## Where we are going
+
+::: {.incremental}
+- **Day 1** — Patterns, decomposition, and features
+- **Day 2** — Baselines, uncertainty, and evaluation
+- **Day 3** — Forecasting models
+:::
+
+. . .
+
+::: {.callout-tip}
+## The Goal
+Diagnose a series, build a baseline, and prove whether anything beats it.
+:::
+
+# A. What forecasting is for {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
+
+Ch 1
+
+## Forecasting drives decisions
+
+::: {.incremental}
+- **Inventory** — how much stock to hold
+- **Staffing** — how many people to roster
+- **Energy** — when generation must ramp up
+- **Finance** — cash flow and budget targets
+:::
+
+. . .
+
+::: {.cardbox .teal}
+A forecast is only useful if it **changes a decision**.
+:::
+
+::: {.notes}
+The decision dictates the entire setup: the forecast horizon, the time frequency, and the error metric you care about.
+:::
+
+## What can be forecast?
+
+Three factors determine predictability:
+
+::: {.incremental}
+1. **Understanding** — how well we understand the drivers
+2. **Data** — how much historical data exists
+3. **Influence** — whether the forecast changes the outcome
+:::
+
+::: {.notes}
+Point 3 is critical: if a demand forecast causes price cuts or stockouts, it alters future demand (self-fulfilling or self-defeating forecasts).
+:::
+
+## Predictability: Two extremes
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Electricity Demand]{.card-title}
+
+- Clear drivers (weather, calendar)
+- High volume of historical data
+- Forecast does not change demand
+- $\rightarrow$ **Highly predictable**
+:::
+:::
+::: {.column width="50%"}
+::: {.cardbox}
+[Exchange Rates]{.card-title}
+
+- Weakly understood drivers
+- Forecast moves the market
+- No stable pattern
+- $\rightarrow$ **Hard to beat today's price**
+:::
+:::
+::::
+
+## Three model types
+
+```{dot}
+//| fig-width: 9.5
+digraph G {
+    bgcolor="transparent";
+    rankdir=LR;
+    node [shape=box style="rounded,filled" fontname="Noto Sans" fontsize=13
+          color="#1C355E" penwidth=2 margin="0.18,0.10"];
+    edge [fontname="Noto Sans" fontsize=11 color="#5b6678" penwidth=1.6];
+
+    E [label="1. Explanatory\nPredictors only\ny = f(weather, price, ...)"
+       fillcolor="#00AE8D" fontcolor="white"];
+    T [label="2. Time Series\nPast history of y only\ny(t) = f(y(t-1), y(t-2), ...)"
+       fillcolor="#1C355E" fontcolor="white"];
+    M [label="3. Mixed\nDrivers + history\ny(t) = f(drivers, y(t-1), ...)"
+       fillcolor="#625D9C" fontcolor="white"];
+
+    T -> M [label="add drivers"];
+    E -> M [label="add history"];
+}
+```
+
+::: {.callout-note}
+## Course Focus
+Days 1–2 focus on **pure time series** (Box 2). Day 3 covers mixed models.
+:::
+
+## Why past history often wins
+
+Time series models only need to know: **what happened next last time?**
+
+::: {.incremental}
+- External drivers may not be available
+- Future driver values are often unknown (e.g. future gas prices)
+- The real system is often too complex to specify
+:::
+
+::: {.notes}
+Relying on past history is not laziness; it is often the most robust, honest model choice in production.
+:::
+
+# B. What is in a time series {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
+
+Ch 2 · Patterns and components
+
+## Three core patterns
+
+::: {.incremental}
+- **Trend** — Long-term increase or decrease
+- **Seasonality** — Repeating pattern at a **fixed, known period** (day, week, year)
+- **Cycle** — Rises and falls with **no fixed period** (business cycles)
+:::
+
+::: {.notes}
+Trend does not have to be linear. Cycles are usually longer than seasonality and vary in length.
+:::
+
+## Seasonality vs. Cycle
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Seasonality]{.card-title}
+
+- **Known, fixed period**
+- Driven by the calendar / clock
+- Can be counted on reliably
+:::
+:::
+::: {.column width="50%"}
+::: {.cardbox .navy}
+[Cycle]{.card-title}
+
+- **Variable, unknown period**
+- Driven by economic / natural factors
+- Turning points are hard to predict
+:::
+:::
+::::
+
+. . .
+
+::: {.callout-important}
+## Common Mistake
+Treating a cycle as seasonality causes models to predict peaks at the wrong time with false confidence.
+:::
+
+## Four series, four patterns
+
+```{python}
+#| fig-width: 10
+fig, axes = plt.subplots(2, 2, figsize=(10, 5.4))
+
+P.plot_series(spine, ax=axes[0, 0], title="Trend + Seasonality (Retail)")
+P.plot_series(beer, ax=axes[0, 1], title="Seasonality + Drifting Trend (Beer)")
+P.plot_series(lynx, ax=axes[1, 0], title="Cycle, No Fixed Period (Lynx)",
+              color=P.ORANGE)
+P.plot_series(noise, ax=axes[1, 1], title="No Pattern (White Noise)", color=P.GREY)
+for ax in axes.ravel():
+    ax.set_xlabel("")
+plt.show()
+```
+
+::: {.notes}
+The lynx peaks occur 8–11 years apart—never the exact same gap. This is a cycle, not seasonality.
+:::
+
+## Components of a time series
+
+::: {.incremental}
+- **Additive**: $y_t = S_t + T_t + R_t$
+- **Multiplicative**: $y_t = S_t \times T_t \times R_t$
+:::
+
+. . .
+
+| Component | Meaning |
+|---|---|
+| $S_t$ | **Seasonal** component (repeating calendar pattern) |
+| $T_t$ | **Trend-Cycle** component (underlying direction) |
+| $R_t$ | **Remainder** (random noise / unexplained variation) |
+
+## Additive or Multiplicative?
+
+```{python}
+#| fig-width: 10
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.9))
+P.plot_series(beer.tail(120), ax=axes[0], color=P.BLUE,
+              title="Additive: swing size is constant")
+P.plot_series(souvenirs, ax=axes[1], color=P.ORANGE,
+              title="Multiplicative: swing grows with level")
+for ax in axes:
+    ax.set_xlabel("")
+plt.show()
+```
+
+::: {.cardbox .purple}
+- Constant swing $\rightarrow$ **Additive**
+- Growing swing $\rightarrow$ **Multiplicative** (fix with log transform)
+:::
+
+## The Golden Rule {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+::: {.r-fit-text}
+The order **is** the data.
+:::
+
+. . .
+
+::: {.incremental}
+- Never shuffle time series data
+- Never use random train/test splits
+- Never use standard k-fold cross-validation
+:::
+
+::: {.notes}
+Random shuffling allows models to look into the future. Day 2 introduces rolling-origin evaluation.
+:::
+
+## Shuffling destroys temporal signal
+
+```{python}
+#| fig-width: 10
+rng = np.random.default_rng(0)
+y = spine["y"].to_numpy()
+shuffled = rng.permutation(y)
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 5.2))
+axes[0, 0].plot(spine["ds"], y, color=P.BLACK, lw=0.9)
+axes[0, 0].set_title("Original Data")
+axes[0, 1].plot(spine["ds"], shuffled, color=P.ORANGE, lw=0.9)
+axes[0, 1].set_title("Shuffled (Same Values)")
+P.acf_plot(y, nlags=36, ax=axes[1, 0], highlight_every=12,
+           title="Original ACF: Rich Structure")
+P.acf_plot(shuffled, nlags=36, ax=axes[1, 1], color=P.ORANGE,
+           title="Shuffled ACF: Zero Structure")
+plt.show()
+```
+
+::: {.notes}
+Mean and variance remain identical after shuffling, but every forecastable property is destroyed.
+:::
+
+## $\rightarrow$ Exercise 1.1 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/01_day1_structure_and_diagnostics.ipynb`
+
+::: {.incremental}
+- Classify six time series
+- Identify: Trend? Seasonality? Cycle?
+- Choose: Additive or Multiplicative?
+:::
+
+. . .
+
+*10 minutes. Focus on visual diagnosis.*
+
+# C. Seeing the patterns {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+Ch 2.2–2.5 · The essential plots
+
+## Four diagnostic plots
+
+| Plot | Core Question |
+|---|---|
+| **Time plot** | What does the overall series look like? |
+| **Seasonal plot** | What is the repeating annual shape? |
+| **Subseries plot** | How does each specific month/quarter evolve? |
+| **Scatterplot** | Does another variable move in sync? |
+
+. . .
+
+::: {.callout-tip}
+## Start with the Time Plot
+Always check the time plot first for outliers, gaps, and structural breaks.
+:::
+
+## 1. Time plot
+
+```{python}
+#| fig-width: 10
+ax = P.plot_series(spine, title=f"{D.SPINE_ID} — Monthly Turnover ($M)")
+ax.set_xlabel("")
+plt.show()
+```
+
+::: {.incremental}
+- Clear upward trend
+- Seasonal swing widens as level rises
+- No abrupt level shifts or outliers
+:::
+
+## 2. Seasonal plot
+
+```{python}
+#| fig-width: 10
+sp = D.add_calendar(spine)
+fig, ax = plt.subplots(figsize=(9.5, 4.4))
+P.seasonal_plot(sp, "year", "month", ax=ax,
+                title="Monthly Pattern Across Years")
+ax.set_xticks(range(1, 13))
+ax.set_xlabel("Month")
+plt.show()
+```
+
+::: {.incremental}
+- December is always the peak; February is the trough
+- The seasonal shape is stable across years
+:::
+
+## 3. Subseries plot: Seasonality isolated
+
+```{python}
+#| fig-width: 10
+fig, axes = P.subseries_plot(D.add_calendar(beer), "quarter",
+                             title="Beer Production by Quarter (Horizontal line = Quarter Mean)")
+plt.show()
+```
+
+::: {.cardbox .teal}
+Differences in the horizontal means highlight the pure seasonal pattern.
+:::
+
+## 4. When trend swamps the subseries plot
+
+```{python}
+#| fig-width: 10
+fig, axes = P.subseries_plot(sp, "month",
+                             title="Spine Turnover by Month")
+plt.show()
+```
+
+::: {.callout-important}
+## Trend Obscures Month-to-Month Means
+When trend growth is massive (8x), seasonal differences appear tiny until trend is removed with **decomposition**.
+:::
+
+::: {.notes}
+The seasonality is real (as seen in the seasonal plot), but raw monthly means fail to reveal it clearly under strong growth.
+:::
+
+## Always verify timestamps first
+
+```{python}
+#| echo: true
+gaps = spine["ds"].diff().dt.days
+print("Inferred frequency :", pd.infer_freq(spine["ds"]))
+print("Duplicate stamps   :", spine["ds"].duplicated().sum())
+print("Gaps > 1 month     :", int((gaps > 32).sum()))
+```
+
+. . .
+
+::: {.callout-important}
+## Silent Gaps Break Models
+A missing row shifts every seasonal lag that follows. Always check frequency before modelling.
+:::
+
+## $\rightarrow$ Exercise 1.2 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/01_day1_structure_and_diagnostics.ipynb`
+
+::: {.incremental}
+- Load the spine dataset
+- Verify timestamp continuity
+- Generate Time, Seasonal, and Subseries plots
+:::
+
+. . .
+
+*15 minutes.*
+
+## Part 1 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+::: {.incremental}
+- Forecasts exist to **inform decisions**
+- **Trend, Seasonality, Cycle** are distinct patterns
+- Multiplicative swings become additive under a **log transform**
+- **Order is the data** — never shuffle
+:::
+
+. . .
+
+::: {.cardbox .teal}
+Next: Autocorrelation (ACF) and Decomposition.
+:::

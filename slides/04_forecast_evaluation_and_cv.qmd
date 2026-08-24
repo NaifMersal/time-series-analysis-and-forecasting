@@ -1,0 +1,344 @@
+---
+title: "Forecast Evaluation & Cross-Validation"
+subtitle: "Day 2 · Segments 4–5 · fpppy Ch 5.8–5.10, Ch 13"
+date: today
+format: revealjs
+---
+
+```{python}
+#| include: false
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from statsforecast import StatsForecast
+from statsforecast.models import (HistoricAverage, Naive, RandomWalkWithDrift,
+                                  SeasonalNaive)
+from utilsforecast.losses import mae, mape, mase, rmse, rmsse
+
+from coursekit import datasets as D
+from coursekit import plotting as P
+
+P.use_course_style()
+
+spine = D.spine()
+H = 24
+train, test = D.train_test(spine, h=H)
+
+MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD"]
+LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
+          "SeasonalNaive": "Seasonal naive", "RWD": "Drift"}
+
+sf = StatsForecast(
+    models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
+            RandomWalkWithDrift()],
+    freq=D.FREQ, n_jobs=1,
+)
+fc = sf.forecast(df=train, h=H, level=[80])
+merged = test.merge(fc, on=["unique_id", "ds"])
+
+# Rolling-origin cross-validation: 8 origins, one year forecast each.
+N_WINDOWS, CV_H = 8, 12
+cv = sf.cross_validation(df=spine, h=CV_H, step_size=CV_H,
+                         n_windows=N_WINDOWS, level=[80])
+
+per_window = pd.DataFrame([
+    mase(g.drop(columns=["cutoff"]), models=MODELS, seasonality=12,
+         train_df=spine[spine["ds"] <= cut])[MODELS].iloc[0]
+    for cut, g in cv.groupby("cutoff")
+]).reset_index(drop=True)
+
+coverage = {m: float(((cv["y"] >= cv[f"{m}-lo-80"])
+                      & (cv["y"] <= cv[f"{m}-hi-80"])).mean()) for m in MODELS}
+```
+
+## You have 4 forecasts. Which is best?
+
+::: {.incremental}
+- **Segment 4** — How to score point forecasts fairly
+- **Segment 5** — Why 1 test split is not enough, and how rolling-origin CV fixes it
+:::
+
+. . .
+
+::: {.callout-important}
+## Deliverable
+Build a standardized evaluation harness to benchmark any forecasting model.
+:::
+
+# A. Scoring a point forecast {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
+
+Ch 5.8 · Point forecast metrics
+
+## Error metric summary
+
+Forecast error: $e_{T+h} = y_{T+h} - \hat{y}_{T+h|T}$
+
+| Metric | Property | Limitation |
+|---|---|---|
+| **MAE** | Easy to interpret | Scale-dependent (cannot compare across series) |
+| **RMSE** | Penalizes large errors | Scale-dependent |
+| **MAPE** | Percentage error | Explodes near zero; asymmetric |
+| **MASE** | **Scale-free** (relative to baseline) | Requires seasonal period |
+
+::: {.notes}
+MAE and RMSE work well within a single series. To compare across different products or series, use MASE.
+:::
+
+## The flaw with MAPE
+
+```{python}
+#| fig-width: 10
+rng = np.random.default_rng(3)
+n = 48
+low = pd.DataFrame({
+    "unique_id": "spare parts",
+    "ds": pd.date_range("2020-01-01", periods=n, freq="MS"),
+    "y": np.clip(rng.poisson(1.4, n).astype(float), 0.2, None),
+})
+pred_hi = low["y"] + 2.0
+pred_lo = low["y"] - 0.15
+
+fig, ax = plt.subplots(figsize=(10, 3.6))
+ax.plot(low["ds"], low["y"], color=P.BLACK, lw=1.2, label="Actual (Low Volume)")
+ax.plot(low["ds"], pred_hi, color=P.ORANGE, lw=1.4, label="Forecast A (+2.0)")
+ax.plot(low["ds"], pred_lo, color=P.BLUE, lw=1.4, label="Forecast B (-0.15)")
+ax.set(title="Low-Volume Demand Breaks MAPE")
+ax.legend(frameon=False, ncols=3)
+plt.show()
+```
+
+::: {.incremental}
+- Forecast A: MAE = 2.00, MAPE = **184%**
+- Forecast B: MAE = 0.15, MAPE = **23%**
+:::
+
+## 3 reasons to avoid MAPE for model selection
+
+::: {.incremental}
+1. **Undefined at zero** — explodes on intermittent / low-volume demand
+2. **Asymmetric** — penalizes over-forecasting far more than under-forecasting
+3. **Fails without a true zero** — invalid for temperature (°C)
+:::
+
+. . .
+
+::: {.cardbox}
+Report MAPE to executives if required, but **never optimize models using MAPE**.
+:::
+
+## Scaled Errors: MASE
+
+Error divided by the in-sample Seasonal Naive error ($Q$):
+
+$$\text{MASE} = \frac{\text{MAE}}{Q}$$
+
+. . .
+
+::: {.incremental}
+- **$\text{MASE} < 1$** $\rightarrow$ **Better** than the seasonal naive baseline
+- **$\text{MASE} = 1$** $\rightarrow$ Exactly as good as seasonal naive
+- **$\text{MASE} > 1$** $\rightarrow$ **Worse** than simple baseline
+:::
+
+## Benchmarks scored on test set
+
+```{python}
+#| fig-width: 10
+scores = pd.DataFrame({
+    "MAE": mae(merged, models=MODELS)[MODELS].iloc[0],
+    "RMSE": rmse(merged, models=MODELS)[MODELS].iloc[0],
+    "MAPE %": mape(merged, models=MODELS)[MODELS].iloc[0] * 100,
+    "MASE": mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0],
+    "RMSSE": rmsse(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0],
+})
+scores.index = [LABELS[m] for m in scores.index]
+print(scores.round(2).to_string())
+```
+
+::: {.cardbox .teal}
+Seasonal Naive wins across all metrics ($\text{MASE} = 1.11$).
+:::
+
+::: {.notes}
+MASE > 1.0 because forecasting 24 months ahead is harder than in-sample 1-step naive errors.
+:::
+
+## $\rightarrow$ Exercise 2.4 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+
+::: {.incremental}
+- Compute MAE, RMSE, MAPE, and MASE for all baselines
+- Construct a scenario where MAPE produces misleading rankings
+- Defend the top-ranked model using MASE
+:::
+
+. . .
+
+*12 minutes.*
+
+# B. One split is not evidence {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
+
+Ch 5.10 · Rolling-origin cross-validation
+
+## Why a single train/test split fails
+
+::: {.incremental}
+- A single 24-month split is just **one sample point**
+- Score depends heavily on economic conditions during that window
+- High variance ($\pm 16\%$ error bars on 24 observations)
+- Encourages data snooping and overfitting
+:::
+
+. . .
+
+::: {.cardbox .navy}
+Time series cannot use standard k-fold. We need **rolling origins**.
+:::
+
+## Rolling-Origin Cross-Validation
+
+```{python}
+#| fig-width: 10
+fig, ax = plt.subplots(figsize=(10, 4.4))
+P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, ax=ax,
+               title="Expanding Training Window Across Origins")
+plt.show()
+```
+
+::: {.cardbox .teal}
+Each fold trains only on past data. **No fold ever peeks into its future**.
+:::
+
+## Key CV parameters
+
+```python
+cv = sf.cross_validation(
+    df=spine,
+    h=12,          # Forecast horizon matched to business need
+    step_size=12,  # Steps between successive origins
+    n_windows=8,   # Number of evaluation folds
+    level=[80],
+)
+```
+
+::: {.incremental}
+- **`h`** — match the true operational planning horizon
+- **`step_size`** — frequency of forecast production
+- **`n_windows`** — number of independent test origins
+:::
+
+## Cross-validation results across 8 folds
+
+```{python}
+#| fig-width: 10
+fig, axes = plt.subplots(1, 2, figsize=(10, 4.0))
+
+single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
+x = np.arange(len(MODELS))
+axes[0].bar(x - 0.2, single.values, width=0.4, color=P.GREY, label="Single Split")
+axes[0].bar(x + 0.2, per_window.mean().values, width=0.4, color=P.BLUE,
+            label=f"Mean of {N_WINDOWS} Folds")
+axes[0].set_xticks(x, [LABELS[m] for m in MODELS], rotation=20, ha="right")
+axes[0].set(ylabel="MASE", title="Model Ranking is Stable")
+axes[0].legend(frameon=False)
+
+for i, m in enumerate(MODELS):
+    axes[1].scatter(np.full(len(per_window), i), per_window[m], s=40,
+                    color=P.ORANGE, alpha=0.75, zorder=3)
+axes[1].set_xticks(range(len(MODELS)), [LABELS[m] for m in MODELS],
+                   rotation=20, ha="right")
+axes[1].set(ylabel="MASE", title="Score Distribution across Folds")
+axes[1].set_yscale("log")
+plt.show()
+```
+
+::: {.notes}
+Notice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky/unlucky, but the average is robust.
+:::
+
+## Interval coverage across all 8 folds
+
+```{python}
+#| fig-width: 9
+fig, ax = plt.subplots(figsize=(9, 3.4))
+names = [LABELS[m] for m in MODELS]
+vals = [coverage[m] for m in MODELS]
+cols = [P.BLUE if abs(v - 0.8) < 0.1 else P.ORANGE for v in vals]
+ax.barh(names, vals, color=cols, height=0.6)
+ax.axvline(0.8, color=P.BLACK, ls="--", lw=1.4)
+ax.text(0.8, -0.75, " Nominal 80%", size=10)
+for i, v in enumerate(vals):
+    ax.text(v, i, f" {v:.0%}", va="center", size=10)
+ax.set(xlim=(0, 1.05), title=f"80% Interval Coverage ({N_WINDOWS * CV_H} Scored Points)")
+ax.invert_yaxis()
+ax.grid(axis="y", visible=False)
+plt.show()
+```
+
+::: {.incremental}
+- **Seasonal Naive**: 77% coverage (near nominal 80%)
+- **Mean Model**: 0% coverage (fails on trending data)
+:::
+
+## Information leakage risks
+
+```{dot}
+//| fig-width: 9.5
+digraph G {
+    bgcolor="transparent";
+    rankdir=LR;
+    node [shape=box style="rounded,filled" fontname="Noto Sans" fontsize=12
+          color="#1C355E" penwidth=2 margin="0.16,0.09"];
+    edge [fontname="Noto Sans" fontsize=11 color="#5b6678" penwidth=1.6];
+
+    A [label="Scaling / Normalizing\non the full series" fillcolor="#E96852" fontcolor="white"];
+    B [label="Centered rolling\nwindow features" fillcolor="#E96852" fontcolor="white"];
+    C [label="Tuning hyperparameters\non the test set" fillcolor="#E96852" fontcolor="white"];
+    L [label="Data Leakage\nOver-optimistic CV,\npoor production" fillcolor="#1C355E" fontcolor="white"];
+
+    A -> L; B -> L; C -> L;
+}
+```
+
+::: {.notes}
+Always fit scalers, imputers, and feature engineering strictly on each fold's training history.
+:::
+
+## Evaluation pitfalls to avoid
+
+::: {.incremental}
+- **Regime changes** — verify if old folds disagree with recent folds
+- **Underpowered sample** — evaluate over sufficient origins ($>50$ points)
+- **Overlapping folds** — beware overly narrow confidence intervals when `step_size < h`
+- **Data gaps** — verify timestamp continuity across all origins
+:::
+
+## $\rightarrow$ Exercise 2.5 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+
+::: {.incremental}
+- Run rolling-origin cross-validation on 4 baselines
+- Compute MASE, RMSSE, and 80% coverage
+- Build the baseline leaderboard for Day 3 models
+:::
+
+. . .
+
+*17 minutes.*
+
+## Day 2 Summary {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+::: {.incremental}
+- Always start with the **4 baseline models**
+- Diagnose **residuals** (uncorrelated, zero-mean)
+- Report **prediction intervals** (width scales with $\sqrt{h}$)
+- Evaluate with **MASE** and **Rolling-Origin CV**
+:::
+
+. . .
+
+::: {.cardbox .teal}
+You now have a robust evaluation harness. Ready for Day 3 models!
+:::

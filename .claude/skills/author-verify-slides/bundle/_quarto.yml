@@ -1,0 +1,51 @@
+quarto-required: ">= 1.8.26"
+
+# SDAIA reveal.js slide project — branding applied globally here so each deck's
+# own front matter stays minimal (title / subtitle / date / format: revealjs).
+# This file is scaffolded by the author-verify-slides skill (scaffold.py); keep
+# it in sync with the skill's bundle/_quarto.yml when branding changes.
+
+project:
+  output-dir: output
+  render:
+    - "**/*.qmd"
+    - "!slides_template/*.qmd"
+
+execute:
+  echo: false
+  warning: false
+  message: false
+
+format:
+  revealjs:
+    slide-number: c/t
+    show-slide-number: all
+    embed-resources: false
+    preview-links: false
+    theme: [default, slides_template/assets/sdaia.scss]
+    logo: slides_template/assets/sdaia.svg
+    transition: slide
+    transition-speed: default
+    background-transition: fade
+    title-slide-attributes:
+      data-background-image: "slides_template/assets/anim.svg"
+      data-background-opacity: "0.15"
+      data-background-size: "cover"
+    chalkboard: false
+    multiplex: false
+    help: true
+    progress: true
+    history: false
+    hide-inactive-cursor: true
+    strip-comments: true
+    center: false
+    incremental: false
+    code-copy: true
+    code-line-numbers: true
+    scrollable: false
+    pdf-separate-fragments: false
+    filters:
+      - slides_template/assets/splash.lua
+    plugins: [menu]
+    include-in-header:
+      - file: slides_template/assets/favicon.html

@@ -1,0 +1,78 @@
+---
+title: "Session Title"
+subtitle: "Session Subtitle"
+date: today
+format: revealjs
+---
+
+# Section Title {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00AE8D)"}
+
+Subtitle or Context
+
+## Agenda
+
+- Item 1
+- Item 2
+- Item 3
+
+## Slide Title
+
+- Bullet point 1
+- Bullet point 2
+    - Sub-point A
+    - Sub-point B
+
+## Two Columns
+
+:::: {.columns}
+
+::: {.column width="50%"}
+**Left Column**
+
+- Point 1
+- Point 2
+:::
+
+::: {.column width="50%"}
+**Right Column**
+
+- Point 3
+- Point 4
+:::
+
+::::
+
+## Image Slide
+
+![Caption Text](assets/placeholder.png)
+
+## Quote Slide {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+> "This is a quote from a famous person or a key takeaway."
+
+- Author Name
+
+## Card Box
+
+::: {.cardbox}
+Use `.cardbox` for an accent-bordered box (default coral; also `.teal`, `.purple`, `.navy`).
+:::
+
+## Code Block
+
+```python
+def hello_world():
+    print("Hello, World!")
+```
+
+## Callouts
+
+::: {.callout-tip}
+## Tip
+This is a helpful tip.
+:::
+
+::: {.callout-important}
+## Important
+This is critical information.
+:::

@@ -1,0 +1,57 @@
+---
+title: "Time Series Analysis & Forecasting"
+subtitle: "A three-day practical course"
+format:
+  html:
+    theme: cosmo
+    toc: false
+---
+
+Built on [*Forecasting: Principles and Practice, the Pythonic Way*](https://otexts.com/fpppy/)
+(Hyndman, Athanasopoulos, Garza, Challu, Mergenthaler & Olivares), using the
+`statsforecast` / `utilsforecast` stack.
+
+Each day runs three hours as **five concept → exercise cycles**: a short segment, then you
+do it while it is fresh.
+
+## Before you start
+
+- [Setup guide](labs/00_setup.md) — install and verify, ~20 minutes
+- [Pre-work notebook](labs/00_pre_work.ipynb) — pandas dates, long format, an OLS refresher
+- [Reference cheat sheet](labs/reference_cheatsheet.md) — one page, printable
+
+## Day 1 — Structure
+
+*Seeing what is actually in a series.*
+
+| | |
+|---|---|
+| Segments 1–2 | [Getting Started & Time Series Patterns](slides/01_getting_started_and_patterns.html) |
+| Segments 3–5 | [ACF, Decomposition & Features](slides/02_acf_decomposition_and_features.html) |
+| Exercises | [`labs/01_day1_structure_and_diagnostics.ipynb`](labs/01_day1_structure_and_diagnostics.ipynb) |
+
+Applications and what can be forecast · the three model families · trend, seasonality and
+cycle · components · the golden rule · the four plots · autocorrelation and the
+correlogram · Box-Cox and STL · features across a whole portfolio.
+
+## Day 2 — Toolbox & evaluation
+
+*Forecasting, and proving whether the forecast was any good.*
+
+| | |
+|---|---|
+| Segments 1–3 | [Benchmarks, Residuals & Prediction Intervals](slides/03_benchmarks_residuals_and_intervals.html) |
+| Segments 4–5 | [Forecast Evaluation & Cross-Validation](slides/04_forecast_evaluation_and_cv.html) |
+| Exercises | [`labs/02_day2_toolbox_and_evaluation.ipynb`](labs/02_day2_toolbox_and_evaluation.ipynb) |
+
+The benchmark floor · fitted values and residuals · Ljung-Box · prediction intervals and
+why they widen · MAE, RMSE, MAPE and why MASE instead · rolling-origin cross-validation ·
+leakage.
+
+Day 2 ends with an **evaluation harness** and the first rows of the course leaderboard.
+
+## Day 3 — Models
+
+*In preparation.* The mix — ETS, ARIMA, dynamic regression, neural and foundation models —
+is still being decided. Whatever it turns out to be, every model gets plugged into the
+harness built on Day 2 and added to the same leaderboard.
