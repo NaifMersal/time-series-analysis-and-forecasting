@@ -57,9 +57,22 @@ def use_course_style(figsize=(9, 5), dpi=110) -> None:
 
 def thin_xticks(axes, n=4):
     """Cap the number of x ticks. Small multi-panel figures otherwise collide
-    year labels into an unreadable smear at projector size."""
+    year labels into an unreadable smear at projector size.
+
+    On a date axis a plain MaxNLocator picks arbitrary interior positions and
+    prints them in full, which is where labels like ``1997-05-19`` came from on
+    monthly data. Date axes get a date locator and a concise formatter instead,
+    so the ticks land on years.
+    """
+    import matplotlib.dates as mdates
+
     for ax in np.atleast_1d(axes).ravel():
-        ax.xaxis.set_major_locator(plt.MaxNLocator(n))
+        if isinstance(ax.xaxis.get_major_locator(), mdates.DateLocator):
+            loc = mdates.AutoDateLocator(minticks=2, maxticks=max(2, n))
+            ax.xaxis.set_major_locator(loc)
+            ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(loc))
+        else:
+            ax.xaxis.set_major_locator(plt.MaxNLocator(n))
     return axes
 
 
@@ -178,10 +191,15 @@ def ma_weight_plot(m: int = 12, ax=None, title=None):
     return ax
 
 
-def decomposition_plot(dcmp, cols, title, ylabel="", x="ds"):
-    """Stack the components of a decomposition, one panel each."""
+def decomposition_plot(dcmp, cols, title, ylabel="", x="ds", panel_height=1.0):
+    """Stack the components of a decomposition, one panel each.
+
+    ``panel_height`` is deliberately small: four panels at the old 1.4 inches
+    each made a figure taller than a 16:9 slide, so the remainder panel fell off
+    the bottom of the deck.
+    """
     fig, axes = plt.subplots(len(cols), 1, sharex=True,
-                             figsize=(9, 2 + 1.4 * len(cols)))
+                             figsize=(9, 0.8 + panel_height * len(cols)))
     axes = np.atleast_1d(axes)
     for ax, col in zip(axes, cols):
         ax.plot(dcmp[x], dcmp[col], color=BLACK, lw=0.9)

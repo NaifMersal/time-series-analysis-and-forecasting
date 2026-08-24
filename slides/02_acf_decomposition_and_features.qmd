@@ -21,13 +21,17 @@ P.use_course_style()
 spine = D.spine()
 beer = D.beer()
 souvenirs = D.souvenirs()
-noise = D.white_noise(n=len(spine), seed=7)
+noise = D.white_noise(n=len(spine), seed=7,
+                     start=str(spine["ds"].iloc[0].date()))
 
 _stl_raw = STL(spine["y"].to_numpy(), period=12, robust=True).fit()
 trend_only = spine.assign(y=np.asarray(_stl_raw.trend))
-season_only = spine.assign(
-    y=np.asarray(_stl_raw.seasonal) + np.asarray(_stl_raw.resid)
-)
+
+# The seasonal panel is decomposed on logs: on the raw scale the swing grows
+# sixfold over 37 years, so "seasonality only" came out looking like noise with
+# a variance break instead of a repeating shape.
+_stl_log = STL(np.log(spine["y"].to_numpy()), period=12, robust=True).fit()
+season_only = spine.assign(y=np.asarray(_stl_log.seasonal))
 ```
 
 ## Beyond visual inspection
@@ -91,18 +95,20 @@ $$r_k = \frac{\sum_{t=k+1}^{T}(y_t - \bar{y})(y_{t-k} - \bar{y})}{\sum_{t=1}^{T}
 Standard sample correlation between the series and itself shifted by k steps.
 :::
 
-## The Correlogram (ACF Plot)
+## Slow decay: the spine ACF is dominated by trend
 
 ```{python}
 #| fig-width: 9
-fig, ax = plt.subplots(figsize=(9, 4.2))
+fig, ax = plt.subplots(figsize=(9, 3.6))
 P.acf_plot(spine["y"], nlags=36, ax=ax, highlight_every=12,
-           title="Spine ACF — 36 Lags (Annual spikes in orange)")
+           title="Spine ACF, 36 lags (annual lags in orange)")
 plt.show()
 ```
 
-::: {.cardbox .teal}
-Dashed blue lines indicate **95% significance bounds** ($\pm 1.96 / \sqrt{T}$).
+::: {.incremental}
+- Every lag sits far outside the bounds and decays slowly, which is trend
+- The annual lags (orange) are **not** spikes here: the trend swamps them
+- Dashed lines are the 95% bounds, $\pm 1.96 / \sqrt{T}$
 :::
 
 ## Significance Bounds
@@ -123,13 +129,14 @@ $$r_k \sim N\left(0,\ \tfrac{1}{T}\right)$$
 
 ```{python}
 #| fig-width: 10
-fig, axes = plt.subplots(2, 3, figsize=(10.5, 5.4))
+fig, axes = plt.subplots(2, 3, figsize=(10.5, 5.0))
 
-P.plot_series(trend_only, ax=axes[0, 0], title="Trend only")
-P.plot_series(season_only, ax=axes[0, 1], title="Seasonality only", color=P.BLUE)
-P.plot_series(noise, ax=axes[0, 2], title="White noise", color=P.GREY)
-for ax in axes[0]:
-    ax.set_xlabel("")
+P.plot_series(trend_only, ax=axes[0, 0], title="Trend only",
+              ylabel="turnover ($M)")
+P.plot_series(season_only, ax=axes[0, 1], title="Seasonality only",
+              color=P.BLUE, ylabel="log deviation")
+P.plot_series(noise, ax=axes[0, 2], title="White noise", color=P.GREY,
+              ylabel="z")
 
 P.acf_plot(trend_only["y"], nlags=36, ax=axes[1, 0], title="Slow decay")
 P.acf_plot(season_only["y"], nlags=36, ax=axes[1, 1], highlight_every=12,
@@ -181,9 +188,11 @@ lam = boxcox_lambda(spine["y"].to_numpy(), method="loglik")
 yt = boxcox(spine["y"].to_numpy(), lam)
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.8))
-P.plot_series(spine, ax=axes[0], title="Original — Expanding swing")
+P.plot_series(spine, ax=axes[0], title="Original: expanding swing",
+              ylabel="turnover ($M)")
 axes[1].plot(spine["ds"], yt, color=P.ORANGE, lw=0.9)
-axes[1].set_title(rf"Box-Cox ($\lambda = {lam:.2f}$) — Constant swing")
+axes[1].set_title(rf"Box-Cox ($\lambda = {lam:.2f}$): constant swing")
+axes[1].set_ylabel("transformed turnover")
 plt.show()
 ```
 
@@ -314,7 +323,7 @@ dcmp = spine.assign(
 )
 fig, axes = P.decomposition_plot(
     dcmp, ["transformed", "trend", "seasonal", "remainder"],
-    "STL Decomposition (Transformed Spine)")
+    "STL decomposition of the transformed spine")
 plt.show()
 ```
 
@@ -331,21 +340,23 @@ plt.show()
 STL = Seasonal-Trend decomposition using Loess. Key parameters: period (must provide) and seasonal window.
 :::
 
-## Seasonally Adjusted Series
+## Adjusting reveals the level shifts the season was hiding
 
 ```{python}
 #| fig-width: 9.5
-fig, ax = plt.subplots(figsize=(9.5, 4.2))
+fig, ax = plt.subplots(figsize=(9.5, 4.0))
 ax.plot(spine["ds"], dcmp["transformed"], color=P.GREY, lw=0.8, label="Observed")
 ax.plot(spine["ds"], dcmp["transformed"] - dcmp["seasonal"], color=P.ORANGE,
         lw=1.2, label="Seasonally adjusted")
-ax.set(title="Observed vs. Seasonally Adjusted ($y_t - S_t$)")
+ax.set(title="Observed vs. seasonally adjusted ($y_t - S_t$)",
+       ylabel="transformed turnover")
 ax.legend(frameon=False)
 plt.show()
 ```
 
 ::: {.cardbox .navy}
-Removing seasonality reveals true economic shifts (e.g. 2008 downturn).
+The step up in 2009 and the dip around 2000 are level shifts, not season. Both
+are much easier to see once the annual swing is gone.
 :::
 
 ## $\rightarrow$ Exercise 1.4 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
@@ -395,7 +406,7 @@ $$F_T = \max\left(0,\ 1 - \frac{\text{Var}(R_t)}{\text{Var}(T_t + R_t)}\right) \
 - **$F_S \approx 0$** $\rightarrow$ No seasonality | **$F_S \approx 1$** $\rightarrow$ Strong seasonality
 :::
 
-## 148 retail series mapped in 2D
+## Only seasonal strength separates the portfolio
 
 ```{python}
 #| fig-width: 9.5
@@ -415,25 +426,33 @@ feat = (allr.groupby("unique_id")[["y"]]
              .apply(stl_features, include_groups=False)
              .reset_index())
 
-fig, ax = plt.subplots(figsize=(9.5, 4.6))
+fig, ax = plt.subplots(figsize=(9.5, 4.3))
 ax.scatter(feat["trend_strength"], feat["seasonal_strength"], s=26,
-           color=P.BLUE, alpha=0.6)
+           color=P.BLUE, alpha=0.55)
 lo = feat.nsmallest(1, "seasonal_strength").iloc[0]
 hi = feat.nlargest(1, "seasonal_strength").iloc[0]
 mine = feat[feat["unique_id"] == D.SPINE_ID].iloc[0]
-for row, col in [(lo, P.GREY), (hi, P.ORANGE), (mine, P.GREEN)]:
-    ax.scatter([row["trend_strength"]], [row["seasonal_strength"]], s=110,
+marks = [(lo, P.BLACK, "least seasonal", (0, -14)),
+         (hi, P.ORANGE, "most seasonal", (0, 12)),
+         (mine, P.GREEN, "the spine", (0, 12))]
+for row, col, note, off in marks:
+    ax.scatter([row["trend_strength"]], [row["seasonal_strength"]], s=130,
                color=col, zorder=3)
-    ax.annotate(row["unique_id"], (row["trend_strength"], row["seasonal_strength"]),
-                textcoords="offset points", xytext=(-10, 8), size=9, color=col,
-                ha="right")
-ax.set(xlabel="Trend Strength ($F_T$)", ylabel="Seasonal Strength ($F_S$)",
-       title="Australian Retail Portfolio Feature Map")
+    ax.annotate(f"{note}\n{row['unique_id']}",
+                (row["trend_strength"], row["seasonal_strength"]),
+                textcoords="offset points", xytext=off, size=9, color=col,
+                ha="right", va="bottom" if off[1] > 0 else "top",
+                bbox=dict(facecolor="white", alpha=0.85, edgecolor="none",
+                          pad=1.5))
+ax.set(xlabel="Trend strength ($F_T$)", ylabel="Seasonal strength ($F_S$)",
+       title="148 Australian retail series", ylim=(0.10, 1.14))
 plt.show()
 ```
 
 ::: {.notes}
-Notice all retail series have FT > 0.96. Trend strength does not discriminate in this portfolio; seasonal strength provides the separation.
+Every series here scores above 0.89 on trend strength, so trend tells you nothing
+about which series is which. Seasonal strength runs from 0.26 to 0.98, and that is
+the axis worth acting on.
 :::
 
 ## Practical uses of feature maps
