@@ -28,7 +28,7 @@ _stl_raw = STL(spine["y"].to_numpy(), period=12, robust=True).fit()
 trend_only = spine.assign(y=np.asarray(_stl_raw.trend))
 
 # The seasonal panel is decomposed on logs: on the raw scale the swing grows
-# sixfold over 37 years, so "seasonality only" came out looking like noise with
+# sevenfold over 37 years, so "seasonality only" came out looking like noise with
 # a variance break instead of a repeating shape.
 _stl_log = STL(np.log(spine["y"].to_numpy()), period=12, robust=True).fit()
 season_only = spine.assign(y=np.asarray(_stl_log.seasonal))

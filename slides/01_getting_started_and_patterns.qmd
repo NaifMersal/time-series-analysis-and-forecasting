@@ -336,7 +336,7 @@ plt.show()
 ```
 
 ::: {.incremental}
-- Upward trend, roughly eightfold over 37 years
+- Upward trend, roughly sixfold over 37 years
 - The seasonal swing widens as the level rises
 - Sharp 2009 step and 2000 dip: investigate breaks before modelling
 :::
@@ -361,7 +361,7 @@ plt.show()
 :::
 
 ::: {.notes}
-Ten years, not all 37. Over the full span the level grows eightfold, so the lines stack by year and the shape is unreadable.
+Ten years, not all 37. Over the full span the level grows sixfold, so the lines stack by year and the shape is unreadable.
 :::
 
 ## Subseries plots isolate pure seasonal means
@@ -390,7 +390,7 @@ plt.show()
 
 ::: {.callout-important}
 ## Trend Obscures Month-to-Month Means
-When trend growth is massive (8x), seasonal differences appear tiny until trend is removed with **decomposition**.
+When trend growth is this large (6x), seasonal differences appear tiny until trend is removed with **decomposition**.
 :::
 
 ::: {.notes}
