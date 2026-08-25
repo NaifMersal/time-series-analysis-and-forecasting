@@ -192,19 +192,23 @@ checks.check_ex_1_2(spine)
 """),
     md("""
 This series is clean. Most are not - so here is what a gap actually costs.
-Run this and compare the two seasonal lags.
+Run this and watch the calendar slip.
 """),
     code("""
-# Drop three months at random and see what happens to the seasonal structure.
+# Drop three months at random and see what happens to the calendar.
 rng = np.random.default_rng(0)
 holes = rng.choice(np.arange(100, 300), size=3, replace=False)
 broken = spine.drop(index=holes).reset_index(drop=True)
 
-r_full, _ = P.acf_values(spine["y"], nlags=24)
-r_broken, _ = P.acf_values(broken["y"], nlags=24)
-print(f"r_12 with a complete calendar : {r_full[11]:.3f}")
-print(f"r_12 after dropping 3 months  : {r_broken[11]:.3f}")
-print("\\nThe rows still line up. The CALENDAR does not.")
+step = broken["ds"].diff().dt.days
+print(f"rows: {len(spine)} -> {len(broken)}, and pandas still reports no error")
+print(f"month-to-month steps seen  : {sorted(step.dropna().unique().astype(int))}")
+print(f"steps longer than a month  : {int((step > 32).sum())}")
+
+# "12 rows back" is no longer "12 months back" after a gap.
+i = int(holes.max()) + 20
+print(f"\\nrow {i} is {broken['ds'][i].date()}; 12 rows earlier is "
+      f"{broken['ds'][i - 12].date()}, not the same month a year before")
 """),
     md("""
 **Repairing a gap.** Reindex onto the full date range, then decide what the
@@ -240,12 +244,13 @@ plt.show()
 
 # 2. seasonal plot
 fig, ax = plt.subplots(figsize=(9, 4.2))
-P.seasonal_plot(sp, "year", "month", ax=ax, title="One line per year")
-ax.set_xticks(range(1, 13))
+P.seasonal_plot(sp, "year", "month", ax=ax, title="One line per year",
+                season_labels=P.MONTH_LABELS, colorbar=True)
 plt.show()
 
 # 3. subseries plot
-fig, axes = P.subseries_plot(sp, "month", title="One panel per month")
+fig, axes = P.subseries_plot(sp, "month", title="One panel per month",
+                             season_labels=P.MONTH_LABELS)
 plt.show()
 """),
     md("""
@@ -257,12 +262,12 @@ anything unusual around 2009.
 *Your answer:*
 
 <!--SOLUTION-->
-*Answer.* Turnover rises roughly eight-fold from 1982 to 2018, with a clear
-December peak and February trough every year. The seasonal swing grows with the
-level, so the series is multiplicative - that is what the Box-Cox transform in
-1.4 will fix. Growth flattens noticeably around 2009-2010 (the financial
-crisis), which is a level effect rather than a seasonal one; the seasonal plot
-shows the *shape* stays put while the level stalls.
+*Answer.* Turnover rises roughly sixfold in level from 1982 to 2018, with a
+clear December peak and February trough every year. The seasonal swing grows
+with the level, so the series is multiplicative - that is what the Box-Cox
+transform in 1.4 will fix. Growth jumps sharply in 2009-2010 and then plateaus
+through about 2014. That is a level shift rather than a seasonal one: the
+seasonal plot shows the *shape* stays put while the level moves under it.
 """),
     md("""
 ### Stretch
@@ -552,15 +557,16 @@ ax.scatter(feat["trend_strength"], feat["seasonal_strength"], s=26,
            color=P.BLUE, alpha=0.6)
 mine = feat[feat["unique_id"] == D.SPINE_ID].iloc[0]
 ax.scatter([mine["trend_strength"]], [mine["seasonal_strength"]], s=120,
-           color=P.GREEN, zorder=3, label="our spine")
+           color=P.BLACK, zorder=3, label="our spine")
 ax.set(xlabel="strength of trend", ylabel="strength of seasonality",
-       title="148 retail series in feature space")
+       title="148 retail series in feature space",
+       xlim=(0, 1.05), ylim=(0, 1.05))
 ax.legend(frameon=False)
 plt.show()
 """),
     md("""
-**Question.** Trend strength is above 0.96 for nearly every series. Is that
-feature useless here?
+**Question.** Every one of the 148 series scores above 0.89 on trend strength,
+and 97% score above 0.96. Is that feature useless here?
 
 <!--STUDENT-->
 *Your answer:*
@@ -573,6 +579,22 @@ axis worth routing on. A feature that does not vary across your portfolio is a
 feature you can stop computing - after you have looked at it once.
 """),
 
+    md("""
+### Stretch
+
+`stl_features` takes any long-format frame with `unique_id` / `ds` / `y`. Point it
+at a series of your own, or at a second series from `D.retail_all()`, and see
+where it lands on the map above.
+"""),
+    code("""
+# TODO: build a one-series frame and run stl_features on it, then say where it
+# sits relative to the cloud: more or less seasonal than the spine?
+""", """
+own = allr[allr["unique_id"] == "Western Australia / Department stores"]
+f = stl_features(own[["y"]])
+print(f"trend {f['trend_strength']:.3f}  seasonal {f['seasonal_strength']:.3f}")
+print(f"spine seasonal strength was {mine['seasonal_strength']:.3f}")
+"""),
     md("""
 ---
 ## End of Day 1

@@ -14,7 +14,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-# Colour-blind friendly palette, carried over from the Ch-3 exercise notebook.
+# Data colours are Okabe-Ito, not the SDAIA chrome palette, and that is deliberate:
+# these are the colours students read *data* off, and Okabe-Ito stays separable
+# under all three common forms of colour blindness. SDAIA teal and coral are close
+# in luminance and converge for deuteranopes, which is fine for a border on a card
+# and not fine for two series on one axis. The SDAIA palette still owns everything
+# around the plot (dividers, cardboxes, rules); the plot interior is Okabe-Ito.
+#
+# Day 1 colour meanings, kept fixed across both decks:
+#   BLACK  the spine, and "trend" wherever the taxonomy is being taught
+#   BLUE   the seasonal component / a second series being contrasted
+#   ORANGE the derived or highlighted thing (transform, MA, seasonal lags)
+#   GREY   noise, and the raw observed series when something derived sits on top
+#   PINK   a third category when one is genuinely needed
 BLACK = "#000000"
 ORANGE = "#D55E00"
 BLUE = "#0072B2"
@@ -83,6 +95,7 @@ def plot_series(df, x="ds", y="y", ax=None, title="", xlabel="", ylabel="",
         _, ax = plt.subplots()
     ax.plot(df[x], df[y], color=color, **kw)
     ax.set(title=title, xlabel=xlabel, ylabel=ylabel)
+    ax.margins(x=0.01)
     return ax
 
 
@@ -156,9 +169,9 @@ def trend_overlay_plot(df, trends, ax=None, title="", x="ds", y="y",
             xs = np.asarray(d[x])
             lo, hi = xs[last[-1]], xs[-1]
             ax.axvspan(lo, hi, color=ORANGE, alpha=0.14, lw=0)
-            ax.annotate("no MA trend", (lo + (hi - lo) / 2, 0.05),
+            ax.annotate("no MA trend", (lo + (hi - lo) / 2, 0.90),
                         xycoords=("data", "axes fraction"),
-                        ha="center", size=9, color=ORANGE)
+                        ha="center", size=10, weight="bold", color=ORANGE)
     ax.set(title=title, xlabel="", ylabel=ylabel)
     if legend:
         ax.legend(frameon=False, ncols=len(trends) + 1, loc="upper left")
@@ -173,7 +186,7 @@ def ma_weight_plot(m: int = 12, ax=None, title=None):
     season still gets ``1/m`` -- which is why the seasonal term still cancels.
     """
     if ax is None:
-        _, ax = plt.subplots(figsize=(6.5, 2.8))
+        _, ax = plt.subplots(figsize=(7.5, 3.4))
     w = ma_weights(m)
     k = len(w) // 2
     off = np.arange(-k, k + 1)
@@ -185,9 +198,20 @@ def ma_weight_plot(m: int = 12, ax=None, title=None):
         ax.vlines(off[ends], 0, w[ends], color=ORANGE, lw=6)
     ax.axhline(0, color=GREY, lw=1)
     label = f"2×{m}-MA" if m % 2 == 0 else f"{m}-MA"
+    inner, end = float(w[k]), float(w[0])
+    ticks = [end, inner] if m % 2 == 0 else [inner]
     ax.set(title=title if title is not None else f"{label} weights",
            xlabel="offset from t", ylabel="weight",
-           xticks=off[::2], ylim=(0, float(w.max()) * 1.35))
+           xticks=off[::2], yticks=ticks,
+           ylim=(0, inner * 1.45))
+    ax.set_yticklabels([f"1/{round(1 / t)}" for t in ticks])
+    if m % 2 == 0:
+        ax.annotate(f"1/{round(1 / end)} each", (off[0], end),
+                    textcoords="offset points", xytext=(0, 8),
+                    ha="center", size=9, color=ORANGE)
+        ax.annotate(f"1/{round(1 / inner)} each", (0, inner),
+                    textcoords="offset points", xytext=(0, 8),
+                    ha="center", size=9, color=BLUE)
     return ax
 
 
@@ -333,7 +357,7 @@ def acf_values(y, nlags=24):
 
 
 def acf_plot(y, nlags=24, ax=None, title="", highlight_every=None,
-             color=BLACK, show_bounds=True):
+             color=BLACK, show_bounds=True, ylim=(-1.05, 1.05)):
     """Correlogram with the 1.96/sqrt(T) significance band.
 
     ``highlight_every=m`` paints the seasonal lags (m, 2m, ...) in ORANGE --
@@ -354,7 +378,7 @@ def acf_plot(y, nlags=24, ax=None, title="", highlight_every=None,
     if show_bounds:
         ax.axhline(bound, color=BLUE, ls="--", lw=1)
         ax.axhline(-bound, color=BLUE, ls="--", lw=1)
-    ax.set(title=title, xlabel="lag", ylabel="ACF", ylim=(-1.05, 1.05))
+    ax.set(title=title, xlabel="lag", ylabel="ACF", ylim=ylim)
     return ax
 
 

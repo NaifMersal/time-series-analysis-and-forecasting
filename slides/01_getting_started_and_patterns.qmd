@@ -40,7 +40,7 @@ Diagnose a series, build a baseline, and prove whether anything beats it.
 
 # A. What forecasting is for {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
 
-Ch 1
+Ch 1 · Why forecast at all
 
 ## Forecasts exist to change decisions
 
@@ -107,9 +107,10 @@ Point 3 is key: if a demand forecast causes price cuts or stockouts, it alters f
 digraph G {
     bgcolor="transparent";
     rankdir=LR;
-    node [shape=box style="rounded,filled" fontname="Noto Sans" fontsize=13
+    graph [fontname="Segoe UI"];
+    node [shape=box style="rounded,filled" fontname="Segoe UI" fontsize=13
           color="#1C355E" penwidth=2 margin="0.18,0.10"];
-    edge [fontname="Noto Sans" fontsize=11 color="#5b6678" penwidth=1.6];
+    edge [fontname="Segoe UI" fontsize=11 color="#5b6678" penwidth=1.6];
 
     E [label="1. Explanatory\nPredictors only\ny = f(weather, price, ...)"
        fillcolor="#00AE8D" fontcolor="white"];
@@ -125,7 +126,7 @@ digraph G {
 
 ::: {.callout-note}
 ## Course Focus
-Days 1–2 focus on **pure time series** (Box 2). Day 3 covers mixed models.
+Days 1–2 stay on **pure time series** (Box 2). Day 3 goes further.
 :::
 
 ## Past history avoids missing future predictors
@@ -171,7 +172,7 @@ Trend does not have to be linear. Cycles are usually longer than seasonality and
 :::
 :::
 ::: {.column width="50%"}
-::: {.cardbox .navy}
+::: {.cardbox}
 [Cycle]{.card-title}
 
 - **Variable, unknown period**
@@ -197,7 +198,7 @@ fig, axes = plt.subplots(2, 2, figsize=(10, 5.4))
 P.plot_series(spine, ax=axes[0, 0], title="Trend + seasonality (retail)",
               ylabel="turnover ($M)")
 P.plot_series(beer, ax=axes[0, 1], title="Seasonality + drifting trend (beer)",
-              ylabel="megalitres")
+              color=P.BLUE, ylabel="megalitres")
 P.plot_series(lynx, ax=axes[1, 0], title="Cycle, no fixed period (lynx)",
               color=P.ORANGE, ylabel="pelts traded")
 P.plot_series(noise, ax=axes[1, 1], title="No pattern (white noise)",
@@ -227,6 +228,9 @@ The lynx peaks occur 8–11 years apart, never the exact same gap. This is a cyc
 | $T_t$ | **Trend-Cycle** component (underlying direction) |
 | $R_t$ | **Remainder** (random noise / unexplained variation) |
 
+Decomposition cannot separate trend from cycle, so $T_t$ carries both. That is
+why it is written trend-cycle.
+
 ## Expanding swings require multiplicative models
 
 ```{python}
@@ -247,7 +251,7 @@ plt.show()
 - Growing swing $\rightarrow$ **Multiplicative** (fix with log transform)
 :::
 
-## The Golden Rule: The order is the data {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+## The Golden Rule {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
 ::: {.r-fit-text}
 The order **is** the data.
@@ -265,7 +269,7 @@ The order **is** the data.
 Random shuffling allows models to look into the future. Day 2 introduces rolling-origin evaluation.
 :::
 
-## Shuffling destroys all autocorrelation and structure
+## Same values, shuffled: every pattern is gone
 
 ```{python}
 #| fig-width: 10
@@ -273,24 +277,28 @@ rng = np.random.default_rng(0)
 y = spine["y"].to_numpy()
 shuffled = rng.permutation(y)
 
-fig, axes = plt.subplots(2, 2, figsize=(10, 5.2))
-axes[0, 0].plot(spine["ds"], y, color=P.BLACK, lw=0.9)
-axes[0, 0].set(title="Original data", ylabel="turnover ($M)")
-axes[0, 1].plot(spine["ds"], shuffled, color=P.ORANGE, lw=0.9)
-axes[0, 1].set(title="Shuffled (same values)", ylabel="turnover ($M)")
-P.acf_plot(y, nlags=36, ax=axes[1, 0], highlight_every=12,
-           title="Original ACF: Rich Structure")
-P.acf_plot(shuffled, nlags=36, ax=axes[1, 1], color=P.ORANGE,
-           title="Shuffled ACF: Zero Structure")
-P.thin_xticks(axes[0], n=4)
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
+P.plot_series(spine, ax=axes[0], color=P.BLACK, ylabel="turnover ($M)",
+              title="Original: trend and season")
+axes[1].plot(spine["ds"], shuffled, color=P.ORANGE, lw=0.9)
+axes[1].set_title("Shuffled: same 441 values, new order")
+P.thin_xticks(axes, n=4)
+for ax in axes:
+    ax.set_xlabel("")
 plt.show()
 ```
 
-::: {.notes}
-Mean and variance remain identical after shuffling, but every forecastable property is destroyed.
+::: {.incremental}
+- Same mean, same variance, same histogram
+- Nothing left to forecast from: the order was the only structure
 :::
 
-## $\rightarrow$ Exercise 1.1 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+::: {.notes}
+Ask the room what a model could possibly learn from the right-hand panel. Nothing, and
+yet its summary statistics are identical to the left. Day 2 measures this properly.
+:::
+
+## $\rightarrow$ Exercise 1.1 · Name the pattern {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
 Open `labs/01_day1_structure_and_diagnostics.ipynb`
 
@@ -306,16 +314,16 @@ Open `labs/01_day1_structure_and_diagnostics.ipynb`
 
 # C. Seeing the patterns {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
-Ch 2.2–2.5 · The essential plots
+Ch 2.2–2.5 · The four plots
 
-## Four diagnostic plots reveal different structural features
+## Four plots, four questions
 
 | Plot | Core Question |
 |---|---|
 | **Time plot** | What does the overall series look like? |
 | **Seasonal plot** | What is the repeating annual shape? |
 | **Subseries plot** | How does each specific month/quarter evolve? |
-| **Scatterplot** | Does another variable move in sync? |
+| **Lag plot** | Is $y_t$ related to $y_{t-k}$? (segment 3) |
 
 . . .
 
@@ -370,7 +378,7 @@ Ten years, not all 37. Over the full span the level grows sixfold, so the lines 
 #| fig-width: 10
 fig, axes = P.subseries_plot(D.add_calendar(beer), "quarter",
                              ylabel="megalitres", season_labels=P.QUARTER_LABELS,
-                             title="Beer production by quarter (orange line = quarter mean)")
+                             title="Beer production by quarter, 1956 to 2010 (orange line = quarter mean)")
 plt.show()
 ```
 
@@ -394,7 +402,9 @@ When trend growth is this large (6x), seasonal differences appear tiny until tre
 :::
 
 ::: {.notes}
-The seasonality is real (as seen in the seasonal plot), but raw monthly means fail to reveal it clearly under strong growth.
+Ask the room which month is highest here. Nobody can tell. Then flip back two
+slides to the seasonal plot, where December is obvious. Same data, different
+subtraction.
 :::
 
 ## Verify timestamp continuity before fitting models
@@ -414,7 +424,7 @@ print("Gaps > 1 month     :", int((gaps > 32).sum()))
 A missing row shifts every seasonal lag that follows. Always check frequency before modelling.
 :::
 
-## $\rightarrow$ Exercise 1.2 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+## $\rightarrow$ Exercise 1.2 · Load, verify, and look {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
 Open `labs/01_day1_structure_and_diagnostics.ipynb`
 

@@ -16,11 +16,11 @@ do it while it is fresh.
 
 ## Before you start
 
-- [Setup guide](labs/00_setup.md) — install and verify, ~20 minutes
-- [Pre-work notebook](labs/00_pre_work.ipynb) — pandas dates, long format, an OLS refresher
-- [Reference cheat sheet](labs/reference_cheatsheet.md) — one page, printable
+- [Setup guide](labs/00_setup.md), install and verify, ~20 minutes
+- [Pre-work notebook](labs/00_pre_work.ipynb), pandas dates, long format, an OLS refresher
+- [Reference cheat sheet](labs/reference_cheatsheet.md), one page, printable
 
-## Day 1 — Structure
+## Day 1: Structure
 
 *Seeing what is actually in a series.*
 
@@ -34,7 +34,7 @@ Applications and what can be forecast · the three model families · trend, seas
 cycle · components · the golden rule · the four plots · autocorrelation and the
 correlogram · Box-Cox and STL · features across a whole portfolio.
 
-## Day 2 — Toolbox & evaluation
+## Day 2: Toolbox & evaluation
 
 *Forecasting, and proving whether the forecast was any good.*
 
@@ -50,8 +50,8 @@ leakage.
 
 Day 2 ends with an **evaluation harness** and the first rows of the course leaderboard.
 
-## Day 3 — Models
+## Day 3: Models
 
-*In preparation.* The mix — ETS, ARIMA, dynamic regression, neural and foundation models —
+*In preparation.* The mix, ETS, ARIMA, dynamic regression, neural and foundation models , 
 is still being decided. Whatever it turns out to be, every model gets plugged into the
 harness built on Day 2 and added to the same leaderboard.

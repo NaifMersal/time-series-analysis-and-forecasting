@@ -1,11 +1,11 @@
-# Setup — do this before Day 1
+# Setup: do this before Day 1
 
 Twenty minutes, once. Day 1 opens with content, not an install clinic.
 
 ## What you need
 
 - **Python 3.11 or 3.12** (3.13+ is not supported by every dependency yet)
-- **[uv](https://docs.astral.sh/uv/)** — the installer this project uses
+- **[uv](https://docs.astral.sh/uv/)**: the installer this project uses
 - Internet access **once**, to download packages and datasets. After that the whole
   course runs offline.
 
@@ -26,8 +26,8 @@ From the repository root:
 uv sync --extra dev
 ```
 
-That creates `.venv/` and installs everything, including `coursekit` — the course's own
-helper package — as an **editable** install, so the labs can `from coursekit import ...`
+That creates `.venv/` and installs everything, including `coursekit`, the course's own
+helper package, as an **editable** install, so the labs can `from coursekit import ...`
 from anywhere.
 
 ## Verify
@@ -55,7 +55,7 @@ conference wifi.
 uv run jupyter lab
 ```
 
-Then open `labs/00_pre_work.ipynb` and work through it — about 20 minutes.
+Then open `labs/00_pre_work.ipynb` and work through it, about 20 minutes.
 
 If you prefer VS Code: open the folder, then pick the `.venv` interpreter
 (Ctrl+Shift+P → *Python: Select Interpreter*) before opening a notebook.
@@ -69,12 +69,12 @@ interpreter in your editor.
 
 **`check_env.py` says datasets are missing**
 Run `scripts/prefetch_data.py`. If it fails, you are probably behind a proxy that blocks
-`raw.githubusercontent.com` — try from a different network, or ask the instructor for the
+`raw.githubusercontent.com`, try from a different network, or ask the instructor for the
 `coursekit/data/` folder on a USB stick.
 
 **`pyreadr` fails to install**
 It ships as a wheel for common platforms. If yours is unusual, tell the instructor before
-Day 1 — the datasets can be supplied as CSV instead.
+Day 1, the datasets can be supplied as CSV instead.
 
 **A plot does not appear in Jupyter**
 Make sure the cell ends with `plt.show()` and that you selected the `.venv` kernel.
