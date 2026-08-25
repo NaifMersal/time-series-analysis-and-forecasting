@@ -129,22 +129,63 @@ def _slide_titles(lines):
 # Rules
 # --------------------------------------------------------------------------
 
-def rule_em_dash(path, text, lines):
-    for i, ln, in_code, in_yaml in _blocks(lines):
-        if in_code or in_yaml:
+def _notes_lines(lines):
+    """Line numbers inside a ::: {.notes} block.
+
+    Speaker notes are prose the instructor reads to themselves, not text the
+    room has to parse off a projector, so the slide-text rules do not apply.
+    """
+    inside, depth_at_open, depth, out = False, 0, 0, set()
+    for i, ln in enumerate(lines, start=1):
+        st = ln.strip()
+        if st.startswith("```"):
             continue
-        if "—" in ln:
-            yield Finding("ERROR", path, i, "em-dash",
-                          "an em dash on a slide reads as an aside nobody has "
-                          "time for at projector size",
-                          "recast as two sentences, a colon, or a semicolon")
+        if st.startswith(":::"):
+            body = st.lstrip(":").strip()
+            if body:
+                depth += 1
+                if "notes" in body and not inside:
+                    inside, depth_at_open = True, depth
+            else:
+                if inside and depth == depth_at_open:
+                    inside = False
+                depth = max(0, depth - 1)
+            continue
+        if inside:
+            out.add(i)
+    return out
+
+
+#: "[Label]{.card-title} — the gloss" is a deliberate label separator, not an
+#: aside buried in a sentence, so the em-dash rule leaves it alone.
+_LABEL_DASH = re.compile(r"\]\{[^}]*\}\s*—|^\s*\*?\*?[\w ]+\*?\*?\s*—\s")
+
+
+def rule_em_dash(path, text, lines):
+    notes = _notes_lines(lines)
+    for i, ln, in_code, in_yaml in _blocks(lines):
+        if in_code or in_yaml or i in notes:
+            continue
+        if "—" not in ln:
+            continue
+        if _LABEL_DASH.search(ln):
+            continue
+        yield Finding("ERROR", path, i, "em-dash",
+                      "an em dash in slide prose reads as an aside nobody has "
+                      "time for at projector size",
+                      "recast as two sentences, a colon, or a semicolon")
+
+
+def _strip_code_spans(ln):
+    """Drop `inline code` so an API argument is not read as prose."""
+    return re.sub(r"`[^`]*`", "", ln)
 
 
 def rule_banned_words(path, text, lines):
     for i, ln, in_code, in_yaml in _blocks(lines):
         if in_code or in_yaml:
             continue
-        low = ln.lower()
+        low = _strip_code_spans(ln).lower()
         for w in BANNED_WORDS:
             if re.search(rf"\b{re.escape(w)}\b", low):
                 yield Finding("ERROR", path, i, "banned-word",
@@ -158,11 +199,34 @@ def rule_spelling(path, text, lines):
         if in_code or in_yaml:
             continue
         for pattern, advice in SPELLING:
-            m = re.search(pattern, ln)
+            m = re.search(pattern, _strip_code_spans(ln))
             if m:
                 yield Finding("WARN", path, i, "spelling",
                               f"{m.group(0)!r} mixes spelling conventions",
                               advice)
+
+
+def _code_cells(lines):
+    """Yield (fence_lang, start_line, [body lines]) for every fenced block."""
+    lang, start, body = None, None, []
+    for i, ln in enumerate(lines, start=1):
+        st = ln.strip()
+        if st.startswith("```"):
+            if lang is None:
+                lang, start, body = st.strip("`").strip(), i, []
+            else:
+                yield lang, start, body
+                lang = None
+            continue
+        if lang is not None:
+            body.append((i, ln))
+
+
+_DRAW = re.compile(
+    r"^\s*(ax|axes\[\d\]|axes\[\d\]\[\d\])\."
+    r"(plot|bar|barh|scatter|hist|hist2d|fill_between|stem|step|imshow|pie|"
+    r"boxplot|violinplot|errorbar|axhline|axvline|axhspan|axvspan|contour)\s*\(")
+_HELPER = re.compile(r"(?:^|[^\w.])(?:P|plotting)\.[a-z_]+\s*\(")
 
 
 def rule_inline_matplotlib(path, text, lines):
@@ -170,34 +234,39 @@ def rule_inline_matplotlib(path, text, lines):
 
     A figure drawn inline in a `.qmd` can drift from the one the lab draws, and
     then a slide claims something the students' own code does not show.
+
+    Judged per cell, because the two cases are not the same defect. A cell that
+    calls ``ax.plot`` is drawing data the shared module does not know about:
+    that is the ERROR. A cell that opens a figure with ``plt.subplots`` and then
+    hands the axes to a plotting helper still gets its chart from the shared
+    module; it is only boilerplate, and it reports at WARN with the fix being a
+    ``figsize`` parameter on the helper.
     """
-    patterns = [
-        (r"plt\.subplots\s*\(", "plt.subplots inside a deck"),
-        (r"^\s*ax\.(plot|bar|barh|scatter|hist|fill_between)\s*\(", "a bare ax.* call"),
-        (r"^\s*axes\[\d\]\.(plot|bar|barh|scatter|hist|fill_between)\s*\(",
-         "a bare axes[...] call"),
-    ]
-    fence_lang = None
-    for i, ln in enumerate(lines, start=1):
-        st = ln.strip()
-        if st.startswith("```"):
-            fence_lang = None if fence_lang is not None else st.strip("`").strip()
+    for lang, start, body in _code_cells(lines):
+        if not (lang.startswith("{python}") or lang.startswith("python")):
             continue
-        if fence_lang is None:
-            continue
-        # only executable python cells matter; ```python is highlight-only, but
-        # a highlight block showing hand-rolled matplotlib is just as much a
-        # duplicate of the plotting module, so both are flagged.
-        if not (fence_lang.startswith("{python}") or fence_lang.startswith("python")):
-            continue
-        for pattern, what in patterns:
-            if re.search(pattern, ln):
+        draws = [(i, ln) for i, ln in body if _DRAW.search(ln)]
+        subplots = [(i, ln) for i, ln in body if re.search(r"plt\.subplots\s*\(", ln)]
+        uses_helper = any(_HELPER.search(ln) for _, ln in body)
+        for i, _ in draws:
+            yield Finding("ERROR", path, i, "inline-chart",
+                          "this cell draws data itself instead of calling the "
+                          "project's shared plotting module",
+                          "move it into coursekit/plotting.py with a signature "
+                          "the lab can call, then call it here")
+        if subplots and not draws:
+            i = subplots[0][0]
+            if uses_helper:
+                yield Finding("WARN", path, i, "subplots-boilerplate",
+                              "the chart comes from the plotting module, but "
+                              "the deck still opens the figure by hand",
+                              "give the helper a figsize parameter and drop the "
+                              "plt.subplots line, so the deck is one call")
+            else:
                 yield Finding("ERROR", path, i, "inline-chart",
-                              f"{what}: this figure is not coming from the "
-                              "project's shared plotting module",
-                              "move it into coursekit/plotting.py with a "
-                              "signature the lab can call, then call it here")
-                break
+                              "plt.subplots in a deck with no plotting-module "
+                              "call in the same cell",
+                              "move the figure into coursekit/plotting.py")
 
 
 def rule_python_fence_confusion(path, text, lines):

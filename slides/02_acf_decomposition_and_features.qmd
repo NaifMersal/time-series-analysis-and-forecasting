@@ -684,7 +684,7 @@ Open `labs/01_day1_structure_and_diagnostics.ipynb`
 
 . . .
 
-*45 minutes. The notebook carries the instructions — work down it in order.*
+*45 minutes. The notebook carries the instructions; work down it in order.*
 
 ::: {.cardbox .teal}
 Same notebook as Lab A. Pick up at Exercise 1.3.
