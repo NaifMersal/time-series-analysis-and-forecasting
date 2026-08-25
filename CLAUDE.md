@@ -62,6 +62,7 @@ coursekit/       the shared package (installed editable)
   datasets.py    the specific series this course teaches on
   plotting.py    every chart in the decks AND the labs
   leaderboard.py the running scoreboard
+  scoring.py     LEVELS/QCOLS/QUANTILES and score_cv -- the harness Day 3 plugs into
   checks.py      the check_ex_* assertions the labs call
   data/          cached .rda files -- COMMITTED so the course runs offline
 scripts/         check_env.py, prefetch_data.py, build_labs.py
@@ -201,8 +202,23 @@ example).
 Constraints that survive this decision:
 
 - Whatever is chosen plugs into the Day 2 harness and appends to
-  `labs/leaderboard.csv` via `coursekit.leaderboard.record(...)` — `mase`, `rmsse`,
-  `crps`, `coverage_80`. Adding a model should stay a few lines.
+  `labs/leaderboard.csv` via `coursekit.leaderboard.record(...)`. `coursekit.scoring`
+  is what keeps that to a few lines:
+
+  ```python
+  from coursekit import scoring, leaderboard as lb
+  cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                           level=scoring.LEVELS)
+  lb.record("AutoETS", day=3, **scoring.score_cv(cv, "AutoETS", spine))
+  ```
+
+  Two things that bite otherwise. `scoring.QCOLS` and `scoring.QUANTILES` are derived
+  from `LEVELS` rather than typed out, because out of step they make `scaled_crps`
+  return a number that is wrong and still positive. And a model with no closed-form
+  interval (`WindowAverage`, and most ML models) raises *"You must pass
+  `prediction_intervals`"* the moment `cross_validation` is asked for a level; give it
+  `prediction_intervals=ConformalIntervals(n_windows=..., h=...)`, which is what
+  deck 3's segment E teaches.
 - Ch 10 *is* Ch 7 + Ch 9, so if dynamic regression gets class time, Ch 7 travels
   with it.
 - The pin-drift rule stands: no Day 3 model may leak into Day 2 content.
