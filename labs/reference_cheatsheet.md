@@ -173,14 +173,69 @@ is not proof there is none. Read the ACF plot too.
 
 $$\hat y_{T+h|T} \pm c\,\hat\sigma_h \qquad c = 1.28\ (80\%),\ 1.96\ (95\%)$$
 
-For the naive method $\hat\sigma_h = \hat\sigma\sqrt h$, uncertainty grows, but
-*decelerating*. That $\sqrt h$ shape is why a fan chart flares fast then widens slowly.
+$\hat\sigma_h$ is **not** $\hat\sigma\sqrt h$ for every method. That is the naive method's:
+
+| Method | $\hat\sigma_h$ |
+|---|---|
+| Mean | $\hat\sigma\sqrt{1 + 1/T}$ |
+| Naive | $\hat\sigma\sqrt h$ |
+| Seasonal naive | $\hat\sigma\sqrt{k+1}$, $k = \lfloor (h-1)/m \rfloor$ — a **staircase**, flat inside a year |
+| Drift | $\hat\sigma\sqrt{h\,(1 + h/(T-1))}$ |
 
 **Intervals are usually too narrow.** The formula covers randomness *given the model*, not
 the model being wrong, the parameters being estimated, or the world changing.
 
 Measuring coverage on $n$ points carries a standard error of $\sqrt{p(1-p)/n}$, on 24
 points that is $\pm16\%$. One window cannot measure coverage.
+
+### Three methods, three assumptions
+
+| Method | Assumes | Interval is |
+|---|---|---|
+| Gaussian | residuals uncorrelated, constant variance, **normal** | $\hat y \pm c\,\hat\sigma_h$ |
+| Bootstrap | residuals uncorrelated and **i.i.d. from $\hat F$** — one distribution whose characteristics do not change over time | percentiles of simulated paths |
+| Split conformal | past $h$-step errors **exchangeable** with future ones (weaker than i.i.d.: order carries no information) | $\hat y_{T+h\vert T} \pm Q_{1-\alpha}(\lvert e_{t+h\vert t}\rvert)$ |
+
+**Bootstrap.** Resample past residuals into the model's own recursion, then take
+percentiles down each column. Nothing forces the result to be symmetric.
+
+```python
+resid = (fv["y"] - fv["SeasonalNaive"]).dropna()
+paths = P.bootstrap_paths(train["y"], resid, h=24, season_length=12,
+                          n_paths=5000, seed=7)      # -> (5000, 24)
+fan = P.paths_to_fan(fc["ds"], paths, levels=(80, 95))
+P.sim_paths_plot(train, fc["ds"], paths, n_show=8)   # the paths, not the band
+```
+
+`resid_tail=N` draws only from the last `N` residuals. On a series whose error spread
+grows with its level, a shorter and more recent pool is the more honest one — coverage on
+the spine goes 62% (all 405 residuals) → about 87% (last 120), against a nominal 80%.
+
+**Conformal.** The calibration set is $h$-step forecast errors, collected by rolling the
+origin:
+
+$$e_{t+h|t} = y_{t+h} - \hat y_{t+h|t}$$
+
+$t$ is when the forecast was made, $t+h$ what it predicted. At $h=1$ these are the
+residuals; for $h>1$ they must be collected, not fitted. One quantile per horizon, so the
+widening with $h$ is measured rather than assumed.
+
+```python
+from statsforecast.utils import ConformalIntervals
+
+sf = StatsForecast(
+    models=[SeasonalNaive(season_length=12,
+                          prediction_intervals=ConformalIntervals(n_windows=8, h=24))],
+    freq="MS",
+)
+```
+
+Needs $2h+1$ observations minimum. With 8 windows only 16 scores sit behind each horizon,
+so the band comes out visibly jittery.
+
+On the spine, 80% coverage over 8 rolling origins: Gaussian 77%, bootstrap 62%,
+conformal 83%. None of the three assumptions actually holds here — pick knowing which one
+you are spending.
 
 ---
 

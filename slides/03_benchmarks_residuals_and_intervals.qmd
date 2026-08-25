@@ -13,6 +13,7 @@ import pandas as pd
 from statsforecast import StatsForecast
 from statsforecast.models import (HistoricAverage, Naive, RandomWalkWithDrift,
                                   SeasonalNaive)
+from statsforecast.utils import ConformalIntervals
 from statsmodels.stats.diagnostic import acorr_ljungbox
 
 from coursekit import datasets as D
@@ -36,6 +37,58 @@ MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD"]
 LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
           "SeasonalNaive": "Seasonal naive", "RWD": "Drift"}
 
+# --- the three ways to draw the same interval, on one holdout -------------
+resid_sn = (fv["y"] - fv["SeasonalNaive"]).dropna()
+
+boot_paths = P.bootstrap_paths(train["y"], resid_sn, h=H, season_length=12,
+                               n_paths=5000, seed=7)
+boot_fan = P.paths_to_fan(fc["ds"], boot_paths, levels=(80, 95))
+
+sf_conf = StatsForecast(
+    models=[SeasonalNaive(season_length=12,
+                          prediction_intervals=ConformalIntervals(n_windows=8, h=H))],
+    freq=D.FREQ, n_jobs=1,
+)
+fc_conf = sf_conf.forecast(df=train, h=H, level=[80, 95])
+
+
+def coverage_80(lo, hi, y=test["y"].to_numpy()):
+    return float(((y >= np.asarray(lo)) & (y <= np.asarray(hi))).mean())
+
+
+# --- and over 8 rolling origins, where a coverage rate can actually be measured
+def _cv_coverage_80(model):
+    cv = StatsForecast(models=[model], freq=D.FREQ, n_jobs=1).cross_validation(
+        df=spine, h=12, step_size=12, n_windows=8, level=[80])
+    lo, hi = cv["SeasonalNaive-lo-80"], cv["SeasonalNaive-hi-80"]
+    return float(((cv["y"] >= lo) & (cv["y"] <= hi)).mean())
+
+
+def _cv_coverage_80_bootstrap():
+    sf_sn = StatsForecast(models=[SeasonalNaive(season_length=12)],
+                          freq=D.FREQ, n_jobs=1)
+    inside = []
+    for w in range(8):
+        end = len(spine) - (8 - w) * 12
+        tr, te = spine.iloc[:end], spine.iloc[end:end + 12]
+        sf_sn.forecast(df=tr, h=12, fitted=True)
+        fvw = sf_sn.forecast_fitted_values()
+        paths = P.bootstrap_paths(tr["y"], fvw["y"] - fvw["SeasonalNaive"], h=12,
+                                  season_length=12, n_paths=5000, seed=7)
+        f = P.paths_to_fan(te["ds"], paths, levels=(80,))
+        y = te["y"].to_numpy()
+        inside.append((y >= f["lo-80"].to_numpy()) & (y <= f["hi-80"].to_numpy()))
+    return float(np.concatenate(inside).mean())
+
+
+CV_COV = {
+    "Gaussian": _cv_coverage_80(SeasonalNaive(season_length=12)),
+    "bootstrap": _cv_coverage_80_bootstrap(),
+    "conformal": _cv_coverage_80(SeasonalNaive(
+        season_length=12,
+        prediction_intervals=ConformalIntervals(n_windows=8, h=12))),
+}
+
 
 def as_fan(model, frame=fc):
     return frame.rename(columns={
@@ -45,18 +98,20 @@ def as_fan(model, frame=fc):
     })
 ```
 
-## Today's roadmap
+## The Day 2 plan
+
+Day 1 found the spine's signal is seasonality. Day 2 builds the floor a model must beat, and the way to prove a forecast is real.
 
 ::: {.incremental}
-- **Four baseline models** — the minimum floor any model must beat
-- **Residual diagnostics** — testing whether the model captured all signal
-- **Prediction intervals** — quantifying real forecast uncertainty
+- **Four baseline models**: the minimum floor any model must beat
+- **Residual diagnostics**: testing whether the model captured all signal
+- **Prediction intervals**: quantifying real forecast uncertainty
 :::
 
 . . .
 
 ::: {.callout-important}
-## Golden Rule
+## The interval rule
 A point forecast without an interval is an incomplete guess.
 :::
 
@@ -67,10 +122,10 @@ Ch 5.1–5.2 · Simple, strong baselines
 ## Four essential benchmarks
 
 ::: {.incremental}
-- **Mean** — Average of all historical observations
-- **Naive** — Last observed value ($\hat{y}_{T+h} = y_T$)
-- **Seasonal Naive** — Same season from previous year ($\hat{y}_{T+h} = y_{T+h-m}$)
-- **Drift** — Last value plus average historical trend slope
+- **Mean**: average of all historical observations
+- **Naive**: last observed value ($\hat{y}_{T+h} = y_T$)
+- **Seasonal Naive**: same season from previous year ($\hat{y}_{T+h} = y_{T+h-m}$)
+- **Drift**: last value plus average historical trend slope
 :::
 
 . . .
@@ -115,22 +170,22 @@ ax.set(title=f"Spine — {H}-Month Benchmark Forecasts")
 ## Why benchmarks are non-negotiable
 
 ::: {.incremental}
-- **Objective Evidence** — proves the complex model adds value
-- **Sanity Check** — catches complex ML models losing to naive rules
-- **Scale Baseline** — provides a standard denominator for errors (MASE)
-- **Fast** — takes just a few lines of code
+- **Objective evidence**: proves the complex model adds value
+- **Sanity check**: catches complex ML models losing to naive rules
+- **Scale baseline**: provides a standard denominator for errors (MASE)
+- **Fast**: takes just a few lines of code
 :::
 
 . . .
 
 ::: {.callout-tip}
-## In Every Review Ask:
+## The question to ask in every review
 *"What is the simple baseline, and by how much did we beat it?"*
 :::
 
-## $\rightarrow$ Exercise 2.1 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+## $\rightarrow$ Exercise 2.1 · The benchmark floor {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
-Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 ::: {.incremental}
 - Fit all four baselines on the training set
@@ -155,7 +210,7 @@ $$e_t = y_t - \hat{y}_{t|t-1}$$
 . . .
 
 ::: {.callout-important}
-## Crucial Distinction
+## Two errors to keep straight
 - **Residuals** = In-sample training errors (flattering)
 - **Forecast Errors** = Out-of-sample holdout errors (honest)
 :::
@@ -213,9 +268,9 @@ fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
 - Autocorrelation spikes remain outside bounds $\rightarrow$ Signal left uncaptured
 :::
 
-## The Ljung-Box Test
+## Ljung-Box tests whether the autocorrelations are jointly zero
 
-Statistically tests if the first $\ell$ autocorrelations are jointly zero:
+The first $\ell$ autocorrelations, tested jointly:
 
 $$Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}$$
 
@@ -228,9 +283,9 @@ $$Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}$$
 Rule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data.
 :::
 
-## $\rightarrow$ Exercise 2.2 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+## $\rightarrow$ Exercise 2.2 · Are the residuals white noise? {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
-Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 ::: {.incremental}
 - Run residual diagnostics on Seasonal Naive & Drift
@@ -273,20 +328,39 @@ Ch 5.5 · Quantifying uncertainty
 Decisions like staffing buffers, warehouse capacity, and safety inventory depend directly on the interval width.
 :::
 
-## Interval calculation
+## One number becomes a range by adding uncertainty
 
-For a 1-step forecast with residual standard deviation $\hat{\sigma}$:
+Estimate the residual spread, then step out by a multiplier:
 
-$$\hat{y}_{T+1|T} \pm c\,\hat{\sigma} \qquad (c = 1.28 \text{ for } 80\%,\; 1.96 \text{ for } 95\%)$$
+$$\hat{\sigma} = \sqrt{\frac{1}{T - K - M}\sum_{t=1}^{T} e_t^2}
+\qquad\qquad
+\hat{y}_{T+1|T} \pm c\,\hat{\sigma}$$
+
+::: {.incremental}
+- $K$ = parameters estimated, $M$ = missing residuals (a seasonal naive has no fitted value for its first $m$ months)
+- $c = 1.28$ for 80%, $c = 1.96$ for 95%
+:::
+
+## How fast the range widens depends on the method
+
+| Benchmark | $h$-step forecast standard deviation |
+|---|---|
+| Mean | $\hat{\sigma}_h = \hat{\sigma}\sqrt{1 + 1/T}$ |
+| Naive | $\hat{\sigma}_h = \hat{\sigma}\sqrt{h}$ |
+| Seasonal naive | $\hat{\sigma}_h = \hat{\sigma}\sqrt{k+1}$, &nbsp; $k = \lfloor (h-1)/m \rfloor$ |
+| Drift | $\hat{\sigma}_h = \hat{\sigma}\sqrt{h\left(1 + \dfrac{h}{T-1}\right)}$ |
 
 . . .
 
-For horizon $h$, uncertainty accumulates:
+::: {.callout-warning}
+## $\sqrt{h}$ is the *naive* case, not a law
+For a **seasonal naive** the width is a **staircase**: flat inside a year, one
+step up per complete year crossed. $k$ counts those years.
+:::
 
-$$\hat{\sigma}_h = \hat{\sigma}\sqrt{h}$$
-
-::: {.callout-note}
-Uncertainty widens with $\sqrt{h}$ — rapid growth early on, decelerating at longer horizons.
+::: {.notes}
+All four formulas assume the residuals are uncorrelated. That assumption is
+already known to be false here - segment B just rejected it at p ~ 1e-240.
 :::
 
 ## Fan Chart: Visualising uncertainty
@@ -315,7 +389,7 @@ P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=ax,
 
 :::
 
-## How intervals widen with horizon
+## The seasonal naive does not widen like $\sqrt{h}$
 
 ::: {.panel-tabset}
 
@@ -323,13 +397,16 @@ P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=ax,
 ```{python}
 #| fig-width: 9.5
 fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.7))
-width = fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]
+width = (fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]).to_numpy()
 h = np.arange(1, len(width) + 1)
-axes[0].plot(h, width, color=P.BLUE, lw=2, label="Actual Width")
-axes[0].plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls="--",
-             label=r"$\text{Width}_1 \times \sqrt{h}$")
-axes[0].set(xlabel="Horizon h", ylabel="80% Interval Width",
-            title="Seasonal Naive Interval Width")
+k = (h - 1) // 12
+axes[0].plot(h, width, color=P.BLUE, lw=4.5, alpha=0.55, label="Actual width")
+axes[0].plot(h, width[0] * np.sqrt(k + 1), color=P.GREEN, lw=2.0,
+             dashes=(6, 4), label=r"$\sqrt{k+1}$ (correct)")
+axes[0].plot(h, width[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls=":",
+             label=r"$\sqrt{h}$ (wrong method)")
+axes[0].set(xlabel="Horizon h", ylabel="80% interval width",
+            title="Seasonal Naive: a Staircase, not a Curve")
 axes[0].legend(frameon=False)
 
 for m, c in zip(["Naive", "SeasonalNaive", "RWD"], [P.GREEN, P.BLUE, P.PINK]):
@@ -343,18 +420,400 @@ plt.show()
 ### Code
 ```python
 # Dataset: Benchmark forecasts on Victorian retail takeaway turnover (fc)
-# Compare interval width growth vs theoretical sqrt(h) expansion:
-fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.7))
-width = fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]
+# Left: the seasonal naive's width against BOTH candidate formulas.
+width = (fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]).to_numpy()
 h = np.arange(1, len(width) + 1)
-axes[0].plot(h, width, color=P.BLUE, lw=2, label="Actual Width")
-axes[0].plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls="--", label=r"$\text{Width}_1 \times \sqrt{h}$")
+k = (h - 1) // 12                      # complete years inside the horizon
+axes[0].plot(h, width, color=P.BLUE, lw=4.5, alpha=0.55, label="Actual width")
+axes[0].plot(h, width[0] * np.sqrt(k + 1), color=P.GREEN, lw=2.0, dashes=(6, 4))
+axes[0].plot(h, width[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls=":")
 
 for m, c in zip(["Naive", "SeasonalNaive", "RWD"], [P.GREEN, P.BLUE, P.PINK]):
     w = fc[f"{m}-hi-80"] - fc[f"{m}-lo-80"]
     axes[1].plot(h, w, color=c, lw=1.8, label=LABELS[m])
 ```
 
+:::
+
+::: {.notes}
+Width is flat for h = 1..12 and jumps by a factor of sqrt(2) at h = 13. A
+sqrt(h) curve would have it 4.9x wider by h = 24; it is only 1.41x wider.
+:::
+
+## The Gaussian interval rests on three assumptions
+
+::: {.incremental}
+1. Residuals are **uncorrelated** — otherwise $\hat{\sigma}$ understates the spread
+2. Residuals have **constant variance** — one $\hat{\sigma}$ for the whole series
+3. Residuals are **normally distributed** — otherwise $c = 1.28$ is the wrong multiplier
+:::
+
+. . .
+
+::: {.cardbox .navy}
+On this series **all three fail.** The next two methods each buy one of them back.
+:::
+
+## Two of the three fail on this series
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 9.5
+r = resid_sn.to_numpy()
+sd = r.std(ddof=1)
+fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.1))
+
+axes[0].plot(fv["ds"].iloc[-len(r):], pd.Series(r).rolling(36).std().to_numpy(),
+             color=P.ORANGE, lw=2)
+axes[0].axhline(sd, color=P.BLACK, ls="--", lw=1.3,
+                label=f"pooled sigma-hat = {sd:.1f}")
+axes[0].set(title="Rolling 3-Year Residual SD", ylabel="SD")
+axes[0].legend(frameon=False)
+
+axes[1].hist(r, bins=45, density=True, color=P.GREY, alpha=0.7)
+grid = np.linspace(r.min(), r.max(), 300)
+axes[1].plot(grid, np.exp(-0.5 * (grid / sd) ** 2) / (sd * np.sqrt(2 * np.pi)),
+             color=P.BLACK, lw=1.6, label="Normal, same SD")
+for v in np.quantile(r, [0.1, 0.9]):
+    axes[1].axvline(v, color=P.BLUE, lw=1.6)
+for v in 1.2816 * sd * np.array([-1.0, 1.0]):
+    axes[1].axvline(v, color=P.ORANGE, ls="--", lw=1.6)
+axes[1].set(title="Central 80%: empirical (blue) vs normal (orange)",
+            xlabel="residual")
+axes[1].legend(frameon=False)
+plt.show()
+```
+
+### Code
+```python
+# Dataset: seasonal naive in-sample residuals on the spine (resid_sn)
+r = resid_sn.to_numpy()
+
+# Left  - constant variance? A 3-year rolling SD against the pooled sigma-hat.
+pd.Series(r).rolling(36).std()
+
+# Right - normal? Histogram against a normal of the SAME SD, plus the two
+#         candidate 80% cut points.
+np.quantile(r, [0.1, 0.9])                    # the bootstrap's cut points
+1.2816 * r.std(ddof=1) * np.array([-1., 1.])  # the Gaussian's cut points
+```
+
+:::
+
+::: {.incremental}
+- The rolling SD wanders between **4 and 35** — never the single 17.6 assumed
+- Excess kurtosis **≈ 5.7** — sharper peak *and* fatter tails than a normal
+:::
+
+# D. Bootstrapped intervals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
+
+Ch 5.5 · Dropping the normality assumption
+
+## Resample the errors you actually saw
+
+A one-step error is $e_t = y_t - \hat{y}_{t|t-1}$. For the **naive** method
+$\hat{y}_{t|t-1} = y_{t-1}$, so $y_t = y_{t-1} + e_t$ — and a future value can be
+*simulated* by drawing a past error:
+
+$$y^*_{T+1} = y_T + e^*_{T+1}, \qquad
+  y^*_{T+2} = y^*_{T+1} + e^*_{T+2}, \qquad \dots$$
+
+. . .
+
+For the **seasonal naive** the same recursion runs on the seasonal lag:
+
+$$y^*_{T+i} = y^*_{T+i-m} + e^*_{T+i}$$
+
+::: {.notes}
+The star means "one possible future that could have occurred", not the observed
+value. Run it 5000 times and you have 5000 possible futures.
+:::
+
+## The assumption you just made
+
+::: {.cardbox .navy}
+The simple residual bootstrap assumes the residuals come from **one common
+distribution $\hat{F}$ whose distributional characteristics do not change over
+time** — i.i.d. draws from the pool of past errors.
+:::
+
+::: {.incremental}
+- **Bought:** normality. The interval is now whatever shape the errors are, and need not be symmetric.
+- **Still owed:** independence, and *identical distribution*.
+- On this series the second one is false — the residual SD tripled.
+:::
+
+## 5000 possible futures
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 10
+fig, ax = plt.subplots(figsize=(10, 3.8))
+P.sim_paths_plot(train, fc["ds"], boot_paths, ax=ax, n_show=8, history_tail=60,
+                 actual=test, title="Eight of the 5000 Simulated Sample Paths")
+plt.show()
+```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover, seasonal naive residuals
+resid_sn = (fv["y"] - fv["SeasonalNaive"]).dropna()
+
+boot_paths = P.bootstrap_paths(train["y"], resid_sn, h=24, season_length=12,
+                               n_paths=5000, seed=7)     # -> (5000, 24)
+P.sim_paths_plot(train, fc["ds"], boot_paths, n_show=8, actual=test)
+```
+
+:::
+
+::: {.cardbox .teal}
+The band is not the method. The **paths** are the method; the band is a
+percentile taken down each column.
+:::
+
+## Bootstrap vs Gaussian on the spine
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 10
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.3), sharey=True)
+P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=axes[0],
+            actual=test, history_tail=36, title="Gaussian, plus/minus c sigma-hat")
+P.fan_chart(train, boot_fan, levels=(80, 95), ax=axes[1], actual=test,
+            history_tail=36, title="Bootstrap, 5000 paths")
+plt.show()
+```
+
+### Code
+```python
+# boot_fan = P.paths_to_fan(fc["ds"], boot_paths, levels=(80, 95))
+#   -> ds / mean / lo-80 / hi-80 / lo-95 / hi-95, from empirical percentiles
+P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), actual=test)
+P.fan_chart(train, boot_fan, levels=(80, 95), actual=test)
+```
+
+:::
+
+::: {.incremental}
+- Mean **80%** width: 59.7 Gaussian vs **46.4** bootstrap — a fifth narrower
+- Mean **95%** width: 91.3 vs **90.1** — the gap has closed
+- Sharp peak, fat tails. That is what excess kurtosis of 5.7 buys you
+:::
+
+# E. Conformal prediction {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
+
+Ch 5.5 · Distribution-free intervals
+
+## Name the error first: $e_{t+h|t}$
+
+$$e_{t+h|t} = y_{t+h} - \hat{y}_{t+h|t}$$
+
+| Symbol | Meaning |
+|---|---|
+| $t$ | the time the forecast was **made** — the forecast origin |
+| $h$ | the forecast **horizon** |
+| $t+h$ | the future time being **predicted** |
+| $y_{t+h}$ | what actually happened |
+| $\hat{y}_{t+h\,\vert\,t}$ | the forecast made at time $t$ for time $t+h$ |
+
+::: {.callout-note}
+At $h = 1$ these are exactly the residuals from segment B. For $h > 1$ they are a
+different, wider set of errors — and they must be *collected*, not fitted.
+:::
+
+## A worked example of $e_{t+h|t}$
+
+::: {.panel-tabset}
+
+### Walk-through
+You hold $y_1, y_2, \dots, y_{10}$ and want a **3-step-ahead** interval.
+
+::: {.incremental}
+1. Stand at $t = 5$. Pretend $y_6 \dots y_{10}$ do not exist yet.
+2. Forecast three steps out: $\hat{y}_{8|5}$.
+3. Now look up what really happened: $y_8$.
+4. Record $e_{8|5} = y_8 - \hat{y}_{8|5}$ — one 3-step-ahead error.
+:::
+
+. . .
+
+Slide the origin to $t = 6, 7, \dots$ and repeat. What you collect is the
+**calibration set** for $h = 3$.
+
+### Plot
+```{python}
+#| fig-width: 9
+toy = pd.DataFrame({"ds": np.arange(1, 11),
+                    "y": [10., 12, 11, 14, 13, 16, 15, 18, 17, 20]})
+toy_err = pd.DataFrame([
+    {"cutoff": t, "ds": t + 3,
+     "y": toy["y"].iloc[t + 2],       # y_{t+3}
+     "yhat": toy["y"].iloc[t - 1]}    # naive: y-hat_{t+3|t} = y_t
+    for t in (5, 6, 7)
+])
+fig, ax = plt.subplots(figsize=(9, 3.9))
+P.h_step_error_diagram(toy, toy_err, ax=ax,
+                       title="Three 3-step-ahead errors, from three origins")
+ax.set_xticks(range(1, 11))
+plt.show()
+```
+
+:::
+
+## Exchangeability, not i.i.d.
+
+::: {.cardbox .teal}
+The residual bootstrap assumes i.i.d. residuals from an empirical distribution
+$\hat{F}$. **Split conformal prediction replaces i.i.d. with a slightly weaker
+property: exchangeability** — the past $h$-step errors are representative of the
+future ones, and their *order* carries no information.
+:::
+
+. . .
+
+The interval is then an empirical quantile of the collected errors:
+
+$$\hat{y}_{T+h|T} \pm Q_{1-\alpha}\!\left(\left|e_{t+h|t}\right|\right)$$
+
+::: {.incremental}
+- One quantile **per horizon $h$** — widening with $h$ is *measured*, not assumed
+- No $\hat{\sigma}$, no $c$, no assumed distribution — hence *distribution-free*
+:::
+
+## Where the calibration set comes from
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 10
+cs = sf.cross_validation(df=train, h=12, step_size=12, n_windows=4)
+cs12 = (cs[cs["ds"] == cs["cutoff"] + pd.DateOffset(months=12)]
+        .rename(columns={"SeasonalNaive": "yhat"})[["cutoff", "ds", "y", "yhat"]])
+fig, ax = plt.subplots(figsize=(10, 4.2))
+P.h_step_error_diagram(train.tail(84), cs12, ax=ax,
+                       title="Four origins, h = 12: the errors conformal quantifies")
+plt.show()
+```
+
+### Code
+```python
+# Roll the origin backwards; keep the error at the horizon you care about.
+cs = sf.cross_validation(df=train, h=12, step_size=12, n_windows=4)
+cs12 = (cs[cs["ds"] == cs["cutoff"] + pd.DateOffset(months=12)]
+        .rename(columns={"SeasonalNaive": "yhat"})[["cutoff", "ds", "y", "yhat"]])
+P.h_step_error_diagram(train.tail(84), cs12)
+```
+
+:::
+
+::: {.notes}
+statsforecast does exactly this internally: n_windows rolling origins, the
+absolute error at each horizon, then the empirical quantile of those.
+:::
+
+## In statsforecast: one argument
+
+```python
+from statsforecast.utils import ConformalIntervals
+
+sf_conf = StatsForecast(
+    models=[SeasonalNaive(
+        season_length=12,
+        prediction_intervals=ConformalIntervals(n_windows=8, h=24),
+    )],
+    freq="MS",
+)
+fc_conf = sf_conf.forecast(df=train, h=24, level=[80, 95])
+```
+
+::: {.incremental}
+- `n_windows` — how many rolling origins make up the calibration set
+- Needs at least $2h + 1$ observations; more windows, steadier quantiles
+- With 8 windows only 16 scores sit behind each horizon, so the band is **visibly jittery**
+:::
+
+## Three intervals, one model
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 10
+BANDS = [
+    (fc["SeasonalNaive-lo-80"], fc["SeasonalNaive-hi-80"], P.ORANGE, "Gaussian"),
+    (boot_fan["lo-80"], boot_fan["hi-80"], P.GREEN, "Bootstrap"),
+    (fc_conf["SeasonalNaive-lo-80"], fc_conf["SeasonalNaive-hi-80"], P.BLUE,
+     "Conformal"),
+]
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.6))
+hist = train.tail(24)
+axes[0].plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.2, label="Observed")
+axes[0].plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="Actual")
+for lo, hi, c, lab in BANDS:
+    axes[0].plot(fc["ds"], lo, color=c, lw=1.6, label=f"{lab} 80%")
+    axes[0].plot(fc["ds"], hi, color=c, lw=1.6)
+axes[0].set(title="80% Bounds, Same Point Forecast")
+axes[0].legend(frameon=False, ncols=2, fontsize=8)
+P.year_xticks([axes[0]], step=1)
+
+hz = np.arange(1, H + 1)
+for lo, hi, c, lab in BANDS:
+    axes[1].plot(hz, np.asarray(hi) - np.asarray(lo), color=c, lw=2, label=lab)
+axes[1].set(xlabel="Horizon h", ylabel="80% width",
+            title="Staircase, Narrow, and Jittery")
+axes[1].legend(frameon=False)
+plt.show()
+```
+
+### Code
+```python
+# One model, three interval methods, on the same axes.
+# fc       - Gaussian, from sf.forecast(..., level=[80, 95])
+# boot_fan - P.paths_to_fan(fc["ds"], boot_paths)
+# fc_conf  - SeasonalNaive(prediction_intervals=ConformalIntervals(n_windows=8, h=24))
+for lo, hi, c, lab in BANDS:
+    axes[0].plot(fc["ds"], lo, color=c, lw=1.6, label=f"{lab} 80%")
+    axes[0].plot(fc["ds"], hi, color=c, lw=1.6)
+    # Right panel: the same three, as width against horizon.
+    axes[1].plot(np.arange(1, 25), np.asarray(hi) - np.asarray(lo), color=c, lw=2)
+```
+
+:::
+
+## Which one should you use?
+
+```{python}
+#| echo: false
+rows = []
+for lab, lo, hi in [
+    ("Gaussian", fc["SeasonalNaive-lo-80"], fc["SeasonalNaive-hi-80"]),
+    ("Bootstrap", boot_fan["lo-80"], boot_fan["hi-80"]),
+    ("Conformal", fc_conf["SeasonalNaive-lo-80"], fc_conf["SeasonalNaive-hi-80"]),
+]:
+    rows.append({"method": lab,
+                 "mean 80% width": float(np.mean(np.asarray(hi) - np.asarray(lo))),
+                 "coverage (24 pts)": coverage_80(lo, hi)})
+print(pd.DataFrame(rows).to_string(index=False,
+      formatters={"mean 80% width": "{:.1f}".format,
+                  "coverage (24 pts)": "{:.0%}".format}))
+```
+
+| Method | Assumes | Buys you |
+|---|---|---|
+| Gaussian | uncorrelated · constant variance · **normal** | a closed form, one line of code |
+| Bootstrap | uncorrelated · **i.i.d. from $\hat{F}$** | asymmetry, any error shape |
+| Conformal | **exchangeable** $h$-step errors | no assumed distribution at all |
+
+::: {.callout-important}
+Those coverage numbers come from **24 points**. That is not enough to separate
+them — which is the next slide.
 :::
 
 ## Why one test window is misleading
@@ -366,34 +825,48 @@ $$\text{SE} = \sqrt{\frac{p(1-p)}{n}} = \sqrt{\frac{0.8 \times 0.2}{24}} \approx
 . . .
 
 ::: {.cardbox .navy}
-A nominal 80% interval could easily measure anywhere from **64% to 96%** on a single 24-point holdout by chance alone.
-:::
-
-::: {.notes}
-To properly measure coverage, we must evaluate across multiple rolling test origins.
-:::
-
-## $\rightarrow$ Exercise 2.3 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
-
-Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
-
-::: {.incremental}
-- Compute 80% and 95% prediction intervals
-- Verify that interval width scales with $\sqrt{h}$
-- Measure holdout coverage and explain estimation uncertainty
+A nominal 80% interval could easily measure anywhere from **64% to 96%** on a
+single 24-point holdout by chance alone.
 :::
 
 . . .
 
-*15 minutes.*
+Over **8 rolling origins** (96 scored points) they separate cleanly:
 
-## Part 2 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+```{python}
+#| echo: false
+print("80% coverage over 96 scored points:   "
+      + "   ".join(f"{k} {v:.0%}" for k, v in CV_COV.items()))
+```
+
+::: {.notes}
+The bootstrap's 62% is the identically-distributed assumption being punished:
+pooling 1980s residuals (SD about 8) with 2010s residuals (SD 25) makes the draw pool
+far too tight for a forecast issued in 2016. Restricting the pool to the last
+120 residuals takes it to about 87%; the last 60 push it to 91%. The assumption is the knob, and the lab turns it.
+:::
+
+## $\rightarrow$ Exercise 2.3 · Intervals, and how much to believe them {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/02_day2_toolbox_and_evaluation.ipynb`
+
+::: {.incremental}
+- Build the Gaussian interval, then a 5000-path residual bootstrap
+- Add a split-conformal interval and compare all three
+- Measure coverage, and say which assumption each method is spending
+:::
+
+. . .
+
+*20 minutes.*
+
+## Part 1 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
 ::: {.incremental}
 - Always start with the **4 baseline models**
 - Check that residuals are **uncorrelated and zero-mean**
 - Report **prediction intervals**, not just single numbers
-- Recognize that interval uncertainty grows with $\sqrt{h}$
+- Know which **assumption** each interval method spends: normality, i.i.d., or exchangeability
 :::
 
 . . .

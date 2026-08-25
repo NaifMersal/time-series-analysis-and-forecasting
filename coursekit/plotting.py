@@ -515,6 +515,132 @@ def fan_chart(history, forecast, levels=(80, 95), ax=None, title="",
     return ax
 
 
+# --------------------------------------------------------------------------
+# Prediction intervals: bootstrap and conformal
+#
+# The three ways this course draws an interval differ only in what they assume:
+#   Gaussian    residuals uncorrelated, constant variance, AND normal
+#   bootstrap   residuals uncorrelated and identically distributed (drop normal)
+#   conformal   past h-step errors exchangeable with future ones (weaker still)
+# The helpers below exist so a deck and a lab demonstrate that with the same code.
+# --------------------------------------------------------------------------
+
+def bootstrap_paths(y, resid, h, season_length=None, n_paths=1000, seed=0,
+                    resid_tail=None, centre=True):
+    """Simulate future sample paths by resampling past residuals.
+
+    This is the residual bootstrap of fpppy 5.5. It assumes the residuals are
+    uncorrelated and *identically distributed* -- one common distribution
+    :math:`\hat{F}` whose characteristics do not change over time -- so that a
+    future error can be drawn from the pool of past ones.
+
+    ``season_length=None`` uses the naive recursion
+    :math:`y^*_{T+i} = y^*_{T+i-1} + e^*`; an integer ``m`` uses the seasonal
+    naive recursion :math:`y^*_{T+i} = y^*_{T+i-m} + e^*`, where the lag reaches
+    into the observed history until the simulated path is long enough.
+
+    ``resid_tail`` keeps only the last N residuals. That is the knob for the
+    identically-distributed assumption: on a series whose error spread grows
+    with its level, a shorter, more recent pool is the more honest one.
+
+    Returns an ``(n_paths, h)`` array -- one simulated future per row.
+    """
+    y = np.asarray(y, dtype=float)
+    e = np.asarray(pd.Series(resid).dropna(), dtype=float)
+    if resid_tail:
+        e = e[-resid_tail:]
+    if centre:
+        e = e - e.mean()
+    rng = np.random.default_rng(seed)
+    draws = rng.choice(e, size=(n_paths, h))
+
+    paths = np.empty((n_paths, h), dtype=float)
+    m = 1 if season_length is None else int(season_length)
+    for i in range(h):
+        base = y[len(y) - m + i] if i < m else paths[:, i - m]
+        paths[:, i] = base + draws[:, i]
+    return paths
+
+
+def paths_to_fan(future_ds, paths, levels=(80, 95), mean_col="mean"):
+    """Collapse simulated paths into the frame :func:`fan_chart` expects.
+
+    The interval is the empirical percentile of the paths at each horizon, so --
+    unlike a Gaussian interval -- it is free to be asymmetric.
+    """
+    paths = np.asarray(paths, dtype=float)
+    out = {"ds": pd.Series(future_ds).to_numpy(), mean_col: paths.mean(axis=0)}
+    for lvl in levels:
+        alpha = (100 - lvl) / 200
+        out[f"lo-{lvl}"] = np.quantile(paths, alpha, axis=0)
+        out[f"hi-{lvl}"] = np.quantile(paths, 1 - alpha, axis=0)
+    return pd.DataFrame(out)
+
+
+def sim_paths_plot(history, future_ds, paths, ax=None, n_show=8, history_tail=48,
+                   title="", actual=None, seed=0):
+    """Show a handful of individual simulated futures, not their envelope.
+
+    Students meet the bootstrap as a shaded band and assume the band *is* the
+    method. It is not: the method is these paths, and the band is a percentile
+    taken down each column. Drawing a few of them makes that order of operations
+    visible.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 4))
+    paths = np.asarray(paths, dtype=float)
+    hist = history.tail(history_tail) if history_tail else history
+    future_ds = pd.Series(future_ds).to_numpy()
+
+    ax.plot(hist["ds"], hist["y"], color=BLACK, lw=1.2, label="observed")
+    rng = np.random.default_rng(seed)
+    pick = rng.choice(len(paths), size=min(n_show, len(paths)), replace=False)
+    for j, idx in enumerate(pick):
+        ax.plot(future_ds, paths[idx], lw=1.0, alpha=0.75, color=BLUE,
+                label="simulated futures" if j == 0 else None)
+    if actual is not None:
+        ax.plot(actual["ds"], actual["y"], color=ORANGE, lw=1.4, ls="--",
+                label="actual")
+    ax.set(title=title, ylabel="y")
+    ax.legend(loc="upper left", frameon=False, ncols=3)
+    return ax
+
+
+def h_step_error_diagram(history, errors, ax=None, title="", history_tail=None,
+                         ylabel="y", annotate=True):
+    """Draw the h-step errors :math:`e_{t+h|t} = y_{t+h} - \hat{y}_{t+h|t}`.
+
+    ``errors`` needs one row per scored point with columns ``cutoff`` (the
+    origin *t* the forecast was made from), ``ds`` (the target *t+h*), ``y`` and
+    ``yhat``. Each error is drawn as the vertical gap between the two, so the
+    calibration set conformal prediction quantifies is a thing on screen rather
+    than a definition on a slide.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 4))
+    hist = history.tail(history_tail) if history_tail else history
+    ax.plot(hist["ds"], hist["y"], color=BLACK, lw=1.2, zorder=2, label="observed")
+
+    for j, (_, row) in enumerate(errors.iterrows()):
+        ax.axvline(row["cutoff"], color=GREY, lw=1.0, ls=":", zorder=1,
+                   label="forecast origin $t$" if j == 0 else None)
+        ax.plot([row["ds"], row["ds"]], [row["yhat"], row["y"]], color=ORANGE,
+                lw=2.0, zorder=3,
+                label=r"$e_{t+h|t}$" if j == 0 else None)
+        ax.scatter([row["ds"]], [row["yhat"]], s=42, color=BLUE, zorder=4,
+                   label=r"$\hat{y}_{t+h|t}$" if j == 0 else None)
+        ax.scatter([row["ds"]], [row["y"]], s=42, color=BLACK, zorder=4,
+                   label=r"$y_{t+h}$" if j == 0 else None)
+        if annotate:
+            ax.annotate(f"{row['y'] - row['yhat']:+.0f}",
+                        (row["ds"], max(row["y"], row["yhat"])),
+                        textcoords="offset points", xytext=(4, 4),
+                        size=9, color=ORANGE)
+    ax.set(title=title, ylabel=ylabel)
+    ax.legend(loc="upper left", frameon=False, ncols=3)
+    return ax
+
+
 def cv_staircase(n_obs=60, initial=36, horizon=6, step=6, ax=None,
                  n_folds=None, title="Rolling-origin cross-validation"):
     """Draw the rolling-origin diagram: train block, scored block, unseen tail.

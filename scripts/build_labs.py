@@ -642,6 +642,7 @@ import pandas as pd
 from statsforecast import StatsForecast
 from statsforecast.models import (HistoricAverage, Naive, RandomWalkWithDrift,
                                   SeasonalNaive)
+from statsforecast.utils import ConformalIntervals
 from statsmodels.stats.diagnostic import acorr_ljungbox
 from utilsforecast.losses import mae, mape, mase, rmse, rmsse
 
@@ -841,7 +842,13 @@ shape has changed", the variance says "transform first".
 ---
 # Exercise 2.3 - Intervals, and how much to believe them
 
-*Follows segment 3. 15 minutes.*
+*Follows segment 3. 20 minutes.*
+
+Three ways to draw an interval around the same point forecast, each spending a
+different assumption: **Gaussian** (part a), **bootstrap** (part b) and
+**conformal** (part c).
+
+## Part a - the Gaussian interval
 """),
     code("""
 # TODO: plot the seasonal naive's forecast with 80% and 95% intervals against
@@ -858,14 +865,18 @@ P.fan_chart(train, fan, levels=(80, 95), ax=ax, actual=test, history_tail=72,
 plt.show()
 """),
     code("""
-# TODO: the 80% interval width at each horizon, and how it compares with
-#       width_1 * sqrt(h).
+# TODO: the 80% interval width at each horizon. Then overlay the two candidate
+#       formulas: sqrt(h) (the NAIVE method's) and sqrt(k+1) with
+#       k = (h-1) // 12 (the SEASONAL naive's). Only one of them fits.
 width = ...
 
 h = np.arange(1, len(width) + 1)
+k = (h - 1) // 12
 fig, ax = plt.subplots(figsize=(8, 3.6))
-ax.plot(h, width, color=P.BLUE, lw=2, label="actual width")
-ax.plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, ls="--", lw=1.4,
+ax.plot(h, width, color=P.BLUE, lw=4.5, alpha=0.55, label="actual width")
+ax.plot(h, width.iloc[0] * np.sqrt(k + 1), color=P.GREEN, lw=2, dashes=(6, 4),
+        label="width_1 * sqrt(k+1)")
+ax.plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, ls=":", lw=1.4,
         label="width_1 * sqrt(h)")
 ax.set(xlabel="horizon h", ylabel="80% interval width", title="Widening with h")
 ax.legend(frameon=False)
@@ -874,13 +885,20 @@ plt.show()
 width = fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]
 
 h = np.arange(1, len(width) + 1)
+k = (h - 1) // 12
 fig, ax = plt.subplots(figsize=(8, 3.6))
-ax.plot(h, width, color=P.BLUE, lw=2, label="actual width")
-ax.plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, ls="--", lw=1.4,
+ax.plot(h, width, color=P.BLUE, lw=4.5, alpha=0.55, label="actual width")
+ax.plot(h, width.iloc[0] * np.sqrt(k + 1), color=P.GREEN, lw=2, dashes=(6, 4),
+        label="width_1 * sqrt(k+1)")
+ax.plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, ls=":", lw=1.4,
         label="width_1 * sqrt(h)")
 ax.set(xlabel="horizon h", ylabel="80% interval width", title="Widening with h")
 ax.legend(frameon=False)
 plt.show()
+
+print("The width is FLAT for h = 1..12, then steps up by sqrt(2). A seasonal "
+      "naive reuses one year's residual spread, so sqrt(h) - which belongs to "
+      "the naive method - overstates the width by 3.5x at h = 24.")
 """),
     code("""
 merged = test.merge(fc, on=["unique_id", "ds"])
@@ -919,6 +937,225 @@ standard error in half. That is exercise 2.5.
 
 Note it does not fix the *other* problem - the interval formula ignores model
 uncertainty - so even a well-measured coverage tends to come in under nominal.
+"""),
+
+    md("""
+---
+## Part b - the same interval, without the normality assumption
+
+The Gaussian interval spends three assumptions: uncorrelated residuals, constant
+variance, and **normality**. The residual bootstrap buys the third one back. It
+resamples the errors you actually saw:
+
+$$y^*_{T+i} = y^*_{T+i-m} + e^*_{T+i}$$
+
+where $e^*$ is drawn at random from the pool of past residuals. Run that
+recursion a few thousand times and you have a few thousand possible futures; the
+interval is a percentile taken down each column.
+
+> **The assumption you just made.** The simple residual bootstrap assumes the
+> residuals come from one common distribution $\\hat{F}$ whose distributional
+> characteristics **do not change over time** - i.i.d. draws from the pool of
+> past errors. Hold on to that; part d comes back to it.
+"""),
+    code("""
+# TODO: simulate 5000 possible futures for the seasonal naive.
+#       P.bootstrap_paths(y, resid, h, season_length=..., n_paths=..., seed=...)
+#       returns an (n_paths, h) array.
+resid_sn = ...
+boot_paths = ...
+
+fig, ax = plt.subplots(figsize=(10, 4))
+P.sim_paths_plot(train, fc["ds"], boot_paths, ax=ax, n_show=8, history_tail=60,
+                 actual=test, title="Eight of the 5000 simulated futures")
+plt.show()
+""", """
+resid_sn = (fv["y"] - fv["SeasonalNaive"]).dropna()
+boot_paths = P.bootstrap_paths(train["y"], resid_sn, h=H, season_length=12,
+                               n_paths=5000, seed=7)
+
+fig, ax = plt.subplots(figsize=(10, 4))
+P.sim_paths_plot(train, fc["ds"], boot_paths, ax=ax, n_show=8, history_tail=60,
+                 actual=test, title="Eight of the 5000 simulated futures")
+plt.show()
+"""),
+    code("""
+# TODO: collapse the paths into an interval (P.paths_to_fan) and compare it with
+#       the Gaussian one at BOTH levels. Watch what happens between 80% and 95%.
+boot_fan = ...
+
+for lvl in (80, 95):
+    g = float((fc[f"SeasonalNaive-hi-{lvl}"] - fc[f"SeasonalNaive-lo-{lvl}"]).mean())
+    b = float((boot_fan[f"hi-{lvl}"] - boot_fan[f"lo-{lvl}"]).mean())
+    print(f"mean {lvl}% width   gaussian {g:5.1f}   bootstrap {b:5.1f}")
+
+checks.check_ex_2_3b(boot_paths, boot_fan, fc)
+""", """
+boot_fan = P.paths_to_fan(fc["ds"], boot_paths, levels=(80, 95))
+
+for lvl in (80, 95):
+    g = float((fc[f"SeasonalNaive-hi-{lvl}"] - fc[f"SeasonalNaive-lo-{lvl}"]).mean())
+    b = float((boot_fan[f"hi-{lvl}"] - boot_fan[f"lo-{lvl}"]).mean())
+    print(f"mean {lvl}% width   gaussian {g:5.1f}   bootstrap {b:5.1f}")
+
+print("\\nThe bootstrap is about a fifth narrower at 80% but level with the "
+      "Gaussian at 95%. Sharp peak, fat tails - which is exactly what an excess "
+      "kurtosis of 5.7 looks like. Note also that it is not symmetric about the "
+      "mean; nothing forced it to be.")
+
+checks.check_ex_2_3b(boot_paths, boot_fan, fc)
+"""),
+    md("""
+---
+## Part c - $e_{t+h|t}$, and conformal prediction
+
+Conformal prediction throws away the distribution entirely and calibrates on
+**$h$-step-ahead forecast errors**:
+
+$$e_{t+h|t} = y_{t+h} - \\hat{y}_{t+h|t}$$
+
+- $t$ is when the forecast was **made** (the forecast origin)
+- $h$ is the **horizon**, $t+h$ the time being predicted
+- $y_{t+h}$ is what happened; $\\hat{y}_{t+h|t}$ is the forecast made at $t$ for $t+h$
+
+*Concrete:* you hold $y_1 \\dots y_{10}$ and want a 3-step-ahead interval. Stand
+at $t = 5$, forecast $\\hat{y}_{8|5}$, then look up $y_8$ and record
+$e_{8|5} = y_8 - \\hat{y}_{8|5}$. Slide the origin to $t = 6, 7, \\dots$ and
+repeat. At $h = 1$ these are exactly the residuals from exercise 2.2; for
+$h > 1$ they are a wider set that has to be **collected**, not fitted.
+
+Build that collection yourself before letting `statsforecast` do it.
+"""),
+    code("""
+# TODO: roll the origin over the training data and keep only the h = 12 errors.
+#       `sf.cross_validation` gives you `cutoff` (the origin t) and `ds` (t+h);
+#       the 12-step error is the row where ds is 12 months after cutoff.
+cv12 = ...
+e12 = ...          # the h = 12 errors themselves, as a Series or array
+
+print("h = 12 errors:", np.round(np.asarray(e12), 1))
+print(f"Q_0.80(|e|)  = {np.quantile(np.abs(e12), 0.80):.1f}"
+      "   <- half-width of an 80% conformal interval at h = 12")
+""", """
+cv12 = sf.cross_validation(df=train, h=12, step_size=12, n_windows=8)
+cv12 = cv12[cv12["ds"] == cv12["cutoff"] + pd.DateOffset(months=12)]
+e12 = cv12["y"] - cv12["SeasonalNaive"]
+
+print("h = 12 errors:", np.round(np.asarray(e12), 1))
+print(f"Q_0.80(|e|)  = {np.quantile(np.abs(e12), 0.80):.1f}"
+      "   <- half-width of an 80% conformal interval at h = 12")
+
+print("\\nThat first error of +120.8 is not a bug: turnover went from 219.5 in "
+      "Dec 2008 to 340.3 in Dec 2009 and never came back. Eight errors is a thin "
+      "calibration set, and one break that size in it is exactly why a conformal "
+      "band built from few windows comes out jittery.")
+
+fig, ax = plt.subplots(figsize=(10, 4))
+P.h_step_error_diagram(
+    train.tail(96),
+    cv12.rename(columns={"SeasonalNaive": "yhat"})[["cutoff", "ds", "y", "yhat"]],
+    ax=ax, title="Eight origins, h = 12: the calibration set")
+plt.show()
+"""),
+    code("""
+# TODO: let statsforecast build the same thing for every horizon at once, with
+#       ConformalIntervals(n_windows=8, h=H), then put all three methods in one
+#       table: method / width_80 / coverage_80 on the holdout.
+fc_conf = ...
+cmp = ...
+
+checks.check_ex_2_3c(cmp)
+cmp.round(3)
+""", """
+sf_conf = StatsForecast(
+    models=[SeasonalNaive(season_length=12,
+                          prediction_intervals=ConformalIntervals(n_windows=8, h=H))],
+    freq=D.FREQ, n_jobs=1,
+)
+fc_conf = sf_conf.forecast(df=train, h=H, level=[80, 95])
+
+y_true = test["y"].to_numpy()
+rows = []
+for name, lo, hi in [
+    ("Gaussian", fc["SeasonalNaive-lo-80"], fc["SeasonalNaive-hi-80"]),
+    ("Bootstrap", boot_fan["lo-80"], boot_fan["hi-80"]),
+    ("Conformal", fc_conf["SeasonalNaive-lo-80"], fc_conf["SeasonalNaive-hi-80"]),
+]:
+    lo, hi = np.asarray(lo), np.asarray(hi)
+    rows.append({"method": name,
+                 "width_80": float((hi - lo).mean()),
+                 "coverage_80": float(((y_true >= lo) & (y_true <= hi)).mean())})
+cmp = pd.DataFrame(rows)
+
+checks.check_ex_2_3c(cmp)
+cmp.round(3)
+"""),
+    md("""
+**Question.** Each method spends a different assumption. Name the assumption
+each one makes, and say which of them **this series** breaks.
+
+<!--STUDENT-->
+*Your answer:*
+
+<!--SOLUTION-->
+*Answer.*
+
+| Method | Assumes | True here? |
+|---|---|---|
+| Gaussian | residuals uncorrelated, constant variance, **normal** | no, no, no |
+| Bootstrap | residuals uncorrelated, **i.i.d. from $\\hat{F}$** | no - the residual SD wanders between 4 and 35 |
+| Conformal | past $h$-step errors **exchangeable** with future ones | closest, but a series whose error spread keeps growing is drifting, not exchangeable |
+
+Exchangeability is the weakest of the three: it only asks that the order of the
+past errors carries no information, not that they are independent or that they
+follow any named distribution. That is why conformal survives this series best.
+
+None of the three is *satisfied* here. The point is not to find a method with no
+assumptions - there isn't one - but to know which assumption you are spending
+and whether the data supports it.
+"""),
+    md("""
+### Stretch - the assumption is a knob
+
+`P.bootstrap_paths(..., resid_tail=N)` draws only from the last `N` residuals.
+If the residual distribution really were constant over time, that would just
+throw information away. Sweep `N` and see.
+"""),
+    code("""
+# Stretch - your code here.
+""", """
+# 24 holdout points cannot resolve a coverage rate (exercise 2.3, part a), so
+# score every pool size over 8 rolling origins instead - 96 points each.
+sf_sn = StatsForecast(models=[SeasonalNaive(season_length=12)], freq=D.FREQ, n_jobs=1)
+
+for tail in (60, 120, 180, None):
+    inside, widths = [], []
+    for w in range(8):
+        end = len(spine) - (8 - w) * 12
+        tr, te = spine.iloc[:end], spine.iloc[end:end + 12]
+        sf_sn.forecast(df=tr, h=12, fitted=True)
+        r = (sf_sn.forecast_fitted_values()
+             .pipe(lambda d: d["y"] - d["SeasonalNaive"]).dropna())
+        paths = P.bootstrap_paths(tr["y"], r, h=12, season_length=12,
+                                  n_paths=5000, seed=7, resid_tail=tail)
+        f = P.paths_to_fan(te["ds"], paths, levels=(80,))
+        lo, hi = f["lo-80"].to_numpy(), f["hi-80"].to_numpy()
+        inside.append((te["y"].to_numpy() >= lo) & (te["y"].to_numpy() <= hi))
+        widths.append((hi - lo).mean())
+    label = "all" if tail is None else f"last {tail}"
+    print(f"pool = {label:>8} residuals   mean width {np.mean(widths):5.1f}   "
+          f"coverage {np.concatenate(inside).mean():5.1%}  (96 points)")
+
+print("\\nThe bootstrap covers only about 62% with the full 405-residual pool: "
+      "pooling the early, low-spread residuals with the recent, high-spread ones "
+      "makes the draw pool far too tight for a recent forecast. Coverage climbs "
+      "monotonically as the pool gets shorter and more recent: about 75% with the "
+      "last 180, about 87% with the last 120, about 91% with the last 60, "
+      "overshooting the nominal 80% at the other end. If the residuals really did "
+      "come from one unchanging distribution, throwing away the older ones could "
+      "only make the estimate noisier, never systematically better. That trend IS "
+      "the identically-distributed assumption failing, and the pool length is the "
+      "knob you have for it.")
 """),
 
     # ---------------------------------------------------------------- 2.4

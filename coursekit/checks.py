@@ -193,6 +193,72 @@ def check_ex_2_3(width: pd.Series | np.ndarray, coverage: float, se: float) -> N
                   f"coverage {coverage:.1%} +/- {1.96 * se:.1%}")
 
 
+def check_ex_2_3b(paths, boot_fan, fc: pd.DataFrame) -> None:
+    """The residual bootstrap: many simulated futures, then percentiles."""
+    _not_todo(boot_paths=paths, boot_fan=boot_fan)
+    paths = np.asarray(paths, dtype=float)
+    assert paths.ndim == 2, (
+        f"bootstrap_paths returns one row per simulated future and one column "
+        f"per horizon, so a 2-D array. Yours has shape {paths.shape}."
+    )
+    n_paths, h = paths.shape
+    assert h == 24, f"Expected 24 horizons, got {h}"
+    assert n_paths >= 1000, (
+        f"{n_paths} paths is too few for a stable 95% percentile - the tails are "
+        f"estimated from the outer 2.5%. Use at least 1000; the deck uses 5000."
+    )
+    _need_cols(boot_fan, ["ds", "lo-80", "hi-80", "lo-95", "hi-95"], "boot_fan")
+
+    w80 = (boot_fan["hi-80"] - boot_fan["lo-80"]).to_numpy()
+    assert w80[-1] > w80[0], (
+        "The bootstrap interval must still widen with the horizon. Yours does "
+        "not - check that the recursion feeds simulated values back in "
+        "(season_length=12), rather than resampling around a fixed forecast."
+    )
+    gauss80 = float((fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]).mean())
+    assert float(w80.mean()) < gauss80, (
+        f"On this series the bootstrap's 80% interval should come out NARROWER "
+        f"than the Gaussian one ({gauss80:.1f}), because the residuals have a "
+        f"sharper peak than a normal. Yours averages {w80.mean():.1f}."
+    )
+    lo_gap = (boot_fan["mean"] - boot_fan["lo-95"]).to_numpy()
+    hi_gap = (boot_fan["hi-95"] - boot_fan["mean"]).to_numpy()
+    assert not np.allclose(lo_gap, hi_gap, rtol=0.01), (
+        "A bootstrap interval is a pair of empirical percentiles, so it has no "
+        "reason to be symmetric about the mean - and on this series it is not. "
+        "Yours is exactly symmetric, which suggests a +/- c * sd was used."
+    )
+    _ok("EX 2.3b", f"{n_paths} paths, mean 80% width {w80.mean():.1f} "
+                   f"vs {gauss80:.1f} Gaussian")
+
+
+def check_ex_2_3c(cmp: pd.DataFrame) -> None:
+    """Three intervals on one model, compared on the same holdout."""
+    _not_todo(cmp=cmp)
+    _need_cols(cmp, ["method", "width_80", "coverage_80"], "cmp")
+    names = " ".join(cmp["method"].astype(str)).lower()
+    for want in ("gauss", "bootstrap", "conformal"):
+        assert want in names, f"cmp is missing the {want} row; got {list(cmp['method'])}"
+    assert cmp["coverage_80"].between(0, 1).all(), (
+        "coverage_80 is a proportion in [0, 1], not a percentage."
+    )
+
+    def _row(key, col):
+        return float(cmp.loc[cmp["method"].str.lower().str.contains(key), col].iloc[0])
+
+    assert _row("bootstrap", "width_80") < _row("gauss", "width_80"), (
+        "The bootstrap should be the narrowest of the three at 80% here."
+    )
+    conf_w = _row("conformal", "width_80")
+    assert 30 < conf_w < 120, (
+        f"A conformal 80% width of {conf_w:.1f} is off the scale for this series "
+        f"(expect roughly 60). Check ConformalIntervals(n_windows=8, h=H) was "
+        f"passed to the MODEL, not to forecast()."
+    )
+    _ok("EX 2.3c", "  ".join(f"{r.method} {r.width_80:.0f}/{r.coverage_80:.0%}"
+                             for r in cmp.itertuples()))
+
+
 def check_ex_2_4(scores: pd.DataFrame) -> None:
     _not_todo(scores=scores)
     needed = {"MASE", "RMSSE"}

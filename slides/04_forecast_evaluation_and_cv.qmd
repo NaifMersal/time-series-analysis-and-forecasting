@@ -189,7 +189,7 @@ MASE > 1.0 because forecasting 24 months ahead is harder than in-sample 1-step n
 
 ## $\rightarrow$ Exercise 2.4 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
-Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 ::: {.incremental}
 - Compute MAE, RMSE, MAPE, and MASE for all baselines
@@ -393,7 +393,7 @@ Always fit scalers, imputers, and feature engineering strictly on each fold's tr
 
 ## $\rightarrow$ Exercise 2.5 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
-Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
+Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 ::: {.incremental}
 - Run rolling-origin cross-validation on 4 baselines
@@ -410,7 +410,7 @@ Open `labs/02_day2_benchmarks_and_evaluation.ipynb`
 ::: {.incremental}
 - Always start with the **4 baseline models**
 - Diagnose **residuals** (uncorrelated, zero-mean)
-- Report **prediction intervals** (width scales with $\sqrt{h}$)
+- Report **prediction intervals**, and know which assumption each one spends
 - Evaluate with **MASE** and **Rolling-Origin CV**
 :::
 
