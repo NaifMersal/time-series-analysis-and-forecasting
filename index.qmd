@@ -11,8 +11,8 @@ Built on [*Forecasting: Principles and Practice, the Pythonic Way*](https://otex
 (Hyndman, Athanasopoulos, Garza, Challu, Mergenthaler & Olivares), using the
 `statsforecast` / `utilsforecast` stack.
 
-Each day runs three hours as **five concept → exercise cycles**: a short segment, then you
-do it while it is fresh.
+Each day runs three hours as **two lecture → lab blocks**: a deck taught straight through,
+then a lab where you do all of it while it is fresh.
 
 ## Before you start
 
@@ -26,9 +26,9 @@ do it while it is fresh.
 
 | | |
 |---|---|
-| Segments 1–2 | [Getting Started & Time Series Patterns](slides/01_getting_started_and_patterns.html) |
-| Segments 3–5 | [ACF, Decomposition & Features](slides/02_acf_decomposition_and_features.html) |
-| Exercises | [`labs/01_day1_structure_and_diagnostics.ipynb`](labs/01_day1_structure_and_diagnostics.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/01_day1_structure_and_diagnostics.ipynb) |
+| Lecture 1 | [Getting Started & Time Series Patterns](slides/01_getting_started_and_patterns.html) |
+| Lecture 2 | [ACF, Decomposition & Features](slides/02_acf_decomposition_and_features.html) |
+| Labs A–B | [`labs/01_day1_structure_and_diagnostics.ipynb`](labs/01_day1_structure_and_diagnostics.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/01_day1_structure_and_diagnostics.ipynb) |
 
 Applications and what can be forecast · the three model families · trend, seasonality and
 cycle · components · the golden rule · the four plots · autocorrelation and the
@@ -40,9 +40,9 @@ correlogram · Box-Cox and STL · features across a whole portfolio.
 
 | | |
 |---|---|
-| Segments 1–3 | [Benchmarks, Residuals & Prediction Intervals](slides/03_benchmarks_residuals_and_intervals.html) |
-| Segments 4–5 | [Forecast Evaluation & Cross-Validation](slides/04_forecast_evaluation_and_cv.html) |
-| Exercises | [`labs/02_day2_toolbox_and_evaluation.ipynb`](labs/02_day2_toolbox_and_evaluation.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/02_day2_toolbox_and_evaluation.ipynb) |
+| Lecture 1 | [Benchmarks, Residuals & Prediction Intervals](slides/03_benchmarks_residuals_and_intervals.html) |
+| Lecture 2 | [Forecast Evaluation & Cross-Validation](slides/04_forecast_evaluation_and_cv.html) |
+| Labs C–D | [`labs/02_day2_toolbox_and_evaluation.ipynb`](labs/02_day2_toolbox_and_evaluation.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/02_day2_toolbox_and_evaluation.ipynb) |
 
 The benchmark floor · forecasting from a decomposition · fitted values and residuals ·
 Ljung-Box · prediction intervals and why they widen · Gaussian, bootstrap and conformal

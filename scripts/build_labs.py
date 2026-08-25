@@ -85,12 +85,20 @@ Everything the labs need lives in `coursekit`. If the next cell fails, run
 """),
     SETUP,
 
+    # ================================================================ Lab A
+    md("""
+---
+# Lab A - Structure and patterns
+
+Runs after the first deck. Exercises 1.1 and 1.2, 25 minutes.
+"""),
+
     # ---------------------------------------------------------------- 1.1
     md("""
 ---
 # Exercise 1.1 - Name the pattern
 
-*Follows segment 1. 10 minutes. No modelling - look and argue.*
+*10 minutes. No modelling - look and argue.*
 
 Six series are plotted below. For each one decide:
 
@@ -162,7 +170,7 @@ checks.check_ex_1_1(answers)
 ---
 # Exercise 1.2 - Load, verify, and look
 
-*Follows segment 2. 15 minutes.*
+*15 minutes.*
 
 The spine for this whole course is Victorian takeaway-food turnover: monthly,
 1982-2018.
@@ -306,12 +314,20 @@ print("Both peak in December, but the book series declines after 2005 while "
       "takeaway keeps growing - opposite trends, same seasonal calendar.")
 """),
 
+    # ================================================================ Lab B
+    md("""
+---
+# Lab B - Measure what you saw
+
+Runs after the second deck. Exercises 1.3 to 1.5, 45 minutes.
+"""),
+
     # ---------------------------------------------------------------- 1.3
     md("""
 ---
 # Exercise 1.3 - Read the correlogram
 
-*Follows segment 3. 15 minutes.*
+*15 minutes.*
 
 First, the matching game. Four correlograms below, in a scrambled order.
 Match each to its series.
@@ -395,7 +411,7 @@ spikes, or a spike at a meaningful lag like 12.
 ---
 # Exercise 1.4 - Transform and decompose
 
-*Follows segment 4. 15 minutes.*
+*15 minutes.*
 
 The spine's seasonal swing grows with its level. Stabilise it first, then split
 it into trend, seasonal and remainder.
@@ -493,7 +509,7 @@ print("Classical decomposition uses a centred moving average, so it cannot "
 ---
 # Exercise 1.5 - Features across a portfolio
 
-*Follows segment 5. 15 minutes.*
+*15 minutes.*
 
 One series is a plot. A hundred and forty-eight series need **numbers**.
 
@@ -666,12 +682,20 @@ print(f"train: {len(train)} months to {train['ds'].max().date()}")
 print(f"test : {len(test)} months from {test['ds'].min().date()}")
 """),
 
+    # ================================================================ Lab C
+    md("""
+---
+# Lab C - The toolbox
+
+Runs after the third deck. Exercises 2.1 to 2.3, 46 minutes.
+"""),
+
     # ---------------------------------------------------------------- 2.1
     md("""
 ---
 # Exercise 2.1 - The benchmark floor
 
-*Follows segment 1. 13 minutes.*
+*13 minutes.*
 
 Fit all four benchmarks and look at them. Everything for the rest of the course
 is measured against these.
@@ -836,7 +860,7 @@ print("Back-transforming a forecast gives the MEDIAN of the forecast "
 ---
 # Exercise 2.2 - Are the residuals white noise?
 
-*Follows segment 2. 13 minutes.*
+*13 minutes.*
 
 If a model's residuals still carry structure, the model has not finished.
 """),
@@ -913,7 +937,7 @@ shape has changed", the variance says "transform first".
 ---
 # Exercise 2.3 - Intervals, and how much to believe them
 
-*Follows segment 3. 20 minutes.*
+*20 minutes.*
 
 Three ways to draw an interval around the same point forecast, each spending a
 different assumption: **Gaussian** (part a), **bootstrap** (part b) and
@@ -1229,12 +1253,20 @@ print("\\nThe bootstrap covers only about 62% with the full 405-residual pool: "
       "knob you have for it.")
 """),
 
+    # ================================================================ Lab D
+    md("""
+---
+# Lab D - Score them honestly
+
+Runs after the fourth deck. Exercises 2.4 and 2.5, 29 minutes.
+"""),
+
     # ---------------------------------------------------------------- 2.4
     md("""
 ---
 # Exercise 2.4 - Scoring, and the metric that lies
 
-*Follows segment 4. 12 minutes.*
+*12 minutes.*
 """),
     code("""
 # TODO: build a table of MAE, RMSE, MAPE, MASE and RMSSE for all five models
@@ -1320,7 +1352,7 @@ is the exact move Exercise 2.5 is about to take apart.
 ---
 # Exercise 2.5 - The harness
 
-*Follows segment 5. 17 minutes.*
+*17 minutes.*
 
 This is the exercise the rest of the course rests on. You are building the
 evaluation harness that every Day 3 model gets plugged into.
@@ -1679,8 +1711,8 @@ def note(kind):
                     "> Instructor copy. Every TODO is filled in and every question answered.\n"
                     "> The student copy is the same notebook with these cells blanked.")
         return (head + "\n\n"
-                "> Work through the exercises in order - each follows a segment of the\n"
-                "> session. Cells marked `TODO` are yours to fill in; a `checks.check_ex_*`\n"
+                "> Two lab blocks, each running after its deck. Work down in order.\n"
+                "> Cells marked `TODO` are yours to fill in; a `checks.check_ex_*`\n"
                 "> call tells you whether it worked. Stretch sections are optional.")
     return _n
 

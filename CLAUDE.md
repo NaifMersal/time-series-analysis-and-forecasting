@@ -95,9 +95,16 @@ the *notebook* needs doubling (`\\n`), and a TODO is written as the literal `...
 `EXERCISES-INCOMPLETE`; `solutions` should report `OK`. A student copy reporting `OK` means
 an answer leaked.
 
-**Every concept is followed by an exercise.** Each day is five concept → exercise cycles,
-not two lectures and a lab. Deck slides titled `→ Exercise N.M` are the pacing markers;
-keep them in step with the notebook's section headers.
+**Each deck is taught straight through, then its lab block.** A day is two
+lecture → lab cycles, one per deck — not five interleaved ones. The four blocks are
+Lab A (Ex 1.1–1.2, 25 min), Lab B (1.3–1.5, 45), Lab C (2.1–2.3, 46), Lab D (2.4–2.5, 29).
+
+The single slide titled `→ Lab X · <name>` at the end of each deck, just before its
+Recap/Summary slide, is the pacing marker. It lists exercise number, title and minutes in
+a table and says nothing else — **do not re-bullet the concepts there.** That restatement
+is what the interleaved `→ Exercise N.M` slides used to do, and removing it is the point:
+a concept should be taught once on the slides and once in the notebook, not three times.
+Keep the table in step with the notebook's `# Lab X` banner and its exercise headers.
 
 ### Slides
 
@@ -155,8 +162,9 @@ because their prose claimed something the rendered figure did not show.
 ## Day 3 — open decision
 
 Which of ETS (Ch 8), ARIMA (Ch 9), dynamic regression (Ch 7 + 10), and neural / foundation
-models (Ch 14, 15) get class time, and at what depth. Three hours holds roughly five
-concept → exercise cycles, which is not enough for all four taught properly.
+models (Ch 14, 15) get class time, and at what depth. Three hours holds roughly two
+decks and their two lab blocks — about five exercises' worth of practice — which is not
+enough for all four taught properly.
 
 Constraints to carry into that decision:
 
