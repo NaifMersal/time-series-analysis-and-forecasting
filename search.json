@@ -1,0 +1,590 @@
+[
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#you-have-4-forecasts.-which-is-best",
+    "href": "slides/04_forecast_evaluation_and_cv.html#you-have-4-forecasts.-which-is-best",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "You have 4 forecasts. Which is best?",
+    "text": "You have 4 forecasts. Which is best?\n\nSegment 4 — How to score point forecasts fairly\nSegment 5 — Why 1 test split is not enough, and how rolling-origin CV fixes it\n\n\n\n\n\n\n\n\nDeliverable\n\n\nBuild a standardized evaluation harness to benchmark any forecasting model."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#error-metric-summary",
+    "href": "slides/04_forecast_evaluation_and_cv.html#error-metric-summary",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Error metric summary",
+    "text": "Error metric summary\nForecast error: \\(e_{T+h} = y_{T+h} - \\hat{y}_{T+h|T}\\)\n\n\n\n\n\n\n\n\nMetric\nProperty\nLimitation\n\n\n\n\nMAE\nEasy to interpret\nScale-dependent (cannot compare across series)\n\n\nRMSE\nPenalizes large errors\nScale-dependent\n\n\nMAPE\nPercentage error\nExplodes near zero; asymmetric\n\n\nMASE\nScale-free (relative to baseline)\nRequires seasonal period\n\n\n\n\nMAE and RMSE work well within a single series. To compare across different products or series, use MASE."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#the-flaw-with-mape",
+    "href": "slides/04_forecast_evaluation_and_cv.html#the-flaw-with-mape",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "The flaw with MAPE",
+    "text": "The flaw with MAPE\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Simulated low-volume / intermittent demand series (Poisson)\nrng = np.random.default_rng(3)\nn = 48\nlow = pd.DataFrame({\n    \"unique_id\": \"spare parts\",\n    \"ds\": pd.date_range(\"2020-01-01\", periods=n, freq=\"MS\"),\n    \"y\": np.clip(rng.poisson(1.4, n).astype(float), 0.2, None),\n})\npred_hi = low[\"y\"] + 2.0\npred_lo = low[\"y\"] - 0.15\n\nfig, ax = plt.subplots(figsize=(10, 3.6))\nax.plot(low[\"ds\"], low[\"y\"], color=P.BLACK, lw=1.2, label=\"Actual (Low Volume)\")\nax.plot(low[\"ds\"], pred_hi, color=P.ORANGE, lw=1.4, label=\"Forecast A (+2.0)\")\nax.plot(low[\"ds\"], pred_lo, color=P.BLUE, lw=1.4, label=\"Forecast B (-0.15)\")\n\n\n\n\nForecast A: MAE = 2.00, MAPE = 184%\nForecast B: MAE = 0.15, MAPE = 23%"
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#reasons-to-avoid-mape-for-model-selection",
+    "href": "slides/04_forecast_evaluation_and_cv.html#reasons-to-avoid-mape-for-model-selection",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "3 reasons to avoid MAPE for model selection",
+    "text": "3 reasons to avoid MAPE for model selection\n\nUndefined at zero — explodes on intermittent / low-volume demand\nAsymmetric — penalizes over-forecasting far more than under-forecasting\nFails without a true zero — invalid for temperature (°C)\n\n\n\nReport MAPE to executives if required, but never optimize models using MAPE."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#scaled-errors-mase",
+    "href": "slides/04_forecast_evaluation_and_cv.html#scaled-errors-mase",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Scaled Errors: MASE",
+    "text": "Scaled Errors: MASE\nError divided by the in-sample Seasonal Naive error (\\(Q\\)):\n\\[\\text{MASE} = \\frac{\\text{MAE}}{Q}\\]\n\n\n\\(\\text{MASE} &lt; 1\\) \\(\\rightarrow\\) Better than the seasonal naive baseline\n\\(\\text{MASE} = 1\\) \\(\\rightarrow\\) Exactly as good as seasonal naive\n\\(\\text{MASE} &gt; 1\\) \\(\\rightarrow\\) Worse than simple baseline"
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#benchmarks-scored-on-test-set",
+    "href": "slides/04_forecast_evaluation_and_cv.html#benchmarks-scored-on-test-set",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Benchmarks scored on test set",
+    "text": "Benchmarks scored on test set\n\n\n                   MAE    RMSE  MAPE %   MASE  RMSSE\nMean            173.67  175.55   51.82  12.66   9.09\nNaive            37.07   42.46   11.64   2.70   2.20\nSeasonal naive   15.24   17.56    4.55   1.11   0.91\nDrift            44.35   49.02   13.86   3.23   2.54\n\n\n\nSeasonal Naive wins across all metrics (\\(\\text{MASE} = 1.11\\)).\n\n\nMASE &gt; 1.0 because forecasting 24 months ahead is harder than in-sample 1-step naive errors."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#rightarrow-exercise-2.4",
+    "href": "slides/04_forecast_evaluation_and_cv.html#rightarrow-exercise-2.4",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "\\(\\rightarrow\\) Exercise 2.4",
+    "text": "\\(\\rightarrow\\) Exercise 2.4\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nCompute MAE, RMSE, MAPE, and MASE for all baselines\nConstruct a scenario where MAPE produces misleading rankings\nDefend the top-ranked model using MASE\n\n\n12 minutes."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#why-a-single-traintest-split-fails",
+    "href": "slides/04_forecast_evaluation_and_cv.html#why-a-single-traintest-split-fails",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Why a single train/test split fails",
+    "text": "Why a single train/test split fails\n\nA single 24-month split is just one sample point\nScore depends heavily on economic conditions during that window\nHigh variance (\\(\\pm 16\\%\\) error bars on 24 observations)\nEncourages data snooping and overfitting\n\n\n\nTime series cannot use standard k-fold. We need rolling origins."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#rolling-origin-cross-validation",
+    "href": "slides/04_forecast_evaluation_and_cv.html#rolling-origin-cross-validation",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Rolling-Origin Cross-Validation",
+    "text": "Rolling-Origin Cross-Validation\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Diagram: Rolling-origin cross-validation splits (expanding window)\n# 96 total periods, initial train size 48, horizon 12, step size 12\nfig, ax = plt.subplots(figsize=(10, 4.4))\nP.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, ax=ax,\n               title=\"Expanding Training Window Across Origins\")\n\n\n\n\nEach fold trains only on past data. No fold ever peeks into its future."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#key-cv-parameters",
+    "href": "slides/04_forecast_evaluation_and_cv.html#key-cv-parameters",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Key CV parameters",
+    "text": "Key CV parameters\n# Cross-validation setup with StatsForecast on Victorian takeaway turnover (spine):\ncv = sf.cross_validation(\n    df=spine,\n    h=12,          # Forecast horizon matched to business need\n    step_size=12,  # Steps between successive origins\n    n_windows=8,   # Number of evaluation folds\n    level=[80],\n)\n\nh — match the true operational planning horizon\nstep_size — frequency of forecast production\nn_windows — number of independent test origins"
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#cross-validation-results-across-8-folds",
+    "href": "slides/04_forecast_evaluation_and_cv.html#cross-validation-results-across-8-folds",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Cross-validation results across 8 folds",
+    "text": "Cross-validation results across 8 folds\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian takeaway food turnover (cv = sf.cross_validation(spine, n_windows=8))\n# Left: Single 24-month split vs Mean across 8 CV origins\n# Right: Distribution of MASE across individual CV folds\nfig, axes = plt.subplots(1, 2, figsize=(10, 4.0))\n\nsingle = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]\nx = np.arange(len(MODELS))\naxes[0].bar(x - 0.2, single.values, width=0.4, color=P.GREY, label=\"Single Split\")\naxes[0].bar(x + 0.2, per_window.mean().values, width=0.4, color=P.BLUE, label=f\"Mean of {N_WINDOWS} Folds\")\n\nfor i, m in enumerate(MODELS):\n    axes[1].scatter(np.full(len(per_window), i), per_window[m], s=40, color=P.ORANGE, alpha=0.75, zorder=3)\n\n\n\n\nNotice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky/unlucky, but the average is robust."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#interval-coverage-across-all-8-folds",
+    "href": "slides/04_forecast_evaluation_and_cv.html#interval-coverage-across-all-8-folds",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Interval coverage across all 8 folds",
+    "text": "Interval coverage across all 8 folds\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian takeaway food turnover (cv across 8 origins x 12 horizon = 96 points)\n# Coverage = percentage of holdout points falling between 80% lo/hi bounds\nfig, ax = plt.subplots(figsize=(9, 3.4))\nnames = [LABELS[m] for m in MODELS]\nvals = [coverage[m] for m in MODELS]\ncols = [P.BLUE if abs(v - 0.8) &lt; 0.1 else P.ORANGE for v in vals]\nax.barh(names, vals, color=cols, height=0.6)\nax.axvline(0.8, color=P.BLACK, ls=\"--\", lw=1.4)\n\n\n\n\nSeasonal Naive: 77% coverage (near nominal 80%)\nMean Model: 0% coverage (fails on trending data)"
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#information-leakage-risks",
+    "href": "slides/04_forecast_evaluation_and_cv.html#information-leakage-risks",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Information leakage risks",
+    "text": "Information leakage risks\n\n\n\n\n\n\n\nG\n\n\nA\n\nScaling / Normalizing\non the full series\n\n\n\nL\n\nData Leakage\nOver-optimistic CV,\npoor production\n\n\n\nA-&gt;L\n\n\n\n\n\nB\n\nCentered rolling\nwindow features\n\n\n\nB-&gt;L\n\n\n\n\n\nC\n\nTuning hyperparameters\non the test set\n\n\n\nC-&gt;L\n\n\n\n\n\n\n\n\n\n\n\nAlways fit scalers, imputers, and feature engineering strictly on each fold’s training history."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#evaluation-pitfalls-to-avoid",
+    "href": "slides/04_forecast_evaluation_and_cv.html#evaluation-pitfalls-to-avoid",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Evaluation pitfalls to avoid",
+    "text": "Evaluation pitfalls to avoid\n\nRegime changes — verify if old folds disagree with recent folds\nUnderpowered sample — evaluate over sufficient origins (\\(&gt;50\\) points)\nOverlapping folds — beware overly narrow confidence intervals when step_size &lt; h\nData gaps — verify timestamp continuity across all origins"
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#rightarrow-exercise-2.5",
+    "href": "slides/04_forecast_evaluation_and_cv.html#rightarrow-exercise-2.5",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "\\(\\rightarrow\\) Exercise 2.5",
+    "text": "\\(\\rightarrow\\) Exercise 2.5\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nRun rolling-origin cross-validation on 4 baselines\nCompute MASE, RMSSE, and 80% coverage\nBuild the baseline leaderboard for Day 3 models\n\n\n17 minutes."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#day-2-summary",
+    "href": "slides/04_forecast_evaluation_and_cv.html#day-2-summary",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Day 2 Summary",
+    "text": "Day 2 Summary\n\nAlways start with the 4 baseline models\nDiagnose residuals (uncorrelated, zero-mean)\nReport prediction intervals (width scales with \\(\\sqrt{h}\\))\nEvaluate with MASE and Rolling-Origin CV\n\n\n\nYou now have a robust evaluation harness. Ready for Day 3 models!"
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#eyeballing-cannot-be-tested-and-does-not-scale",
+    "href": "slides/02_acf_decomposition_and_features.html#eyeballing-cannot-be-tested-and-does-not-scale",
+    "title": "ACF, Decomposition & Features",
+    "section": "Eyeballing cannot be tested, and does not scale",
+    "text": "Eyeballing cannot be tested, and does not scale\n\nPick up from where we stopped: just before the exercise, the subseries plot could not show the spine’s seasonality underneath a sixfold trend. That was not a bad plot, it is the limit of looking.\n\nDescribing patterns by eye has a wider problem:\n\nDoes not scale: impossible across hundreds of series\nSubjective: different people see different patterns\nNo significance test: cannot tell signal from noise\n\n\n\n\n\n\n\n\nThe Solution\n\n\nReplace guesswork with numerical diagnostics: ACF, STL decomposition, and feature summaries."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#acf-is-correlation-with-your-own-past",
+    "href": "slides/02_acf_decomposition_and_features.html#acf-is-correlation-with-your-own-past",
+    "title": "ACF, Decomposition & Features",
+    "section": "ACF is correlation with your own past",
+    "text": "ACF is correlation with your own past\nQuantifies linear correlation between \\(y_t\\) and its lag \\(y_{t-k}\\):\n\\[r_k = \\frac{\\sum_{t=k+1}^{T}(y_t - \\bar{y})(y_{t-k} - \\bar{y})}{\\sum_{t=1}^{T}(y_t - \\bar{y})^2}\\]\n\n\\(r_k \\in [-1, 1]\\)\n\\(r_1\\) \\(\\rightarrow\\) correlation with previous month (inertia/trend)\n\\(r_{12}\\) \\(\\rightarrow\\) correlation with same month last year (seasonality)\nPlot \\(r_k\\) against \\(k\\) and you have a correlogram, the ACF plot\n\n\nIf you have ever done a scatterplot of x against y, you have done this. The only new thing is that x and y are the same column, offset by k."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#a-lag-plot-on-a-trending-series-only-shows-the-trend",
+    "href": "slides/02_acf_decomposition_and_features.html#a-lag-plot-on-a-trending-series-only-shows-the-trend",
+    "title": "ACF, Decomposition & Features",
+    "section": "A lag plot on a trending series only shows the trend",
+    "text": "A lag plot on a trending series only shows the trend\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine())\n# Detrended with a 12-month centred moving average:\ndetrended = spine[\"y\"].to_numpy() - P.centred_ma(spine[\"y\"], 12)\n\nfig, axes = plt.subplots(2, 3, figsize=(10, 4.4))\nP.lag_plot_grid(spine[\"y\"], lags=(1, 6, 12), axes=axes[0])\nP.lag_plot_grid(pd.Series(detrended).dropna(), lags=(1, 6, 12), axes=axes[1])\naxes[0, 0].set_ylabel(\"raw turnover ($M)\", size=10)\naxes[1, 0].set_ylabel(\"trend removed ($M)\", size=10)\n\n\n\n\nRaw (top): every lag scores \\(r \\approx 0.98\\), which is the trend talking\nTrend removed (bottom): lag 12 jumps to \\(0.73\\), lag 6 turns negative\n\n\nThe trend is removed here with a 12-month moving average, which is segment 4. Do not teach it yet. The point is only that the raw lag plot cannot separate the two."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#bounds-separate-real-correlation-from-luck",
+    "href": "slides/02_acf_decomposition_and_features.html#bounds-separate-real-correlation-from-luck",
+    "title": "ACF, Decomposition & Features",
+    "section": "Bounds separate real correlation from luck",
+    "text": "Bounds separate real correlation from luck\nWhite noise: no autocorrelation at any lag, every value independent of every other. For such a series:\n\\[r_k \\sim N\\left(0,\\ \\tfrac{1}{T}\\right)\\]\n\n\n95% of autocorrelations fall inside \\(\\pm 1.96/\\sqrt{T}\\)\nA spike inside the bounds is indistinguishable from noise\nWith 36 lags, ~1–2 spikes outside the bounds can occur by chance"
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#slow-decay-the-spine-acf-is-dominated-by-trend",
+    "href": "slides/02_acf_decomposition_and_features.html#slow-decay-the-spine-acf-is-dominated-by-trend",
+    "title": "ACF, Decomposition & Features",
+    "section": "Slow decay: the spine ACF is dominated by trend",
+    "text": "Slow decay: the spine ACF is dominated by trend\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine())\nfig, ax = plt.subplots(figsize=(9, 3.6))\nP.acf_plot(spine[\"y\"], nlags=36, ax=ax, highlight_every=12, ylim=(-0.15, 1.05),\n           title=\"Spine ACF, 36 lags (annual lags in orange)\")\n\n\n\n\nEvery lag sits far outside the bounds and decays slowly, which is trend\nThe annual lags (orange) are not spikes here: the trend swamps them\n\n\nAsk why lag 12 is not a spike here when the seasonal plot was so obvious. Answer: every lag is already near 0.9 because of trend, so seasonality has no room left to show. Removing the trend is what the next segment does."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#each-component-has-its-own-acf-signature",
+    "href": "slides/02_acf_decomposition_and_features.html#each-component-has-its-own-acf-signature",
+    "title": "ACF, Decomposition & Features",
+    "section": "Each component has its own ACF signature",
+    "text": "Each component has its own ACF signature\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Datasets / Components:\n# 1. Trend only: trend_only = spine STL trend component\n# 2. Seasonality only: season_only = spine log-STL seasonal component\n# 3. Cycle: lynx = D.lynx() (Canadian lynx pelts)\n# 4. White noise: noise = D.white_noise(n=len(spine), seed=7)\n\nfig, axes = plt.subplots(2, 4, figsize=(11.5, 5.0))\n# Top row: Time series\nP.plot_series(trend_only, ax=axes[0, 0], title=\"Trend only\", ylabel=\"turnover ($M)\")\nP.plot_series(season_only, ax=axes[0, 1], title=\"Seasonality only\", color=P.BLUE, ylabel=\"seasonal swing\")\nP.plot_series(lynx, ax=axes[0, 2], title=\"Cycle (lynx)\", color=P.PINK, ylabel=\"pelts\")\nP.plot_series(noise, ax=axes[0, 3], title=\"White noise\", color=P.GREY, ylabel=\"z\")\n\n# Bottom row: Corresponding ACF correlograms\nP.acf_plot(trend_only[\"y\"], nlags=36, ax=axes[1, 0], title=\"Slow decay\")\nP.acf_plot(season_only[\"y\"], nlags=36, ax=axes[1, 1], highlight_every=12, color=P.BLUE, title=\"Spikes at 12, 24, 36\")\nP.acf_plot(lynx[\"y\"], nlags=30, ax=axes[1, 2], color=P.PINK, title=\"Oscillating wave\")\nP.acf_plot(noise[\"y\"], nlags=36, ax=axes[1, 3], color=P.GREY, title=\"All inside bounds\")\n\n\n\n\nThe first two panels were split out with STL, which is segment 4. Do not teach it yet. Read the figure column by column: top row is the series, bottom row is its ACF. The claim is only that each component leaves a different shape, and that you can go the other way. That is exactly what Exercise 1.3 asks for."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#reading-any-acf-in-five-shapes",
+    "href": "slides/02_acf_decomposition_and_features.html#reading-any-acf-in-five-shapes",
+    "title": "ACF, Decomposition & Features",
+    "section": "Reading any ACF in five shapes",
+    "text": "Reading any ACF in five shapes\n\n\n\nVisual Pattern\nUnderlying Property\n\n\n\n\nSlow, smooth decay\nTrend\n\n\nRepeating peaks at \\(m, 2m, 3m\\)\nSeasonality (period \\(m\\))\n\n\nDecay + Seasonal peaks\nTrend + Seasonality\n\n\nAll spikes inside bounds\nWhite Noise (no remaining signal)\n\n\nSlow oscillating wave\nCycle (no fixed period)\n\n\n\n\n\nKey application: When model residuals are white noise, the model has captured all systematic structure."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.3-read-the-correlogram",
+    "href": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.3-read-the-correlogram",
+    "title": "ACF, Decomposition & Features",
+    "section": "\\(\\rightarrow\\) Exercise 1.3 · Read the correlogram",
+    "text": "\\(\\rightarrow\\) Exercise 1.3 · Read the correlogram\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nMatch four correlograms to four series\nCompute ACF for spine data vs. white noise\nIdentify statistically significant lags\n\n\n15 minutes."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#box-cox-flattens-the-growing-swing",
+    "href": "slides/02_acf_decomposition_and_features.html#box-cox-flattens-the-growing-swing",
+    "title": "ACF, Decomposition & Features",
+    "section": "Box-Cox flattens the growing swing",
+    "text": "Box-Cox flattens the growing swing\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine())\n# Box-Cox transformation with optimal log-likelihood lambda:\nlam = boxcox_lambda(spine[\"y\"].to_numpy(), method=\"loglik\")\nyt = boxcox(spine[\"y\"].to_numpy(), lam)\n\nfig, axes = plt.subplots(1, 2, figsize=(10, 3.8))\nP.plot_series(spine, ax=axes[0], title=\"Original: expanding swing\", ylabel=\"turnover ($M)\")\nP.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,\n              ylabel=\"transformed turnover\", title=rf\"Box-Cox ($\\lambda = {lam:.2f}$): constant swing\")\n\n\n\n\nWhen swing grows with level, transform before decomposing\n\\(\\lambda \\approx 0 \\implies\\) Use a standard log transform (\\(\\log y_t\\))\n\n\nLambda came out near zero, which is the log case. Worth saying that Box-Cox is a family with the log at one end, not a separate technique. Everything after this slide in the segment runs on the transformed series."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#a-centred-moving-average-estimates-the-trend-cycle",
+    "href": "slides/02_acf_decomposition_and_features.html#a-centred-moving-average-estimates-the-trend-cycle",
+    "title": "ACF, Decomposition & Features",
+    "section": "A centred moving average estimates the trend-cycle",
+    "text": "A centred moving average estimates the trend-cycle\n\\[\\hat{T}_t = \\frac{1}{m}\\sum_{j=-k}^{k} y_{t+j} \\qquad (m = 2k + 1)\\]\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine(), last 15 years / 180 obs)\nfig, ax = plt.subplots(figsize=(10, 2.2))\nP.trend_overlay_plot(\n    spine, {\"3-MA\": P.centred_ma(spine[\"y\"], 3),\n            \"12-month MA\": P.centred_ma(spine[\"y\"], 12)},\n    ax=ax, tail=180, colors=[P.PINK, P.ORANGE], ylabel=\"turnover ($M)\",\n    title=\"Spine, last 15 years: the order $m$ decides what survives\")\n\n\n\n\nSet the window to one seasonal period: \\(m = 3\\) keeps the season, \\(m = 12\\) erases it.\n\n\nThe 3-MA still wobbles because three months is a quarter of a cycle, so it averages a high month with two lower ones and keeps the shape. Twelve covers every month once. Twelve is even and has no middle month, which is the wrinkle the next slide deals with, so do not use the name 2x12-MA yet."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#a-whole-cycle-window-cancels-the-season",
+    "href": "slides/02_acf_decomposition_and_features.html#a-whole-cycle-window-cancels-the-season",
+    "title": "ACF, Decomposition & Features",
+    "section": "A whole-cycle window cancels the season",
+    "text": "A whole-cycle window cancels the season\nAveraging \\(m = 2k+1\\) terms of \\(y_t = T_t + S_t + R_t\\), centred on \\(t\\):\n\\[\\hat{T}_t = \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} T_{t+j}}_{\\text{trend}}\n            + \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} S_{t+j}}_{\\text{season}}\n            + \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} R_{t+j}}_{\\text{noise}}\\]\n\nSeason \\(= 0\\), exactly: the window spans one whole cycle\nTrend survives: a symmetric window is unbiased on a linear trend\nNoise shrinks by \\(1/m\\), damped but never removed\n\n\nTake the middle term first. One full cycle of a seasonal component sums to zero by definition, and the window is exactly one cycle, so that term is not small, it is zero. The trend term: with \\(T_{t+j}\\) locally linear the symmetric offsets cancel and you get \\(T_t\\) back. Everything left over is damped noise. That is the whole argument, and it is worth saying slowly because the rest of the segment rests on it."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#an-even-m-needs-the-2m-ma-to-stay-centred",
+    "href": "slides/02_acf_decomposition_and_features.html#an-even-m-needs-the-2m-ma-to-stay-centred",
+    "title": "ACF, Decomposition & Features",
+    "section": "An even \\(m\\) needs the 2×\\(m\\)-MA to stay centred",
+    "text": "An even \\(m\\) needs the 2×\\(m\\)-MA to stay centred\nTwelve consecutive months have no middle month, so their average sits at \\(t + \\tfrac{1}{2}\\). Average two adjacent 12-MAs to land back on \\(t\\):\n\\[\\hat{T}_t = \\tfrac{1}{24}y_{t-6} + \\tfrac{1}{12}\\sum_{j=-5}^{5} y_{t+j}\n              + \\tfrac{1}{24}y_{t+6}\\]\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# 2x12 Centred Moving Average filter weights:\nfig, ax = plt.subplots(figsize=(7.5, 2.4))\nP.ma_weight_plot(12, ax=ax, title=\"13 weights, symmetric about $t$\")\n\n\n\n\n\\(y_{t-6}\\) and \\(y_{t+6}\\) are the same calendar month, so between them they carry \\(\\tfrac{1}{12}\\), like every other month. The season still cancels exactly.\n\n\nThe two half weights land on the same calendar month, six months either side of t. Between them that month still gets a full 1/12, like every other month, so the season still cancels exactly. That is the only reason the 2x12 form exists."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#classical-decomposition-is-averages-all-the-way-down",
+    "href": "slides/02_acf_decomposition_and_features.html#classical-decomposition-is-averages-all-the-way-down",
+    "title": "ACF, Decomposition & Features",
+    "section": "Classical decomposition is averages all the way down",
+    "text": "Classical decomposition is averages all the way down\n\n\\(\\hat{T}_t\\) is the 2×12-MA\nDetrend: \\(y_t - \\hat{T}_t\\)\n\\(\\hat{S}\\) averages the detrended values within each month, then centres them to sum to zero\n\\(\\hat{R}_t = y_t - \\hat{T}_t - \\hat{S}_t\\)\n\n\n\nEvery piece is a moving average or a group mean. No fitting, no parameters. That simplicity costs something.\n\n\nNo fitting, no parameters, nothing to tune. That is its appeal and also its ceiling, which the next slide shows."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#the-ma-trend-stops-six-months-short-of-the-present",
+    "href": "slides/02_acf_decomposition_and_features.html#the-ma-trend-stops-six-months-short-of-the-present",
+    "title": "ACF, Decomposition & Features",
+    "section": "The MA trend stops six months short of the present",
+    "text": "The MA trend stops six months short of the present\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine(), last 5 years / 60 obs)\nfig, ax = plt.subplots(figsize=(10, 3.3))\nP.trend_overlay_plot(\n    spine, {\"2×12-MA trend\": P.centred_ma(spine[\"y\"], 12)},\n    ax=ax, tail=60, colors=[P.ORANGE], shade_gap=\"2×12-MA trend\",\n    ylabel=\"turnover ($M)\", title=\"Spine, last 5 years\")\n\n\n\n\nThe first and last \\(m/2\\) observations get no trend estimate\nThe missing one is exactly where you forecast from\n\n\nThe other cost of classical decomposition: monthly means impose one seasonal shape on all 37 years. STL, next, fixes both problems at once."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#stl-seasonal-trend-using-loess-splits-all-three",
+    "href": "slides/02_acf_decomposition_and_features.html#stl-seasonal-trend-using-loess-splits-all-three",
+    "title": "ACF, Decomposition & Features",
+    "section": "STL (Seasonal-Trend using Loess) splits all three",
+    "text": "STL (Seasonal-Trend using Loess) splits all three\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Transformed spine turnover (yt = Box-Cox of D.spine())\nres = STL(yt, period=12, robust=True).fit()\ndcmp = spine.assign(\n    **{\"transformed turnover\": yt},\n    trend=np.asarray(res.trend),\n    seasonal=np.asarray(res.seasonal),\n    remainder=np.asarray(res.resid),\n)\nfig, axes = P.decomposition_plot(\n    dcmp, [\"transformed turnover\", \"trend\", \"seasonal\", \"remainder\"],\n    \"STL decomposition of the transformed spine\")"
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#stl-bends-where-classical-decomposition-cannot",
+    "href": "slides/02_acf_decomposition_and_features.html#stl-bends-where-classical-decomposition-cannot",
+    "title": "ACF, Decomposition & Features",
+    "section": "STL bends where classical decomposition cannot",
+    "text": "STL bends where classical decomposition cannot\n\nAdaptive: seasonal pattern can evolve smoothly over time\nFlexible trend: estimates non-linear trend curves\nOutlier-resistant: unusual spikes do not distort the trend (robust=True)\nRemainder: isolates pure unexplained variation\n\n\nSTL = Seasonal-Trend decomposition using Loess. Key parameters: period (must provide) and seasonal window."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#adjusting-reveals-the-level-shifts-the-season-was-hiding",
+    "href": "slides/02_acf_decomposition_and_features.html#adjusting-reveals-the-level-shifts-the-season-was-hiding",
+    "title": "ACF, Decomposition & Features",
+    "section": "Adjusting reveals the level shifts the season was hiding",
+    "text": "Adjusting reveals the level shifts the season was hiding\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Transformed spine turnover (dcmp = STL components of transformed spine)\nfig, ax = plt.subplots(figsize=(9.5, 4.0))\nP.adjusted_plot(dcmp, dcmp[\"transformed turnover\"],\n                dcmp[\"transformed turnover\"] - dcmp[\"seasonal\"], ax=ax,\n                title=\"Observed vs. seasonally adjusted ($y_t - S_t$)\",\n                ylabel=\"transformed turnover\")\n\n\n\n\nThe step up in 2009 and the dip around 2000 are level shifts, not season. Both are much easier to see once the annual swing is gone."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.4-transform-and-decompose",
+    "href": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.4-transform-and-decompose",
+    "title": "ACF, Decomposition & Features",
+    "section": "\\(\\rightarrow\\) Exercise 1.4 · Transform and decompose",
+    "text": "\\(\\rightarrow\\) Exercise 1.4 · Transform and decompose\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nEstimate optimal Box-Cox \\(\\lambda\\)\nFit STL decomposition\nPlot components and produce seasonally adjusted series\n\n\n15 minutes."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#one-row-per-series-makes-a-portfolio-tractable",
+    "href": "slides/02_acf_decomposition_and_features.html#one-row-per-series-makes-a-portfolio-tractable",
+    "title": "ACF, Decomposition & Features",
+    "section": "One row per series makes a portfolio tractable",
+    "text": "One row per series makes a portfolio tractable\n\nIn practice, you manage hundreds or thousands of series\nManual visual inspection is impossible\nSolution: Compute summary features (1 row per series)\n\n\n\n\n\n\n\n\nDefinition\n\n\nA feature is a numerical summary of a whole series (e.g. trend strength, seasonal strength, entropy)."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#two-numbers-summarise-a-whole-series",
+    "href": "slides/02_acf_decomposition_and_features.html#two-numbers-summarise-a-whole-series",
+    "title": "ACF, Decomposition & Features",
+    "section": "Two numbers summarise a whole series",
+    "text": "Two numbers summarise a whole series\nUsing STL component variances:\n\\[F_T = \\max\\left(0,\\ 1 - \\frac{\\text{Var}(R_t)}{\\text{Var}(T_t + R_t)}\\right) \\qquad F_S = \\max\\left(0,\\ 1 - \\frac{\\text{Var}(R_t)}{\\text{Var}(S_t + R_t)}\\right)\\]\n\n\nValues fall in \\([0, 1]\\)\n\\(F_T \\approx 0\\) \\(\\rightarrow\\) No trend | \\(F_T \\approx 1\\) \\(\\rightarrow\\) Strong trend\n\\(F_S \\approx 0\\) \\(\\rightarrow\\) No seasonality | \\(F_S \\approx 1\\) \\(\\rightarrow\\) Strong seasonality\n\n\nBoth are one minus a variance ratio. If the remainder is nearly as variable as the trend plus remainder, the trend is adding nothing and F_T is near zero. If removing the component barely changes the variance, the component was not there."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#only-seasonal-strength-separates-the-portfolio",
+    "href": "slides/02_acf_decomposition_and_features.html#only-seasonal-strength-separates-the-portfolio",
+    "title": "ACF, Decomposition & Features",
+    "section": "Only seasonal strength separates the portfolio",
+    "text": "Only seasonal strength separates the portfolio\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: 148 Australian retail monthly series (allr = D.retail_all())\ndef stl_features(g):\n    y = np.log(np.clip(g[\"y\"].to_numpy(), 1e-6, None))\n    r = STL(y, period=12, robust=True).fit()\n    R, T_, S = np.asarray(r.resid), np.asarray(r.trend), np.asarray(r.seasonal)\n    vr = np.var(R)\n    return pd.Series({\n        \"trend_strength\": max(0.0, 1 - vr / np.var(T_ + R)),\n        \"seasonal_strength\": max(0.0, 1 - vr / np.var(S + R)),\n    })\n\nallr = D.retail_all()\nfeat = allr.groupby(\"unique_id\")[[\"y\"]].apply(stl_features, include_groups=False).reset_index()\n\nfig, ax = plt.subplots(figsize=(9.5, 4.3))\nP.feature_scatter(feat, ax=ax, marks=[(hi, P.ORANGE, \"most seasonal\"),\n                                      (mine, P.BLACK, \"the spine\"),\n                                      (lo, P.PINK, \"least seasonal\")],\n                  title=\"148 Australian retail series, both axes on the full 0 to 1 scale\")\n\n\n\n\nEvery one of the 148 scores above 0.89 on trend strength and 97% score above 0.96, so trend tells you nothing about which series is which. Seasonal strength runs from 0.26 to 0.98, and that is the axis worth acting on."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#features-route-a-portfolio-to-the-right-model",
+    "href": "slides/02_acf_decomposition_and_features.html#features-route-a-portfolio-to-the-right-model",
+    "title": "ACF, Decomposition & Features",
+    "section": "Features route a portfolio to the right model",
+    "text": "Features route a portfolio to the right model\n\nTriage: focus manual attention on unusual series\nModel Routing: skip seasonal models if \\(F_S \\approx 0\\)\nAnomaly Detection: feature outliers often indicate data errors\nClustering: group similar series for global models\n\n\n\n\n\n\n\n\nGolden Rule\n\n\nWhen a point looks anomalous in feature space, always plot the raw series."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.5-features-across-a-portfolio",
+    "href": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.5-features-across-a-portfolio",
+    "title": "ACF, Decomposition & Features",
+    "section": "\\(\\rightarrow\\) Exercise 1.5 · Features across a portfolio",
+    "text": "\\(\\rightarrow\\) Exercise 1.5 · Features across a portfolio\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nCompute \\(F_T\\) and \\(F_S\\) for all retail series\nRank series by seasonal strength\nPlot the most and least seasonal series\n\n\n15 minutes."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#day-1-summary",
+    "href": "slides/02_acf_decomposition_and_features.html#day-1-summary",
+    "title": "ACF, Decomposition & Features",
+    "section": "Day 1 Summary",
+    "text": "Day 1 Summary\n\nACF: Measures persistence and repeating cycles with statistical bounds\nSTL: Decomposes series into Trend, Seasonality, and Remainder\nFeatures: Compresses entire series into actionable diagnostic numbers\n\n\n\nTomorrow: Baseline models, prediction intervals, and honest evaluation."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Time Series Analysis & Forecasting",
+    "section": "",
+    "text": "Built on Forecasting: Principles and Practice, the Pythonic Way (Hyndman, Athanasopoulos, Garza, Challu, Mergenthaler & Olivares), using the statsforecast / utilsforecast stack.\nEach day runs three hours as five concept → exercise cycles: a short segment, then you do it while it is fresh."
+  },
+  {
+    "objectID": "index.html#before-you-start",
+    "href": "index.html#before-you-start",
+    "title": "Time Series Analysis & Forecasting",
+    "section": "Before you start",
+    "text": "Before you start\n\nSetup guide, install and verify, ~20 minutes\nPre-work notebook , pandas dates, long format, an OLS refresher\nReference cheat sheet, one page, printable"
+  },
+  {
+    "objectID": "index.html#day-1-structure",
+    "href": "index.html#day-1-structure",
+    "title": "Time Series Analysis & Forecasting",
+    "section": "Day 1: Structure",
+    "text": "Day 1: Structure\nSeeing what is actually in a series.\n\n\n\nSegments 1–2\nGetting Started & Time Series Patterns\n\n\nSegments 3–5\nACF, Decomposition & Features\n\n\nExercises\nlabs/01_day1_structure_and_diagnostics.ipynb \n\n\n\nApplications and what can be forecast · the three model families · trend, seasonality and cycle · components · the golden rule · the four plots · autocorrelation and the correlogram · Box-Cox and STL · features across a whole portfolio."
+  },
+  {
+    "objectID": "index.html#day-2-toolbox-evaluation",
+    "href": "index.html#day-2-toolbox-evaluation",
+    "title": "Time Series Analysis & Forecasting",
+    "section": "Day 2: Toolbox & evaluation",
+    "text": "Day 2: Toolbox & evaluation\nForecasting, and proving whether the forecast was any good.\n\n\n\nSegments 1–3\nBenchmarks, Residuals & Prediction Intervals\n\n\nSegments 4–5\nForecast Evaluation & Cross-Validation\n\n\nExercises\nlabs/02_day2_toolbox_and_evaluation.ipynb \n\n\n\nThe benchmark floor · fitted values and residuals · Ljung-Box · prediction intervals and why they widen · MAE, RMSE, MAPE and why MASE instead · rolling-origin cross-validation · leakage.\nDay 2 ends with an evaluation harness and the first rows of the course leaderboard."
+  },
+  {
+    "objectID": "index.html#day-3-models",
+    "href": "index.html#day-3-models",
+    "title": "Time Series Analysis & Forecasting",
+    "section": "Day 3: Models",
+    "text": "Day 3: Models\nIn preparation. The mix is still being decided: ETS, ARIMA, dynamic regression, neural and foundation models. Whatever it turns out to be, every model gets plugged into the harness built on Day 2 and added to the same leaderboard."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#where-we-are-going",
+    "href": "slides/01_getting_started_and_patterns.html#where-we-are-going",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Where we are going",
+    "text": "Where we are going\n\nDay 1: Patterns, decomposition, and features\nDay 2: Baselines, uncertainty, and evaluation\nDay 3: Forecasting models\n\n\n\n\n\n\n\n\nThe Goal\n\n\nDiagnose a series, build a baseline, and prove whether anything beats it."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#forecasts-exist-to-change-decisions",
+    "href": "slides/01_getting_started_and_patterns.html#forecasts-exist-to-change-decisions",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Forecasts exist to change decisions",
+    "text": "Forecasts exist to change decisions\n\nInventory: how much stock to hold\nStaffing: how many people to roster\nEnergy: when generation must ramp up\nFinance: cash flow and budget targets\n\n\n\nA forecast is only useful if it changes a decision.\n\n\nThe decision dictates the entire setup: the forecast horizon, the time frequency, and the error metric you care about."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#three-factors-dictate-predictability",
+    "href": "slides/01_getting_started_and_patterns.html#three-factors-dictate-predictability",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Three factors dictate predictability",
+    "text": "Three factors dictate predictability\n\nUnderstanding: how well we understand the drivers\nData: how much historical data exists\nInfluence: whether the forecast changes the outcome\n\n\n\nPoint 3 is key: if a demand forecast causes price cuts or stockouts, it alters future demand (self-fulfilling or self-defeating forecasts)."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#high-data-and-clear-drivers-make-series-predictable",
+    "href": "slides/01_getting_started_and_patterns.html#high-data-and-clear-drivers-make-series-predictable",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "High data and clear drivers make series predictable",
+    "text": "High data and clear drivers make series predictable\n\n\n\nElectricity Demand\n\nClear physical drivers (weather, calendar)\nHigh volume of historical data\nForecast does not change demand\n\\(\\rightarrow\\) Highly predictable\n\n\n\n\nExchange Rates\n\nWeakly understood drivers\nForecast moves the market\nNo stable recurring pattern\n\\(\\rightarrow\\) Hard to beat today’s price"
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#pure-time-series-models-require-no-future-drivers",
+    "href": "slides/01_getting_started_and_patterns.html#pure-time-series-models-require-no-future-drivers",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Pure time series models require no future drivers",
+    "text": "Pure time series models require no future drivers\nForecasting hourly electricity demand (ED) — three ways to write the same job:\n\n1. Explanatory — why is demand what it is? Every driver on the right needs its own forecast first.\n\\[\\small \\text{ED} = f(\\text{temperature},\\ \\text{economy},\\ \\text{population},\\ \\text{time of day},\\ \\text{day of week},\\ \\text{error})\\]\n\n\n2. Time series — what happened next last time? Everything on the right is already recorded.\n\\[\\small \\text{ED}_{t+1} = f(\\text{ED}_t,\\ \\text{ED}_{t-1},\\ \\text{ED}_{t-2},\\ \\text{ED}_{t-3},\\ \\ldots,\\ \\text{error})\\]\n\n\n3. Mixed — dynamic regression: past demand plus drivers, so the drivers’ forecast error rides along.\n\\[\\small \\text{ED}_{t+1} = f(\\text{ED}_t,\\ \\text{temperature}_{t+1},\\ \\text{time of day},\\ \\text{day of week},\\ \\text{error})\\]\n\nCourse focus: Days 1–2 stay on model 2. Day 3 goes further.\n\nThis is fpppy 1.4. The point is not that explanatory models are worse — it is that their right-hand side is unavailable at forecast time, so you end up forecasting the predictors too, and inherit that error."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#past-history-avoids-missing-future-predictors",
+    "href": "slides/01_getting_started_and_patterns.html#past-history-avoids-missing-future-predictors",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Past history avoids missing future predictors",
+    "text": "Past history avoids missing future predictors\nTime series models only need to know: what happened next last time?\n\nExternal drivers may not be available\nFuture driver values are often unknown (e.g. future gas prices)\nThe real system is often too complex to specify\n\n\nRelying on past history is not laziness; it is often the most dependable, honest model choice in production."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#trend-seasonality-and-cycles-are-distinct-patterns",
+    "href": "slides/01_getting_started_and_patterns.html#trend-seasonality-and-cycles-are-distinct-patterns",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Trend, seasonality, and cycles are distinct patterns",
+    "text": "Trend, seasonality, and cycles are distinct patterns\n\nTrend: Long-term increase or decrease\nSeasonality: Repeating pattern at a fixed, known period (day, week, year)\nCycle: Rises and falls with no fixed period (business cycles)\n\n\nTrend does not have to be linear. Cycles are usually longer than seasonality and vary in length."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#seasonality-has-a-fixed-calendar-period-cycles-vary",
+    "href": "slides/01_getting_started_and_patterns.html#seasonality-has-a-fixed-calendar-period-cycles-vary",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Seasonality has a fixed calendar period; cycles vary",
+    "text": "Seasonality has a fixed calendar period; cycles vary\n\n\n\nSeasonality\n\nKnown, fixed period\nDriven by the calendar / clock\nCan be counted on reliably\n\n\n\n\nCycle\n\nVariable, unknown period\nDriven by economic / natural factors\nTurning points are hard to predict\n\n\n\n\n\n\n\n\n\n\nCommon Mistake\n\n\nTreating a cycle as seasonality causes models to predict peaks at the wrong time with false confidence."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#four-series-show-four-distinct-temporal-patterns",
+    "href": "slides/01_getting_started_and_patterns.html#four-series-show-four-distinct-temporal-patterns",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Four series show four distinct temporal patterns",
+    "text": "Four series show four distinct temporal patterns\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Datasets:\n# 1. Victorian retail takeaway turnover: spine = D.spine()\n# 2. Australian quarterly beer production: beer = D.beer()\n# 3. Canadian lynx pelts (annual): lynx = D.lynx()\n# 4. Simulated white noise: noise = D.white_noise(n=len(spine), seed=7)\n\nfig, axes = plt.subplots(2, 2, figsize=(10, 5.4))\nP.plot_series(spine, ax=axes[0, 0], title=\"Trend + seasonality (retail)\", ylabel=\"turnover ($M)\")\nP.plot_series(beer, ax=axes[0, 1], title=\"Seasonality + drifting trend (beer)\", color=P.BLUE, ylabel=\"megalitres\")\nP.plot_series(lynx, ax=axes[1, 0], title=\"Cycle, no fixed period (lynx)\", color=P.PINK, ylabel=\"pelts traded\")\nP.plot_series(noise, ax=axes[1, 1], title=\"No pattern (white noise)\", color=P.GREY, ylabel=\"z\")\n\n\n\n\nThe lynx peaks occur 8–11 years apart, never the exact same gap. This is a cycle, not seasonality."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#time-series-split-into-trend-season-and-remainder",
+    "href": "slides/01_getting_started_and_patterns.html#time-series-split-into-trend-season-and-remainder",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Time series split into trend, season, and remainder",
+    "text": "Time series split into trend, season, and remainder\n\nAdditive: \\(y_t = S_t + T_t + R_t\\)\nMultiplicative: \\(y_t = S_t \\times T_t \\times R_t\\)\n\n\n\n\n\nComponent\nMeaning\n\n\n\n\n\\(S_t\\)\nSeasonal component (repeating calendar pattern)\n\n\n\\(T_t\\)\nTrend-Cycle component (underlying direction)\n\n\n\\(R_t\\)\nRemainder (random noise / unexplained variation)\n\n\n\nDecomposition cannot separate trend from cycle, so \\(T_t\\) carries both. That is why it is written trend-cycle."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#expanding-swings-require-multiplicative-models",
+    "href": "slides/01_getting_started_and_patterns.html#expanding-swings-require-multiplicative-models",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Expanding swings require multiplicative models",
+    "text": "Expanding swings require multiplicative models\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Datasets:\n# 1. Australian beer production (last 10 years / 120 obs): beer.tail(120)\n# 2. Souvenir shop sales: souvenirs = D.souvenirs()\n\nfig, axes = plt.subplots(1, 2, figsize=(9.5, 3.1))\nP.plot_series(beer.tail(120), ax=axes[0], color=P.BLUE, ylabel=\"megalitres\",\n              title=\"Additive: swing size is constant\")\nP.plot_series(souvenirs, ax=axes[1], color=P.ORANGE, ylabel=\"sales ($)\",\n              title=\"Multiplicative: swing grows with level\")\n\n\n\n\n\nConstant swing \\(\\rightarrow\\) Additive\nGrowing swing \\(\\rightarrow\\) Multiplicative (fix with log transform)\n\n\n\nPoint at the right panel and ask what a model fitted to the 1988 swing would predict for 1993. Far too small. A log transform turns that growing swing into a constant one, which is the fix used all through segment 4."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#the-golden-rule",
+    "href": "slides/01_getting_started_and_patterns.html#the-golden-rule",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "The Golden Rule",
+    "text": "The Golden Rule\n\nThe order is the data.\n\n\n\nNever shuffle time series data\nNever use random train/test splits\nNever use standard k-fold cross-validation\n\n\nRandom shuffling allows models to look into the future. Day 2 introduces rolling-origin evaluation."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#same-values-shuffled-every-pattern-is-gone",
+    "href": "slides/01_getting_started_and_patterns.html#same-values-shuffled-every-pattern-is-gone",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Same values, shuffled: every pattern is gone",
+    "text": "Same values, shuffled: every pattern is gone\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: spine = D.spine() (441 monthly observations)\nrng = np.random.default_rng(0)\ny = spine[\"y\"].to_numpy()\nshuffled = rng.permutation(y)\n\nfig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)\nP.plot_series(spine, ax=axes[0], color=P.BLACK, ylabel=\"turnover ($M)\",\n              title=\"Original: trend and season\")\nP.plot_series(spine.assign(y=shuffled), ax=axes[1], color=P.ORANGE,\n              title=\"Shuffled: same 441 values, new order\")\n\n\n\n\nSame mean, same variance, same histogram\nNothing left to forecast from: the order was the only structure\n\n\nAsk the room what a model could possibly learn from the right-hand panel. Nothing, and yet its summary statistics are identical to the left. Day 2 measures this properly."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#rightarrow-exercise-1.1-name-the-pattern",
+    "href": "slides/01_getting_started_and_patterns.html#rightarrow-exercise-1.1-name-the-pattern",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "\\(\\rightarrow\\) Exercise 1.1 · Name the pattern",
+    "text": "\\(\\rightarrow\\) Exercise 1.1 · Name the pattern\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nClassify six time series\nIdentify: Trend? Seasonality? Cycle?\nChoose: Additive or Multiplicative?\n\n\n10 minutes. Focus on visual diagnosis."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#four-plots-four-questions",
+    "href": "slides/01_getting_started_and_patterns.html#four-plots-four-questions",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Four plots, four questions",
+    "text": "Four plots, four questions\n\n\n\nPlot\nCore Question\n\n\n\n\nTime plot\nWhat does the overall series look like?\n\n\nSeasonal plot\nWhat is the repeating annual shape?\n\n\nSubseries plot\nHow does each specific month/quarter evolve?\n\n\nLag plot\nIs \\(y_t\\) related to \\(y_{t-k}\\)? (segment 3)\n\n\n\n\n\n\n\n\n\n\nStart with the Time Plot\n\n\nAlways check the time plot first for outliers, gaps, and structural breaks."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#time-plots-reveal-long-term-trend-and-variance-growth",
+    "href": "slides/01_getting_started_and_patterns.html#time-plots-reveal-long-term-trend-and-variance-growth",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Time plots reveal long-term trend and variance growth",
+    "text": "Time plots reveal long-term trend and variance growth\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Data: Victorian takeaway food turnover (D.spine())\nfig, ax = plt.subplots(figsize=(9.5, 3.0))\nP.plot_series(spine, ax=ax, ylabel=\"turnover ($M)\",\n              title=f\"{D.SPINE_ID}, monthly\")\n\n\n\n\nUpward trend, roughly sixfold over 37 years\nThe seasonal swing widens as the level rises\nSharp 2009 step and 2000 dip: investigate breaks before modelling\n\n\nSpend a moment here. This is the series the whole course runs on, so the room should leave this slide able to describe it from memory: rising, seasonal, wider swings later, one step in 2009."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#seasonal-plots-expose-repeating-annual-shapes",
+    "href": "slides/01_getting_started_and_patterns.html#seasonal-plots-expose-repeating-annual-shapes",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Seasonal plots expose repeating annual shapes",
+    "text": "Seasonal plots expose repeating annual shapes\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (last 10 years):\n# spine = D.spine(); sp = D.add_calendar(spine)\nrecent = sp[sp[\"year\"] &gt;= sp[\"year\"].max() - 9]\n\nfig, ax = plt.subplots(figsize=(9.5, 3.7))\nP.seasonal_plot(recent, \"year\", \"month\", ax=ax, season_labels=P.MONTH_LABELS,\n                ylabel=\"turnover ($M)\", xlabel=\"\", colorbar=True,\n                title=\"One line per year, last 10 years\")\n\n\n\n\nEvery year peaks in December and troughs in February\nThe shape repeats while the level climbs: that is seasonality, not cycle\n\n\nTen years, not all 37. Over the full span the level grows sixfold, so the lines stack by year and the shape is unreadable."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#subseries-plots-isolate-pure-seasonal-means",
+    "href": "slides/01_getting_started_and_patterns.html#subseries-plots-isolate-pure-seasonal-means",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Subseries plots isolate pure seasonal means",
+    "text": "Subseries plots isolate pure seasonal means\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Australian quarterly beer production (1956 to 2010): beer = D.beer()\nfig, axes = P.subseries_plot(D.add_calendar(beer), \"quarter\",\n                             ylabel=\"megalitres\", season_labels=P.QUARTER_LABELS,\n                             title=\"Beer production by quarter, 1956 to 2010 (orange line = quarter mean)\")\n\n\n\n\nDifferences in the horizontal means highlight the pure seasonal pattern."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#strong-trend-obscures-raw-month-to-month-means",
+    "href": "slides/01_getting_started_and_patterns.html#strong-trend-obscures-raw-month-to-month-means",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Strong trend obscures raw month-to-month means",
+    "text": "Strong trend obscures raw month-to-month means\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (D.spine(), 1982-2018):\n# sp = D.add_calendar(spine)\nfig, axes = P.subseries_plot(sp, \"month\", ylabel=\"turnover ($M)\",\n                             season_labels=P.MONTH_LABELS,\n                             title=\"Spine turnover by month, 1982 to 2018\")\n\n\n\n\n\n\n\n\n\nTrend Obscures Month-to-Month Means\n\n\nWhen trend growth is this large (6x), seasonal differences appear tiny until trend is removed with decomposition (segment 4).\n\n\n\n\nAsk the room which month is highest here. Nobody can tell. Then flip back two slides to the seasonal plot, where December is obvious. Same data, different subtraction."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#verify-timestamp-continuity-before-fitting-models",
+    "href": "slides/01_getting_started_and_patterns.html#verify-timestamp-continuity-before-fitting-models",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Verify timestamp continuity before fitting models",
+    "text": "Verify timestamp continuity before fitting models\n\ngaps = spine[\"ds\"].diff().dt.days\nprint(\"Inferred frequency :\", pd.infer_freq(spine[\"ds\"]))\nprint(\"Duplicate stamps   :\", spine[\"ds\"].duplicated().sum())\nprint(\"Gaps &gt; 1 month     :\", int((gaps &gt; 32).sum()))\n\nInferred frequency : MS\nDuplicate stamps   : 0\nGaps &gt; 1 month     : 0\n\n\n\n\n\n\n\n\n\nSilent Gaps Break Models\n\n\nA missing row shifts every seasonal lag that follows. Always check frequency before modelling.\n\n\n\n\nRun this on every series before anything else. A missing month does not raise, it silently renumbers every seasonal lag after it, and you find out much later when a seasonal model quietly stops working. Exercise 1.2 has students break it on purpose."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#rightarrow-exercise-1.2-load-verify-and-look",
+    "href": "slides/01_getting_started_and_patterns.html#rightarrow-exercise-1.2-load-verify-and-look",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "\\(\\rightarrow\\) Exercise 1.2 · Load, verify, and look",
+    "text": "\\(\\rightarrow\\) Exercise 1.2 · Load, verify, and look\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nLoad the spine dataset\nVerify timestamp continuity\nGenerate Time, Seasonal, and Subseries plots\n\n\n15 minutes."
+  },
+  {
+    "objectID": "slides/01_getting_started_and_patterns.html#part-1-recap",
+    "href": "slides/01_getting_started_and_patterns.html#part-1-recap",
+    "title": "Getting Started & Time Series Patterns",
+    "section": "Part 1 Recap",
+    "text": "Part 1 Recap\n\nForecasts exist to change decisions\nTrend, Seasonality, Cycle are distinct patterns\nMultiplicative swings become additive under a log transform\nOrder is the data: never shuffle\n\n\n\nNext: Autocorrelation (ACF) and Decomposition."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#todays-roadmap",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#todays-roadmap",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Today’s roadmap",
+    "text": "Today’s roadmap\n\nFour baseline models — the minimum floor any model must beat\nResidual diagnostics — testing whether the model captured all signal\nPrediction intervals — quantifying real forecast uncertainty\n\n\n\n\n\n\n\n\nGolden Rule\n\n\nA point forecast without an interval is an incomplete guess."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#four-essential-benchmarks",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#four-essential-benchmarks",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Four essential benchmarks",
+    "text": "Four essential benchmarks\n\nMean — Average of all historical observations\nNaive — Last observed value (\\(\\hat{y}_{T+h} = y_T\\))\nSeasonal Naive — Same season from previous year (\\(\\hat{y}_{T+h} = y_{T+h-m}\\))\nDrift — Last value plus average historical trend slope\n\n\n\nAlways fit these 4 first. On many series, Seasonal Naive is tough to beat."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-four-benchmarks-in-action",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-four-benchmarks-in-action",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "The four benchmarks in action",
+    "text": "The four benchmarks in action\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))\n# Models: StatsForecast(models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12), RandomWalkWithDrift()])\nfig, ax = plt.subplots(figsize=(10, 4.6))\nhist = train.tail(72)\nax.plot(hist[\"ds\"], hist[\"y\"], color=P.BLACK, lw=1.1, label=\"Observed\")\nax.plot(test[\"ds\"], test[\"y\"], color=P.GREY, lw=1.4, ls=\"--\", label=\"Actual Holdout\")\nfor m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):\n    ax.plot(fc[\"ds\"], fc[m], lw=1.7, color=c, label=LABELS[m])\nax.set(title=f\"Spine — {H}-Month Benchmark Forecasts\")"
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#why-benchmarks-are-non-negotiable",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#why-benchmarks-are-non-negotiable",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Why benchmarks are non-negotiable",
+    "text": "Why benchmarks are non-negotiable\n\nObjective Evidence — proves the complex model adds value\nSanity Check — catches complex ML models losing to naive rules\nScale Baseline — provides a standard denominator for errors (MASE)\nFast — takes just a few lines of code\n\n\n\n\n\n\n\n\nIn Every Review Ask:\n\n\n“What is the simple baseline, and by how much did we beat it?”"
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.1",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.1",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "\\(\\rightarrow\\) Exercise 2.1",
+    "text": "\\(\\rightarrow\\) Exercise 2.1\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nFit all four baselines on the training set\nPlot against the holdout set\nIdentify which method looks most realistic and why\n\n\n13 minutes."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#fitted-values-vs.-forecast-errors",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#fitted-values-vs.-forecast-errors",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Fitted values vs. Forecast errors",
+    "text": "Fitted values vs. Forecast errors\nResidual (\\(e_t\\)): Error on in-sample training data (one-step ahead)\n\\[e_t = y_t - \\hat{y}_{t|t-1}\\]\n\n\n\n\n\n\n\nCrucial Distinction\n\n\n\nResiduals = In-sample training errors (flattering)\nForecast Errors = Out-of-sample holdout errors (honest)"
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#properties-of-good-residuals",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#properties-of-good-residuals",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Properties of good residuals",
+    "text": "Properties of good residuals\n\n\n\nEssential\n\nUncorrelated (\\(r_k \\approx 0\\))\n\\(\\rightarrow\\) No signal left behind\nZero Mean (\\(\\bar{e} = 0\\))\n\\(\\rightarrow\\) Unbiased forecast\n\n\n\n\nFor Valid Intervals\n\nConstant Variance\n\\(\\rightarrow\\) Homoscedastic\nNormally Distributed\n\\(\\rightarrow\\) Gaussian intervals valid"
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#diagnosing-the-seasonal-naive",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#diagnosing-the-seasonal-naive",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Diagnosing the Seasonal Naive",
+    "text": "Diagnosing the Seasonal Naive\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover in-sample fitted values (fv = train merged with StatsForecast fitted values)\nresid = fv[\"y\"] - fv[\"SeasonalNaive\"]\nfig, axes = P.residual_diagnostics(resid, ds=fv[\"ds\"],\n                                   title=\"Seasonal Naive — Residual Diagnostics\")\n\n\n\n\nResiduals show expanding variance over time\nAutocorrelation spikes remain outside bounds \\(\\rightarrow\\) Signal left uncaptured"
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-ljung-box-test",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-ljung-box-test",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "The Ljung-Box Test",
+    "text": "The Ljung-Box Test\nStatistically tests if the first \\(\\ell\\) autocorrelations are jointly zero:\n\\[Q = T(T+2)\\sum_{k=1}^{\\ell}\\frac{r_k^2}{T-k}\\]\n\nSmall \\(p\\)-value (\\(p &lt; 0.05\\)) \\(\\rightarrow\\) Significant autocorrelation \\(\\rightarrow\\) Model incomplete\nLarge \\(p\\)-value (\\(p \\ge 0.05\\)) \\(\\rightarrow\\) Residuals are indistinguishable from white noise\n\n\nRule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.2",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.2",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "\\(\\rightarrow\\) Exercise 2.2",
+    "text": "\\(\\rightarrow\\) Exercise 2.2\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nRun residual diagnostics on Seasonal Naive & Drift\nTest autocorrelation with Ljung-Box\nEvaluate: Which properties pass? Which fail?\n\n\n13 minutes."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#point-forecasts-vs.-range-forecasts",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#point-forecasts-vs.-range-forecasts",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Point forecasts vs. Range forecasts",
+    "text": "Point forecasts vs. Range forecasts\n\n\n\nPoint Forecast\n“Demand will be 340 units.” - Guaranteed to be wrong - Hides operational risk\n\n\n\nInterval Forecast\n“Demand: [300, 380] with 80% confidence.” - Actionable for safety stock - Slices uncertainty honestly\n\n\n\nDecisions like staffing buffers, warehouse capacity, and safety inventory depend directly on the interval width."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#interval-calculation",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#interval-calculation",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Interval calculation",
+    "text": "Interval calculation\nFor a 1-step forecast with residual standard deviation \\(\\hat{\\sigma}\\):\n\\[\\hat{y}_{T+1|T} \\pm c\\,\\hat{\\sigma} \\qquad (c = 1.28 \\text{ for } 80\\%,\\; 1.96 \\text{ for } 95\\%)\\]\n\nFor horizon \\(h\\), uncertainty accumulates:\n\\[\\hat{\\sigma}_h = \\hat{\\sigma}\\sqrt{h}\\]\n\n\n\n\n\n\nNote\n\n\nUncertainty widens with \\(\\sqrt{h}\\) — rapid growth early on, decelerating at longer horizons."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#fan-chart-visualising-uncertainty",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#fan-chart-visualising-uncertainty",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Fan Chart: Visualising uncertainty",
+    "text": "Fan Chart: Visualising uncertainty\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))\n# Model: SeasonalNaive with prediction intervals at 80% and 95% levels\nfig, ax = plt.subplots(figsize=(10, 4.6))\nP.fan_chart(train, as_fan(\"SeasonalNaive\"), levels=(80, 95), ax=ax,\n            actual=test, history_tail=72,\n            title=\"Seasonal Naive: 80% and 95% Prediction Intervals\")"
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#how-intervals-widen-with-horizon",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#how-intervals-widen-with-horizon",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "How intervals widen with horizon",
+    "text": "How intervals widen with horizon\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Benchmark forecasts on Victorian retail takeaway turnover (fc)\n# Compare interval width growth vs theoretical sqrt(h) expansion:\nfig, axes = plt.subplots(1, 2, figsize=(9.5, 3.7))\nwidth = fc[\"SeasonalNaive-hi-80\"] - fc[\"SeasonalNaive-lo-80\"]\nh = np.arange(1, len(width) + 1)\naxes[0].plot(h, width, color=P.BLUE, lw=2, label=\"Actual Width\")\naxes[0].plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls=\"--\", label=r\"$\\text{Width}_1 \\times \\sqrt{h}$\")\n\nfor m, c in zip([\"Naive\", \"SeasonalNaive\", \"RWD\"], [P.GREEN, P.BLUE, P.PINK]):\n    w = fc[f\"{m}-hi-80\"] - fc[f\"{m}-lo-80\"]\n    axes[1].plot(h, w, color=c, lw=1.8, label=LABELS[m])"
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#why-one-test-window-is-misleading",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#why-one-test-window-is-misleading",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Why one test window is misleading",
+    "text": "Why one test window is misleading\nOn a single small test set (\\(n = 24\\)), coverage error is large:\n\\[\\text{SE} = \\sqrt{\\frac{p(1-p)}{n}} = \\sqrt{\\frac{0.8 \\times 0.2}{24}} \\approx \\pm 8\\% \\quad (\\pm 16\\% \\text{ at } 95\\% \\text{ CI})\\]\n\n\nA nominal 80% interval could easily measure anywhere from 64% to 96% on a single 24-point holdout by chance alone.\n\n\nTo properly measure coverage, we must evaluate across multiple rolling test origins."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.3",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.3",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "\\(\\rightarrow\\) Exercise 2.3",
+    "text": "\\(\\rightarrow\\) Exercise 2.3\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nCompute 80% and 95% prediction intervals\nVerify that interval width scales with \\(\\sqrt{h}\\)\nMeasure holdout coverage and explain estimation uncertainty\n\n\n15 minutes."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#part-2-recap",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#part-2-recap",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Part 2 Recap",
+    "text": "Part 2 Recap\n\nAlways start with the 4 baseline models\nCheck that residuals are uncorrelated and zero-mean\nReport prediction intervals, not just single numbers\nRecognize that interval uncertainty grows with \\(\\sqrt{h}\\)\n\n\n\nNext: Forecast evaluation metrics and rolling-origin cross-validation."
+  }
+]
