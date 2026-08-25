@@ -1015,3 +1015,31 @@ def width_vs_crps_plot(width, crps, coverage=None, labels=None,
     axes[1].set(xlim=(0, max(float(crps[m]) for m in models) * 1.35))
     fig.tight_layout()
     return fig, axes
+
+
+def pinball_loss_plot(alphas=(0.1, 0.5, 0.9), error_range=(-4, 4), ax=None,
+                      figsize=(8.5, 3.2), title="Quantile loss: asymmetry prices the target"):
+    """Pinball (quantile) loss L_alpha(q, y) plotted against error (y - q).
+
+    Demonstrates why alpha=0.5 is MAE and how alpha=0.9 penalizes underestimating
+    (y > q) heavily while charging little for overestimating (y < q).
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=figsize)
+    e = np.linspace(error_range[0], error_range[1], 400)
+    palette = [BLUE, BLACK, ORANGE]
+    for i, a in enumerate(alphas):
+        # L_a = a*(y-q) if y>=q (e>=0), (1-a)*(q-y) if y<q (e<0)
+        loss = np.where(e >= 0, a * e, (1 - a) * (-e))
+        c = palette[i % len(palette)]
+        label = f"$\\alpha = {a}$ (median / MAE)" if a == 0.5 else f"$\\alpha = {a}$"
+        ax.plot(e, loss, lw=2.2 if a == 0.5 else 1.8, color=c, label=label,
+                ls="--" if a == 0.5 else "-")
+
+    ax.axvline(0, color=GREY, lw=1.0, ls=":")
+    ax.axhline(0, color=GREY, lw=1.0)
+    ax.set(title=title, xlabel="error: observed minus forecast $(y - \\hat{q})$",
+           ylabel="loss $L_\\alpha(\\hat{q}, y)$", xlim=error_range, ylim=(-0.2, max(error_range[1] * max(alphas), abs(error_range[0]) * (1 - min(alphas))) * 1.08))
+    ax.legend(frameon=False, loc="upper center")
+    return ax
+

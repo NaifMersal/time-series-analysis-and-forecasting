@@ -476,17 +476,129 @@ Ch 5.9 · Scoring the whole distribution
 . . .
 
 ::: {.cardbox .teal}
-**Scaled CRPS** averages the quantile (pinball) loss over the whole ladder of
-levels. Scale-free, lower is better, and you can sort on it.
+To score a distribution, we start by scoring a single quantile.
 :::
 
 ::: {.notes}
-The infinity example is the one that lands: an interval of plus or minus
-infinity has perfect coverage and zero value. Coverage is a pass/fail check on
-honesty, not a score.
+The infinity example lands immediately: an interval of plus or minus infinity
+has 100% coverage and zero value. Coverage is a pass/fail check on honesty,
+not a ranking metric. To rank models, we need a score that prices both width
+and misses fairly.
+:::
 
-That is what a proper score fixes, and it is why LEVELS has five entries rather
-than just 80 - scaled CRPS needs a ladder of quantiles to integrate over.
+## Asymmetric quantiles require asymmetric loss
+
+We want to forecast the $\alpha$-quantile $\hat{q}_\alpha$, where $P(Y \le q_\alpha) = \alpha$.
+
+::: {.incremental}
+- **Case 1: Underestimated** ($y > \hat{q}_\alpha$): forecast was too low
+- **Case 2: Overestimated** ($y < \hat{q}_\alpha$): forecast was too high
+:::
+
+. . .
+
+For $\alpha = 0.9$, underestimating should hurt **much more** than overestimating:
+
+::: {.incremental}
+- A 90th percentile is *supposed* to sit above 90% of observations
+- Overestimating ($y < \hat{q}_{0.9}$) happens 90% of the time by design
+- Underestimating ($y > \hat{q}_{0.9}$) is rare (10%), so each miss must cost more
+:::
+
+::: {.notes}
+Ask the room: if you forecast the 90th percentile, how often should the actual
+value come in below your forecast? Ninety percent of the time! So being higher
+than actual is not a failure, it is the job. The penalty must reflect that
+expected asymmetry.
+:::
+
+## Quantile loss generalizes MAE to any level
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 8.5
+P.pinball_loss_plot(alphas=(0.1, 0.5, 0.9), figsize=(8.5, 3.2))
+plt.show()
+```
+
+### Formula
+$$L_\alpha(\hat{q}, y) = \begin{cases}
+\alpha \, (y - \hat{q}) & \text{if } y \ge \hat{q} \quad \text{(underestimated)} \\
+(1 - \alpha) \, (\hat{q} - y) & \text{if } y < \hat{q} \quad \text{(overestimated)}
+\end{cases}$$
+
+:::
+
+::: {.incremental}
+- At $\alpha = 0.5$: symmetric slopes ($0.5$), loss is $\frac{1}{2}|y - \hat{q}|$ (MAE was quantile loss all along)
+- At $\alpha = 0.9$: slope is $0.9$ on underestimation, $0.1$ on overestimation
+:::
+
+::: {.notes}
+Notice the slopes on the chart: at alpha=0.5, both sides rise at rate 0.5.
+That is plain absolute error divided by 2. When you minimize MAE, you are
+finding the median forecast.
+
+At alpha=0.9, the slope to the right is 0.9 and to the left is 0.1.
+Setting the expected derivative to zero gives P(Y <= q) = alpha.
+:::
+
+## Winkler score combines two quantiles into an interval
+
+An $80\%$ prediction interval $[\ell_{0.2}, u_{0.2}]$ is bounded by the $10\%$ and $90\%$ quantiles.
+
+$$\text{Winkler}([\ell, u], y) = \frac{L_{0.1}(\ell, y) + L_{0.9}(u, y)}{0.1}$$
+
+. . .
+
+Expanding the pinball losses gives a simple, intuitive charge:
+
+$$\text{Winkler} = \begin{cases}
+(u - \ell) & \text{if } \ell \le y \le u \quad \text{(inside: pay for width only)} \\
+(u - \ell) + \frac{2}{\alpha} (\ell - y) & \text{if } y < \ell \quad \text{(missed low)} \\
+(u - \ell) + \frac{2}{\alpha} (y - u) & \text{if } y > u \quad \text{(missed high)}
+\end{cases}$$
+
+. . .
+
+::: {.cardbox .navy}
+**Winkler prices the trade:** narrow intervals win inside the band, but pay a
+heavy linear fine for every unit outside.
+:::
+
+::: {.notes}
+The Winkler score is not a new ad-hoc formula. It is literally the sum of the
+two bounding quantile losses divided by alpha. When the actual observation falls
+inside the band, the score is simply the interval width (u - l). If it falls
+outside, the penalty is proportional to the distance of the miss.
+:::
+
+## Scaled CRPS averages quantile loss across all levels
+
+::: {.incremental}
+- **Quantile loss**: scores a single quantile $\hat{q}_\alpha$
+- **Winkler score**: scores an interval $[\ell_\alpha, u_\alpha]$ (a pair of quantiles)
+- **CRPS**: scores the **whole distribution** by averaging quantile loss over all $\alpha \in (0, 1)$
+:::
+
+. . .
+
+$$\text{CRPS} = \int_0^1 2 \, L_\alpha(\hat{q}_\alpha, y) \, d\alpha \quad \approx \quad \frac{1}{|\text{levels}|} \sum_{\alpha} 2 \, L_\alpha(\hat{q}_\alpha, y)$$
+
+. . .
+
+::: {.cardbox .teal}
+**Scaled CRPS** divides by the seasonal naive benchmark error, making it scale-free
+and sortable across the entire portfolio.
+:::
+
+::: {.notes}
+This completes the arc from point forecast to distribution:
+MAE -> Quantile Loss -> Winkler Score -> CRPS -> Scaled CRPS.
+Now the room understands why LEVELS in scoring.py has a ladder of five levels
+(20, 40, 60, 80, 95): it provides 10 quantiles to approximate this integral.
 :::
 
 ## Narrow is not the same as good
