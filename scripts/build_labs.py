@@ -142,8 +142,10 @@ checks.check_ex_1_1(answers)
 > years apart - never the same gap twice - so it is a *cycle*, not seasonality.
 > Nothing in the calendar produces it.
 >
-> `canadian_gas` is worth a second look too: its seasonal *shape* changes over
-> the decades, not just its size. STL will show you that in exercise 1.4.
+> `canadian_gas` is worth a second look too. Its swing grows with the level, so
+> multiplicative is the right call, but its seasonal *shape* also drifts across
+> the decades. A fixed additive/multiplicative split cannot express that, which
+> is exactly what STL shows you in exercise 1.4.
 """),
 
     # ---------------------------------------------------------------- 1.2
@@ -202,7 +204,7 @@ broken = spine.drop(index=holes).reset_index(drop=True)
 
 step = broken["ds"].diff().dt.days
 print(f"rows: {len(spine)} -> {len(broken)}, and pandas still reports no error")
-print(f"month-to-month steps seen  : {sorted(step.dropna().unique().astype(int))}")
+print(f"month-to-month steps seen  : {sorted(step.dropna().unique().astype(int).tolist())}")
 print(f"steps longer than a month  : {int((step > 32).sum())}")
 
 # "12 rows back" is no longer "12 months back" once a gap is inside the window.
@@ -245,10 +247,13 @@ sp = D.add_calendar(spine)
 ax = P.plot_series(spine, title="Spine - monthly turnover")
 plt.show()
 
-# 2. seasonal plot
+# 2. seasonal plot -- last 10 years only, as on the slide. Plot all 37 and the
+# lines stack by level until the shape is unreadable; try it and see.
+recent = sp[sp["year"] >= sp["year"].max() - 9]
 fig, ax = plt.subplots(figsize=(9, 4.2))
-P.seasonal_plot(sp, "year", "month", ax=ax, title="One line per year",
-                season_labels=P.MONTH_LABELS, colorbar=True)
+P.seasonal_plot(recent, "year", "month", ax=ax, title="One line per year, last 10",
+                season_labels=P.MONTH_LABELS, colorbar=True,
+                ylabel="turnover ($M)")
 plt.show()
 
 # 3. subseries plot
@@ -479,7 +484,7 @@ print("Classical decomposition uses a centred moving average, so it cannot "
 ---
 # Exercise 1.5 - Features across a portfolio
 
-*Follows segment 5. 16 minutes.*
+*Follows segment 5. 15 minutes.*
 
 One series is a plot. A hundred and forty-eight series need **numbers**.
 
@@ -1182,7 +1187,7 @@ print(f"rows after asfreq('D'):     {len(holed.asfreq('D'))}  "
     md("""
 **Why this matters.** Dropping four rows does not shift the index - but it *does* mean
 row `t-7` is no longer "one week ago". Every seasonal lag after the gap is wrong, and
-nothing raises an error. Day 1 opens with this.
+nothing raises an error. Day 1 comes back to this at the end of the first hour.
 """),
     code("""
 # TODO: `s` below is missing two months. Reindex it onto a complete monthly

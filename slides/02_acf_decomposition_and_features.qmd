@@ -28,17 +28,17 @@ noise = D.white_noise(n=len(spine), seed=7,
 _stl_raw = STL(spine["y"].to_numpy(), period=12, robust=True).fit()
 trend_only = spine.assign(y=np.asarray(_stl_raw.trend))
 
-# The seasonal panel is decomposed on logs: on the raw scale the swing grows
-# sevenfold over 37 years, so "seasonality only" came out looking like noise with
+# The seasonal panel is decomposed on logs: on the raw scale the swing grows with
+# the level (about fivefold over 37 years), so "seasonality only" came out as noise with
 # a variance break instead of a repeating shape.
 _stl_log = STL(np.log(spine["y"].to_numpy()), period=12, robust=True).fit()
 season_only = spine.assign(y=np.asarray(_stl_log.seasonal))
 ```
 
-## Eyeballing does not scale
+## Eyeballing cannot be tested, and does not scale
 
-Ten minutes ago the subseries plot could not show the spine's seasonality under a
-sixfold trend. Eyeballing has three problems:
+Just before the exercise, the subseries plot could not show the spine's seasonality
+under a sixfold trend. Describing patterns by eye has a wider problem:
 
 ::: {.incremental}
 - **Does not scale**: impossible across hundreds of series
@@ -128,6 +128,13 @@ plt.show()
 - The annual lags (orange) are **not** spikes here: the trend swamps them
 :::
 
+
+::: {.notes}
+Ask why lag 12 is not a spike here when the seasonal plot was so obvious. Answer:
+every lag is already near 0.9 because of trend, so seasonality has no room left to
+show. Removing the trend is what the next segment does.
+:::
+
 ## Each component has its own ACF signature
 
 ```{python}
@@ -137,8 +144,8 @@ fig, axes = plt.subplots(2, 4, figsize=(11.5, 5.0))
 P.plot_series(trend_only, ax=axes[0, 0], title="Trend only",
               ylabel="turnover ($M)")
 P.plot_series(season_only, ax=axes[0, 1], title="Seasonality only",
-              color=P.BLUE, ylabel="log deviation")
-P.plot_series(lynx, ax=axes[0, 2], title="Cycle (lynx)", color=P.ORANGE,
+              color=P.BLUE, ylabel="seasonal swing")
+P.plot_series(lynx, ax=axes[0, 2], title="Cycle (lynx)", color=P.PINK,
               ylabel="pelts")
 P.plot_series(noise, ax=axes[0, 3], title="White noise", color=P.GREY,
               ylabel="z")
@@ -146,13 +153,21 @@ P.plot_series(noise, ax=axes[0, 3], title="White noise", color=P.GREY,
 P.acf_plot(trend_only["y"], nlags=36, ax=axes[1, 0], title="Slow decay")
 P.acf_plot(season_only["y"], nlags=36, ax=axes[1, 1], highlight_every=12,
            color=P.BLUE, title="Spikes at 12, 24, 36")
-P.acf_plot(lynx["y"], nlags=30, ax=axes[1, 2], color=P.ORANGE,
+P.acf_plot(lynx["y"], nlags=30, ax=axes[1, 2], color=P.PINK,
            title="Oscillating wave")
 P.acf_plot(noise["y"], nlags=36, ax=axes[1, 3], color=P.GREY,
            title="All inside bounds")
 P.thin_xticks(axes[0], n=2)
 plt.show()
 ```
+
+
+::: {.notes}
+The first two panels were split out with STL, which is segment 4. Do not teach it
+yet. Read the figure column by column: top row is the series, bottom row is its
+ACF. The claim is only that each component leaves a different shape, and that you
+can go the other way. That is exactly what Exercise 1.3 asks for.
+:::
 
 ## Reading any ACF in five shapes
 
@@ -210,6 +225,13 @@ plt.show()
 - $\lambda \approx 0 \implies$ Use a standard **log transform** ($\log y_t$)
 :::
 
+
+::: {.notes}
+Lambda came out near zero, which is the log case. Worth saying that Box-Cox is a
+family with the log at one end, not a separate technique. Everything after this slide
+in the segment runs on the transformed series.
+:::
+
 ## A centred moving average estimates the trend-cycle
 
 $$\hat{T}_t = \frac{1}{m}\sum_{j=-k}^{k} y_{t+j} \qquad (m = 2k + 1)$$
@@ -219,7 +241,7 @@ $$\hat{T}_t = \frac{1}{m}\sum_{j=-k}^{k} y_{t+j} \qquad (m = 2k + 1)$$
 fig, ax = plt.subplots(figsize=(10, 2.5))
 P.trend_overlay_plot(
     spine, {"3-MA": P.centred_ma(spine["y"], 3),
-            "2×12-MA": P.centred_ma(spine["y"], 12)},
+            "12-month MA": P.centred_ma(spine["y"], 12)},
     ax=ax, tail=180, colors=[P.PINK, P.ORANGE], ylabel="turnover ($M)",
     title="Spine, last 15 years: the order $m$ decides what survives")
 P.thin_xticks(ax, n=5)
@@ -227,7 +249,9 @@ plt.show()
 ```
 
 ::: {.cardbox .teal}
-Set $m$ to the seasonal period: $m = 3$ keeps the season, $m = 12$ erases it.
+Set the window to one seasonal period, so it covers each month once:
+$m = 3$ keeps the season, $m = 12$ erases it. An even $m$ needs one extra
+step, two slides on.
 :::
 
 ::: {.notes}
@@ -419,9 +443,16 @@ $$F_T = \max\left(0,\ 1 - \frac{\text{Var}(R_t)}{\text{Var}(T_t + R_t)}\right) \
 . . .
 
 ::: {.incremental}
-- Values fall strictly in **$[0, 1]$**
+- Values fall in **$[0, 1]$**
 - **$F_T \approx 0$** $\rightarrow$ No trend | **$F_T \approx 1$** $\rightarrow$ Strong trend
 - **$F_S \approx 0$** $\rightarrow$ No seasonality | **$F_S \approx 1$** $\rightarrow$ Strong seasonality
+:::
+
+
+::: {.notes}
+Both are one minus a variance ratio. If the remainder is nearly as variable as the
+trend plus remainder, the trend is adding nothing and F_T is near zero. If removing
+the component barely changes the variance, the component was not there.
 :::
 
 ## Only seasonal strength separates the portfolio

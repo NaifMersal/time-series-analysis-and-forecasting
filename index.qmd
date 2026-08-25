@@ -52,6 +52,6 @@ Day 2 ends with an **evaluation harness** and the first rows of the course leade
 
 ## Day 3: Models
 
-*In preparation.* The mix, ETS, ARIMA, dynamic regression, neural and foundation models , 
-is still being decided. Whatever it turns out to be, every model gets plugged into the
-harness built on Day 2 and added to the same leaderboard.
+*In preparation.* The mix is still being decided: ETS, ARIMA, dynamic regression,
+neural and foundation models. Whatever it turns out to be, every model gets plugged
+into the harness built on Day 2 and added to the same leaderboard.

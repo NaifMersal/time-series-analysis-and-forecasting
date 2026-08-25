@@ -73,6 +73,7 @@ $$r_k = \frac{\sum_{t=k+1}^{T}(y_t-\bar y)(y_{t-k}-\bar y)}{\sum_{t=1}^{T}(y_t-\
 |---|---|
 | Slow decay, all positive | **trend** |
 | Spikes at $m, 2m, 3m$ | **seasonality** of period $m$ |
+| Slow decay with peaks riding on it | **trend + seasonality** |
 | Slow oscillating wave | **cycle** |
 | Everything inside the bounds | **white noise**: nothing left to model |
 

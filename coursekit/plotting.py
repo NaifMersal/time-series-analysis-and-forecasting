@@ -80,9 +80,17 @@ def thin_xticks(axes, n=4):
 
     for ax in np.atleast_1d(axes).ravel():
         if isinstance(ax.xaxis.get_major_locator(), mdates.DateLocator):
-            loc = mdates.AutoDateLocator(minticks=2, maxticks=max(2, n))
+            lo, hi = (mdates.num2date(v) for v in ax.get_xlim())
+            years = max(1, hi.year - lo.year)
+            # AutoDateLocator jumps straight from 10 to 20 years, and a 20-year
+            # step on a 37-year span leaves one lonely label mid-axis. Pick the
+            # coarsest of 1/2/5/10 years that still yields at least two labels.
+            for step in (1, 2, 5, 10, 20):
+                if years / step <= max(2, n):
+                    break
+            loc = mdates.YearLocator(step)
             ax.xaxis.set_major_locator(loc)
-            ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(loc))
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
         else:
             ax.xaxis.set_major_locator(plt.MaxNLocator(n))
     return axes
@@ -186,7 +194,7 @@ def ma_weight_plot(m: int = 12, ax=None, title=None):
     season still gets ``1/m`` -- which is why the seasonal term still cancels.
     """
     if ax is None:
-        _, ax = plt.subplots(figsize=(7.5, 3.4))
+        _, ax = plt.subplots(figsize=(7.5, 4.2))
     w = ma_weights(m)
     k = len(w) // 2
     off = np.arange(-k, k + 1)

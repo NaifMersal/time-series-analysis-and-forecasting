@@ -200,7 +200,7 @@ P.plot_series(spine, ax=axes[0, 0], title="Trend + seasonality (retail)",
 P.plot_series(beer, ax=axes[0, 1], title="Seasonality + drifting trend (beer)",
               color=P.BLUE, ylabel="megalitres")
 P.plot_series(lynx, ax=axes[1, 0], title="Cycle, no fixed period (lynx)",
-              color=P.ORANGE, ylabel="pelts traded")
+              color=P.PINK, ylabel="pelts traded")
 P.plot_series(noise, ax=axes[1, 1], title="No pattern (white noise)",
               color=P.GREY, ylabel="z")
 P.thin_xticks(axes, n=4)
@@ -251,6 +251,13 @@ plt.show()
 - Growing swing $\rightarrow$ **Multiplicative** (fix with log transform)
 :::
 
+
+::: {.notes}
+Point at the right panel and ask what a model fitted to the 1988 swing would predict
+for 1993. Far too small. A log transform turns that growing swing into a constant
+one, which is the fix used all through segment 4.
+:::
+
 ## The Golden Rule {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
 ::: {.r-fit-text}
@@ -280,8 +287,8 @@ shuffled = rng.permutation(y)
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
 P.plot_series(spine, ax=axes[0], color=P.BLACK, ylabel="turnover ($M)",
               title="Original: trend and season")
-axes[1].plot(spine["ds"], shuffled, color=P.ORANGE, lw=0.9)
-axes[1].set_title("Shuffled: same 441 values, new order")
+P.plot_series(spine.assign(y=shuffled), ax=axes[1], color=P.ORANGE,
+              title="Shuffled: same 441 values, new order")
 P.thin_xticks(axes, n=4)
 for ax in axes:
     ax.set_xlabel("")
@@ -349,6 +356,13 @@ plt.show()
 - Sharp 2009 step and 2000 dip: investigate breaks before modelling
 :::
 
+
+::: {.notes}
+Spend a moment here. This is the series the whole course runs on, so the room should
+leave this slide able to describe it from memory: rising, seasonal, wider swings
+later, one step in 2009.
+:::
+
 ## Seasonal plots expose repeating annual shapes
 
 ```{python}
@@ -398,7 +412,7 @@ plt.show()
 
 ::: {.callout-important}
 ## Trend Obscures Month-to-Month Means
-When trend growth is this large (6x), seasonal differences appear tiny until trend is removed with **decomposition**.
+When trend growth is this large (6x), seasonal differences appear tiny until trend is removed with **decomposition** (segment 4).
 :::
 
 ::: {.notes}
@@ -422,6 +436,12 @@ print("Gaps > 1 month     :", int((gaps > 32).sum()))
 ::: {.callout-important}
 ## Silent Gaps Break Models
 A missing row shifts every seasonal lag that follows. Always check frequency before modelling.
+:::
+
+::: {.notes}
+Run this on every series before anything else. A missing month does not raise, it
+silently renumbers every seasonal lag after it, and you find out much later when a
+seasonal model quietly stops working. Exercise 1.2 has students break it on purpose.
 :::
 
 ## $\rightarrow$ Exercise 1.2 · Load, verify, and look {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
