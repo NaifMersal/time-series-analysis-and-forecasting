@@ -227,8 +227,7 @@ plt.show()
 ```
 
 ::: {.cardbox .teal}
-For decomposition we set the order $m$ to the seasonal period, so one
-window is exactly one cycle. $m = 3$ keeps the season, $m = 12$ erases it.
+Set $m$ to the seasonal period: $m = 3$ keeps the season, $m = 12$ erases it.
 :::
 
 ::: {.notes}
