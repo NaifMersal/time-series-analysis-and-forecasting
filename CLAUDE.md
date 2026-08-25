@@ -35,6 +35,10 @@ quarto preview slides/02_acf_decomposition_and_features.qmd
 .venv/Scripts/python.exe .claude/skills/author-verify-slides/driver.py \
     slides/03_benchmarks_residuals_and_intervals.qmd --slides 0,4,8
 
+# lint the decks for what a screenshot cannot show (em dashes, banned words,
+# over-long bullets, inline matplotlib). ERROR fails; --strict fails WARN too.
+.venv/Scripts/python.exe .claude/skills/author-verify-slides/lint.py slides/*.qmd
+
 .venv/Scripts/python.exe .claude/skills/check-labs/driver.py all         # student copies
 .venv/Scripts/python.exe .claude/skills/check-labs/driver.py solutions   # answer keys
 ```

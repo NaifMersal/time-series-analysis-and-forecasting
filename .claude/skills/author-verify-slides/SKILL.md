@@ -129,6 +129,38 @@ state, writes `<stem>_full_sNN.png`, then cleans up. Always pass `--reveal-all`
 for an overflow/branding pass on a finished deck. (Code fences are left
 untouched, so `. . .`/`{.fragment}` shown *inside* a code sample survive.)
 
+## Lint — the defects a screenshot cannot show you
+
+A screenshot proves the slide *renders*. It says nothing about an em dash, a
+banned word, a nine-bullet list, a title that names its topic instead of its
+point, or a chart hand-rolled inside the deck instead of drawn by the project's
+shared plotting module. Those are textual and mechanical, so a linter catches
+them for free and catches them before you spend a render cycle.
+
+```bash
+python .claude/skills/author-verify-slides/lint.py slides/03_deck.qmd
+python .claude/skills/author-verify-slides/lint.py slides/*.qmd --strict --quiet
+```
+
+Three levels. **ERROR** is mechanical and always wrong: an em dash in prose, a
+banned word, `plt.subplots` or a bare `ax.plot` inside a deck. **WARN** is a
+threshold someone chose: title over 62 characters, bullet over 110, more than
+six bullets in one list, mixed -ise/-ize spelling. **INFO** is a prompt to look,
+not a verdict: a content slide with no `::: {.notes}`, a static image that might
+be showing data, a title with no verb in it.
+
+Exit status is 0 unless an ERROR fired; `--strict` fails on WARN too, which is
+what you want in a pre-delivery gate. `--quiet` drops the INFO findings.
+
+The `inline-chart` rule is the one worth keeping. A figure built inside a `.qmd`
+can drift from the one the lab draws, and then a slide claims something the
+students' own code does not show. Run against this repo's deck 3 as it stood
+before the Day 2 pass, the rule fires 41 times.
+
+House rules live in the constants at the top of `lint.py` — `BANNED_WORDS`,
+`SPELLING`, the three numeric thresholds. Each rule is one generator function in
+`RULES`, so a project-specific rule is a few lines.
+
 ## Bootstrapping into a fresh project
 
 Branding only applies if the project has a root `_quarto.yml` and a
