@@ -16,7 +16,7 @@ import pandas as pd
 from . import fppdata as fd
 
 #: The course spine. Monthly, m=12, 1982-04 to 2018-12, no gaps, with variance
-#: that grows with the level -- so Box-Cox earns its place on Day 1.
+#: that grows with the level -- so the log transform earns its place on Day 1.
 SPINE_STATE = "Victoria"
 SPINE_INDUSTRY = "Takeaway food services"
 #: Must match how retail_all() builds unique_id, so the spine can be

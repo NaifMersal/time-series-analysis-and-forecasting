@@ -108,13 +108,9 @@ def check_ex_1_3(acf_spine, acf_noise, bound) -> None:
     _ok("EX 1.3", f"r_1 = {acf_spine[0]:.3f}, noise outside bounds = {outside:.0%}")
 
 
-def check_ex_1_4(dcmp: pd.DataFrame, lam: float) -> None:
-    _not_todo(dcmp=dcmp, lam=lam)
+def check_ex_1_4(dcmp: pd.DataFrame) -> None:
+    _not_todo(dcmp=dcmp)
     _need_cols(dcmp, ["ds", "trend", "seasonal", "remainder"], "your decomposition")
-    assert 0.0 <= lam <= 0.4, (
-        f"lambda = {lam:.3f} looks off. For this series the log-likelihood "
-        "method gives about 0.07 - close to a log transform."
-    )
     recon = dcmp["trend"] + dcmp["seasonal"] + dcmp["remainder"]
     err = float(np.abs(recon - dcmp["transformed"]).max()) if "transformed" in dcmp else None
     if err is not None:
@@ -124,7 +120,7 @@ def check_ex_1_4(dcmp: pd.DataFrame, lam: float) -> None:
         )
     seasonal_range = float(dcmp["seasonal"].max() - dcmp["seasonal"].min())
     assert seasonal_range > 0, "The seasonal component is flat - check the period."
-    _ok("EX 1.4", f"lambda = {lam:.3f}, components reconstruct the series")
+    _ok("EX 1.4", "components reconstruct the series")
 
 
 def check_ex_1_5(feat: pd.DataFrame) -> None:

@@ -32,7 +32,7 @@ then a lab where you do all of it while it is fresh.
 
 Applications and what can be forecast · the three model families · trend, seasonality and
 cycle · components · the golden rule · the four plots · autocorrelation and the
-correlogram · Box-Cox and STL · features across a whole portfolio.
+correlogram · log transform and STL · features across a whole portfolio.
 
 ## Day 2: Toolbox & evaluation
 

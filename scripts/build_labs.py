@@ -289,8 +289,8 @@ anything unusual around 2009.
 <!--SOLUTION-->
 *Answer.* Turnover rises roughly sixfold in level from 1982 to 2018, with a
 clear December peak and February trough every year. The seasonal swing grows
-with the level, so the series is multiplicative - that is what the Box-Cox
-transform in 1.4 will fix. Growth jumps sharply in 2009-2010 and then plateaus
+with the level, so the series is multiplicative - the log transform in 1.4
+stabilises it. Growth jumps sharply in 2009-2010 and then plateaus
 through about 2014. That is a level shift rather than a seasonal one: the
 seasonal plot shows the *shape* stays put while the level moves under it.
 """),
@@ -413,37 +413,33 @@ spikes, or a spike at a meaningful lag like 12.
 
 *15 minutes.*
 
-The spine's seasonal swing grows with its level. Stabilise it first, then split
-it into trend, seasonal and remainder.
+The spine's seasonal swing grows with its level. Stabilise it with the log
+transform from Deck 1, then split it into trend, seasonal and remainder.
 """),
     code("""
-from coreforecast.scalers import boxcox, boxcox_lambda
 from statsmodels.tsa.seasonal import STL
 
-# TODO: choose lambda by the log-likelihood method, then transform.
-lam = ...
+# TODO: log-transform the spine, then plot original vs log side by side.
 yt = ...
 
 fig, axes = plt.subplots(1, 2, figsize=(11, 3.6))
 P.plot_series(spine, ax=axes[0], title="original")
 axes[1].plot(spine["ds"], yt, color=P.ORANGE, lw=0.9)
-axes[1].set_title(f"Box-Cox, lambda = {lam:.3f}")
+axes[1].set_title("log scale - the swing is now constant")
 plt.show()
 """, """
-from coreforecast.scalers import boxcox, boxcox_lambda
 from statsmodels.tsa.seasonal import STL
 
-lam = boxcox_lambda(spine["y"].to_numpy(), method="loglik")
-yt = boxcox(spine["y"].to_numpy(), lam)
+yt = np.log(spine["y"].to_numpy())
 
 fig, axes = plt.subplots(1, 2, figsize=(11, 3.6))
 P.plot_series(spine, ax=axes[0], title="original")
 axes[1].plot(spine["ds"], yt, color=P.ORANGE, lw=0.9)
-axes[1].set_title(f"Box-Cox, lambda = {lam:.3f}")
+axes[1].set_title("log scale - the swing is now constant")
 plt.show()
 """),
     code("""
-# TODO: run STL on the transformed series (remember: you must supply `period`)
+# TODO: run STL on the log-transformed series (remember: you must supply `period`)
 #       and assemble a frame with columns ds / transformed / trend / seasonal / remainder.
 res = ...
 dcmp = ...
@@ -452,7 +448,7 @@ fig, axes = P.decomposition_plot(
     dcmp, ["transformed", "trend", "seasonal", "remainder"], "STL")
 plt.show()
 
-checks.check_ex_1_4(dcmp, lam)
+checks.check_ex_1_4(dcmp)
 """, """
 res = STL(yt, period=12, robust=True).fit()
 dcmp = spine.assign(
@@ -466,7 +462,7 @@ fig, axes = P.decomposition_plot(
     dcmp, ["transformed", "trend", "seasonal", "remainder"], "STL")
 plt.show()
 
-checks.check_ex_1_4(dcmp, lam)
+checks.check_ex_1_4(dcmp)
 """),
     code("""
 # TODO: plot the seasonally adjusted series against the transformed series.
@@ -914,8 +910,9 @@ hold, and what does that imply?
   the series trends upward and last year's value is systematically too low. That
   is a *bias*: the forecast will be low every time.
 - **Constant variance:** fails - the late-period standard deviation is roughly
-  double the early one, because the series itself grew about sixfold. This is
-  exactly what the Box-Cox transform in 1.4 addresses.
+  double the early one, because the series itself grew about sixfold. That is
+  why the log transform in 1.4 comes first: on the log scale the spread is
+  stable.
 - **Normal:** roughly, but with heavy tails.
 
 Implication: the benchmark floor is a floor, not a model. The failures are

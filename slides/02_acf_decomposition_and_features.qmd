@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.seasonal import STL
-from coreforecast.scalers import boxcox, boxcox_lambda
 
 from coursekit import datasets as D
 from coursekit import plotting as P
@@ -89,7 +88,7 @@ new thing is that x and y are the same column, offset by k.
 #| fig-width: 10
 detrended = spine["y"].to_numpy() - P.centred_ma(spine["y"], 12)
 
-fig, axes = plt.subplots(2, 3, figsize=(10, 4.4))
+fig, axes = plt.subplots(2, 3, figsize=(10, 4))
 P.lag_plot_grid(spine["y"], lags=(1, 6, 12), axes=axes[0])
 P.lag_plot_grid(pd.Series(detrended).dropna(), lags=(1, 6, 12), axes=axes[1])
 axes[0, 0].set_ylabel("raw turnover ($M)", size=10)
@@ -103,7 +102,7 @@ plt.show()
 # Detrended with a 12-month centred moving average:
 detrended = spine["y"].to_numpy() - P.centred_ma(spine["y"], 12)
 
-fig, axes = plt.subplots(2, 3, figsize=(10, 4.4))
+fig, axes = plt.subplots(2, 3, figsize=(10, 4))
 P.lag_plot_grid(spine["y"], lags=(1, 6, 12), axes=axes[0])
 P.lag_plot_grid(pd.Series(detrended).dropna(), lags=(1, 6, 12), axes=axes[1])
 axes[0, 0].set_ylabel("raw turnover ($M)", size=10)
@@ -251,29 +250,28 @@ can go the other way. That is exactly what Exercise 1.3 asks for.
 . . .
 
 ::: {.cardbox .teal}
-**Key application**: When model residuals are white noise, the model has captured all systematic structure.
+**Key application**: When the unexplained variation is white noise, the model has captured all systematic structure.
 :::
 
 # B. Decomposition {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
 
 Ch 3 · Separating trend, season, and noise
 
-## Box-Cox flattens the growing swing
+## A log transform flattens the growing swing
 
 ::: {.panel-tabset}
 
 ### Plot
 ```{python}
 #| fig-width: 10
-lam = boxcox_lambda(spine["y"].to_numpy(), method="loglik")
-yt = boxcox(spine["y"].to_numpy(), lam)
+yt = np.log(spine["y"].to_numpy())
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.8))
 P.plot_series(spine, ax=axes[0], title="Original: expanding swing",
               ylabel="turnover ($M)")
 P.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,
-              ylabel="transformed turnover",
-              title=rf"Box-Cox ($\lambda = {lam:.2f}$): constant swing")
+              ylabel="log turnover",
+              title="Log scale: constant swing")
 P.thin_xticks(axes, n=4)
 plt.show()
 ```
@@ -281,31 +279,39 @@ plt.show()
 ### Code
 ```python
 # Dataset: Victorian retail takeaway turnover (spine = D.spine())
-# Box-Cox transformation with optimal log-likelihood lambda:
-lam = boxcox_lambda(spine["y"].to_numpy(), method="loglik")
-yt = boxcox(spine["y"].to_numpy(), lam)
+# Log transform: a multiplicative series becomes additive on the log scale
+yt = np.log(spine["y"].to_numpy())
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.8))
 P.plot_series(spine, ax=axes[0], title="Original: expanding swing", ylabel="turnover ($M)")
 P.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,
-              ylabel="transformed turnover", title=rf"Box-Cox ($\lambda = {lam:.2f}$): constant swing")
+              ylabel="log turnover", title="Log scale: constant swing")
 ```
 
 :::
 
 ::: {.incremental}
-- When swing grows with level, transform before decomposing
-- $\lambda \approx 0 \implies$ Use a standard **log transform** ($\log y_t$)
+- When the swing grows with the level, take a **log transform** before decomposing
+- On the log scale a multiplicative series is **additive**: the swing stops growing
 - Forecasting on it? Back-transforming returns the **median**, not the mean (Ch 5.6)
 :::
 
 
 ::: {.notes}
-Lambda came out near zero, which is the log case. Worth saying that Box-Cox is a
-family with the log at one end, not a separate technique. Everything after this slide
-in the segment runs on the transformed series. The median-vs-mean point is the
-one they will trip over in production: if a regional total is the sum of 40
-back-transformed store forecasts, that total is biased low unless you correct it.
+Deck 1 named the diagnosis: the swing grows with the level, so the series is
+multiplicative, and the fix is the log transform. This slide is that fix,
+applied: the annual swing is now a constant size, and the sixfold trend has
+become a near-straight climb. Everything after this slide in the segment runs
+on the log-transformed series.
+
+Box-Cox is the generalised version: a family of transforms indexed by lambda,
+with the log at lambda = 0. For this series the optimal lambda is about 0.07,
+so the log is the honest choice. Do not teach Box-Cox today; it comes back on
+Day 3 with ETS, where a fitted lambda is part of the model.
+
+The median-vs-mean point is the one they will trip over in production: if a
+regional total is the sum of 40 back-transformed store forecasts, that total
+is biased low unless you correct it.
 :::
 
 ## A centred moving average estimates the trend-cycle
@@ -361,17 +367,39 @@ $$\hat{T}_t = \underbrace{\frac{1}{m}\sum_{j=-k}^{k} T_{t+j}}_{\text{trend}}
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} R_{t+j}}_{\text{noise}}$$
 
 ::: {.incremental}
-- **Season $= 0$, exactly**: the window spans one whole cycle
+- **Constraint $\sum_{j=1}^m S_j = 0$**: ensures pure swings around trend (any non-zero mean is unrecognizable trend)
+- **Season $= 0$, exactly**: an $m$-window spans one whole cycle
 - **Trend survives**: a symmetric window is unbiased on a linear trend
 - **Noise shrinks** by $1/m$, damped but never removed
 :::
 
 ::: {.notes}
-Take the middle term first. One full cycle of a seasonal component sums to zero by
-definition, and the window is exactly one cycle, so that term is not small, it is zero.
-The trend term: with $T_{t+j}$ locally linear the symmetric offsets cancel and you get
-$T_t$ back. Everything left over is damped noise. That is the whole argument, and it is
-worth saying slowly because the rest of the segment rests on it.
+The constraint sum(S_j) = 0 is essential: without it, decomposition is not
+unique. Any non-zero average in S is unrecognizable trend, so the seasonal
+component is defined only up to a constant and the split between trend and
+season is not.
+Because the window is exactly one cycle, the middle term sums to 0. Locally
+linear trend offsets cancel, leaving T_t plus damped noise.
+
+For a multiplicative model the same idea multiplies instead: going through a
+full cycle, S1 x S2 x ... x Sm = 1, so a geometric mean over the window
+removes the season.
+:::
+
+## Seasonal terms always sum to zero over $m$ steps
+
+Periodicity ($S_{t+m} = S_t$) means any $m$ consecutive terms span the full cycle:
+
+$$\{S_{t-k}, \dots, S_{t+k}\} = \{S_1, \dots, S_m\} \qquad (m = 2k + 1)$$
+
+. . .
+
+Averaging over window $m$ cancels the season completely:
+
+$$\bar{S}_t = \frac{1}{m}(S_{t-k} + \dots + S_{t+k}) = \frac{1}{m}(\underbrace{S_1 + S_2 + \dots + S_m}_{\text{sums to } 0}) = \frac{1}{m}(0) = \mathbf{0}$$
+
+::: {.notes}
+Because additive seasonality sums to zero across one cycle by construction, any window of length m captures each season exactly once and averages to 0, regardless of the starting month.
 :::
 
 ## An even $m$ needs the 2×$m$-MA to stay centred {.smaller}
@@ -493,7 +521,7 @@ plt.show()
 
 ### Code
 ```python
-# Dataset: Transformed spine turnover (yt = Box-Cox of D.spine())
+# Dataset: Log-transformed spine turnover (yt = np.log of D.spine()["y"])
 res = STL(yt, period=12, robust=True).fit()
 dcmp = spine.assign(
     **{"transformed turnover": yt},
