@@ -103,6 +103,22 @@ def white_noise(n: int = 200, seed: int = 1, start: str = "1990-01-01",
     })
 
 
+def low_volume_demand(n: int = 48, seed: int = 3, rate: float = 1.4,
+                      floor: float = 0.2, start: str = "2020-01-01",
+                      uid: str = "spare parts") -> pd.DataFrame:
+    """Simulated intermittent demand -- the series MAPE breaks on.
+
+    Counts near zero, so a fixed absolute error becomes an enormous *percentage*
+    error. Day 2 uses it to show that MAPE ranks two forecasts backwards.
+    """
+    rng = np.random.default_rng(seed)
+    return pd.DataFrame({
+        "unique_id": uid,
+        "ds": pd.date_range(start, periods=n, freq=FREQ),
+        "y": np.clip(rng.poisson(rate, n).astype(float), floor, None),
+    })
+
+
 def add_calendar(df: pd.DataFrame) -> pd.DataFrame:
     """Add ``year`` / ``month`` / ``quarter`` for seasonal and subseries plots."""
     out = df.copy()

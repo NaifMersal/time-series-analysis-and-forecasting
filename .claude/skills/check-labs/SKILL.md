@@ -79,8 +79,10 @@ is exactly how this repo writes them. It is otherwise heuristic (see
 ## Run — Layer 2 (solve & verify one lab, then judge it)
 
 1. **Pair it with its deck.** `labs/01_day1_*` follows `slides/01_*` and `slides/02_*`;
-   `labs/02_day2_*` follows `slides/03_*` and `slides/04_*`. Each exercise's markdown
-   header names the segment it follows.
+   `labs/02_day2_*` follows `slides/03_*` and `slides/04_*`. Each notebook holds two
+   `# Lab X` banners, one per deck — Lab A (Ex 1.1–1.2) and Lab B (1.3–1.5) in the Day 1
+   notebook, Lab C (2.1–2.3) and Lab D (2.4–2.5) in the Day 2 one. The banner names the
+   deck its block follows.
 2. **Complete the exercises** in the student copy (use `labs/solutions/` as the spec),
    editing cells with `NotebookEdit`.
 3. **Re-run that notebook** until it reports `OK` — every `check_ex_*` passing proves the

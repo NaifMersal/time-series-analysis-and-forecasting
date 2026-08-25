@@ -488,7 +488,8 @@ def residual_diagnostics(resid, ds=None, nlags=24, title="", bins=25):
 # --------------------------------------------------------------------------
 
 def fan_chart(history, forecast, levels=(80, 95), ax=None, title="",
-              actual=None, history_tail=None, color=BLUE, mean_col="mean"):
+              actual=None, history_tail=None, color=BLUE, mean_col="mean",
+              figsize=(9, 4)):
     """Point forecast with nested prediction intervals.
 
     ``forecast`` needs columns ``ds``, ``mean_col`` and, per level L, ``lo-L``
@@ -496,7 +497,7 @@ def fan_chart(history, forecast, levels=(80, 95), ax=None, title="",
     interval actually covered it is visible rather than asserted.
     """
     if ax is None:
-        _, ax = plt.subplots()
+        _, ax = plt.subplots(figsize=figsize)
     hist = history.tail(history_tail) if history_tail else history
     ax.plot(hist["ds"], hist["y"], color=BLACK, lw=1.1, label="observed")
 
@@ -578,7 +579,7 @@ def paths_to_fan(future_ds, paths, levels=(80, 95), mean_col="mean"):
 
 
 def sim_paths_plot(history, future_ds, paths, ax=None, n_show=8, history_tail=48,
-                   title="", actual=None, seed=0):
+                   title="", actual=None, seed=0, figsize=(9, 4)):
     """Show a handful of individual simulated futures, not their envelope.
 
     Students meet the bootstrap as a shaded band and assume the band *is* the
@@ -587,7 +588,7 @@ def sim_paths_plot(history, future_ds, paths, ax=None, n_show=8, history_tail=48
     visible.
     """
     if ax is None:
-        _, ax = plt.subplots(figsize=(9, 4))
+        _, ax = plt.subplots(figsize=figsize)
     paths = np.asarray(paths, dtype=float)
     hist = history.tail(history_tail) if history_tail else history
     future_ds = pd.Series(future_ds).to_numpy()
@@ -607,7 +608,7 @@ def sim_paths_plot(history, future_ds, paths, ax=None, n_show=8, history_tail=48
 
 
 def h_step_error_diagram(history, errors, ax=None, title="", history_tail=None,
-                         ylabel="y", annotate=True):
+                         ylabel="y", annotate=True, figsize=(9, 4), xticks=None):
     """Draw the h-step errors :math:`e_{t+h|t} = y_{t+h} - \hat{y}_{t+h|t}`.
 
     ``errors`` needs one row per scored point with columns ``cutoff`` (the
@@ -617,7 +618,7 @@ def h_step_error_diagram(history, errors, ax=None, title="", history_tail=None,
     than a definition on a slide.
     """
     if ax is None:
-        _, ax = plt.subplots(figsize=(9, 4))
+        _, ax = plt.subplots(figsize=figsize)
     hist = history.tail(history_tail) if history_tail else history
     ax.plot(hist["ds"], hist["y"], color=BLACK, lw=1.2, zorder=2, label="observed")
 
@@ -636,13 +637,16 @@ def h_step_error_diagram(history, errors, ax=None, title="", history_tail=None,
                         (row["ds"], max(row["y"], row["yhat"])),
                         textcoords="offset points", xytext=(4, 4),
                         size=9, color=ORANGE)
+    if xticks is not None:
+        ax.set_xticks(list(xticks))
     ax.set(title=title, ylabel=ylabel)
     ax.legend(loc="upper left", frameon=False, ncols=3)
     return ax
 
 
 def cv_staircase(n_obs=60, initial=36, horizon=6, step=6, ax=None,
-                 n_folds=None, title="Rolling-origin cross-validation"):
+                 n_folds=None, title="Rolling-origin cross-validation",
+                 figsize=(9, 4)):
     """Draw the rolling-origin diagram: train block, scored block, unseen tail.
 
     Deliberately hand-drawn rather than shipped as a static image, so it can be
@@ -650,7 +654,7 @@ def cv_staircase(n_obs=60, initial=36, horizon=6, step=6, ax=None,
     and so the parameters on the slide are the ones used in the lab.
     """
     if ax is None:
-        _, ax = plt.subplots(figsize=(9, 4))
+        _, ax = plt.subplots(figsize=figsize)
     origins = list(range(initial, n_obs - horizon + 1, step))
     total = len(origins)
     if n_folds is not None:
@@ -677,18 +681,295 @@ def cv_staircase(n_obs=60, initial=36, horizon=6, step=6, ax=None,
 
 
 def metric_bars(scores, ax=None, title="", highlight_best=True,
-                lower_is_better=True):
+                lower_is_better=True, figsize=(6.2, 3.2), fmt="{:.3f}"):
     """Horizontal bars of one metric across models, best one highlighted."""
     if ax is None:
-        _, ax = plt.subplots(figsize=(6.2, 3.2))
+        _, ax = plt.subplots(figsize=figsize)
     names = list(scores)
     vals = [scores[n] for n in names]
     best = (min if lower_is_better else max)(vals)
     colors = [ORANGE if (highlight_best and v == best) else BLUE for v in vals]
     ax.barh(names, vals, color=colors, height=0.62)
     for i, v in enumerate(vals):
-        ax.text(v, i, f" {v:.3f}", va="center", size=9)
+        ax.text(v, i, " " + fmt.format(v), va="center", size=9)
     ax.set(title=title)
     ax.invert_yaxis()
     ax.grid(axis="y", visible=False)
     return ax
+
+
+# --------------------------------------------------------------------------
+# Day 2: benchmarks, intervals and evaluation
+#
+# Every chart in decks 3 and 4 comes from below, and each one takes the objects
+# the lab already has in hand -- a statsforecast forecast frame, a residual
+# series, a dict of scores -- so a student can redraw any slide with one call.
+# --------------------------------------------------------------------------
+
+#: Two-sided normal multipliers, so a deck and a lab quote the same c.
+NORMAL_Z = {50: 0.6745, 80: 1.2816, 90: 1.6449, 95: 1.9600, 99: 2.5758}
+
+#: Colour order when several *models* share one pair of axes. Distinct from
+#: SERIES_COLORS: black is reserved for the observed series underneath.
+MODEL_COLORS = [PINK, GREEN, ORANGE, BLUE]
+
+
+def forecast_overlay(history, forecast, models, labels=None, colors=None,
+                     actual=None, history_tail=72, ax=None, figsize=(10, 4.6),
+                     title="", ylabel="y", ncols=3, lw=1.7,
+                     history_label="observed", actual_label="actual holdout"):
+    """Several point forecasts drawn over the history that produced them.
+
+    ``forecast`` is a statsforecast-shaped frame: ``ds`` plus one column per
+    model in ``models``. ``labels`` renames them for the legend, which is where
+    a score belongs when the point of the slide is which forecast won.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=figsize)
+    labels = dict(labels or {})
+    palette = list(colors) if colors is not None else MODEL_COLORS
+    hist = history.tail(history_tail) if history_tail else history
+    ax.plot(hist["ds"], hist["y"], color=BLACK, lw=1.1, label=history_label)
+    if actual is not None:
+        ax.plot(actual["ds"], actual["y"], color=GREY, lw=1.4, ls="--",
+                label=actual_label)
+    for i, m in enumerate(models):
+        ax.plot(forecast["ds"], forecast[m], lw=lw,
+                color=palette[i % len(palette)], label=labels.get(m, m))
+    ax.set(title=title, ylabel=ylabel)
+    ax.legend(frameon=False, ncols=ncols)
+    return ax
+
+
+def interval_width_plot(forecast, model="SeasonalNaive", models=(), labels=None,
+                        season_length=12, level=80, colors=None,
+                        figsize=(9.5, 3.7), titles=None):
+    r"""Interval width against horizon, against both candidate growth laws.
+
+    Left: one model's width with the :math:`\sqrt{k+1}` staircase it should
+    follow and the :math:`\sqrt{h}` curve it should not, so a reader can see
+    which one the data tracks instead of being told. Right: the same width for
+    several models, where the shapes separate.
+    """
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    width = (forecast[f"{model}-hi-{level}"]
+             - forecast[f"{model}-lo-{level}"]).to_numpy()
+    h = np.arange(1, len(width) + 1)
+    k = (h - 1) // season_length
+    t = tuple(titles) if titles else (
+        f"{model}: a staircase, not a curve", "Width growth by benchmark")
+
+    axes[0].plot(h, width, color=BLUE, lw=4.5, alpha=0.55, label="actual width")
+    axes[0].plot(h, width[0] * np.sqrt(k + 1), color=GREEN, lw=2.0,
+                 dashes=(6, 4), label=r"$\sqrt{k+1}$ (correct)")
+    axes[0].plot(h, width[0] * np.sqrt(h), color=ORANGE, lw=1.4, ls=":",
+                 label=r"$\sqrt{h}$ (wrong method)")
+    axes[0].set(xlabel="horizon h", ylabel=f"{level}% interval width", title=t[0])
+    axes[0].legend(frameon=False)
+
+    labels = dict(labels or {})
+    palette = list(colors) if colors is not None else [GREEN, BLUE, PINK, ORANGE]
+    for i, m in enumerate(models):
+        w = forecast[f"{m}-hi-{level}"] - forecast[f"{m}-lo-{level}"]
+        axes[1].plot(h, w, color=palette[i % len(palette)], lw=1.8,
+                     label=labels.get(m, m))
+    axes[1].set(xlabel="horizon h", title=t[1])
+    axes[1].legend(frameon=False)
+    fig.tight_layout()
+    return fig, axes
+
+
+def residual_assumption_plot(resid, ds=None, window=36, level=80, bins=45,
+                             figsize=(9.5, 3.1), titles=None):
+    r"""Two of the Gaussian interval's three assumptions, tested on one figure.
+
+    Left: a rolling SD against the pooled :math:`\hat{\sigma}` -- constant
+    variance? Right: the residual histogram against a normal of the *same* SD,
+    with the empirical and the normal central-``level``% cut points drawn on
+    top -- normal? Where the two pairs of lines disagree is the error the
+    closed-form interval makes.
+    """
+    r = np.asarray(pd.Series(resid).dropna(), dtype=float)
+    sd = float(r.std(ddof=1))
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    t = tuple(titles) if titles else (
+        f"Rolling {window}-month residual SD",
+        f"Central {level}%: empirical (blue) vs normal (orange)")
+
+    x = pd.Series(ds).to_numpy()[-len(r):] if ds is not None else np.arange(len(r))
+    axes[0].plot(x, pd.Series(r).rolling(window).std().to_numpy(),
+                 color=ORANGE, lw=2)
+    axes[0].axhline(sd, color=BLACK, ls="--", lw=1.3,
+                    label=f"pooled sigma-hat = {sd:.1f}")
+    axes[0].set(title=t[0], ylabel="SD")
+    axes[0].legend(frameon=False)
+
+    axes[1].hist(r, bins=bins, density=True, color=GREY, alpha=0.7)
+    grid = np.linspace(r.min(), r.max(), 300)
+    axes[1].plot(grid, np.exp(-0.5 * (grid / sd) ** 2) / (sd * np.sqrt(2 * np.pi)),
+                 color=BLACK, lw=1.6, label="normal, same SD")
+    tail = (1 - level / 100) / 2
+    for v in np.quantile(r, [tail, 1 - tail]):
+        axes[1].axvline(v, color=BLUE, lw=1.6)
+    for v in NORMAL_Z[level] * sd * np.array([-1.0, 1.0]):
+        axes[1].axvline(v, color=ORANGE, ls="--", lw=1.6)
+    axes[1].set(title=t[1], xlabel="residual")
+    axes[1].legend(frameon=False)
+    fig.tight_layout()
+    return fig, axes
+
+
+def fan_chart_panels(history, fans, titles=(), levels=(80, 95), actual=None,
+                     history_tail=36, figsize=(10, 3.3), colors=None,
+                     mean_col="mean", sharey=True):
+    """The same history and horizon under two or more interval methods.
+
+    ``fans`` is a list of fan-shaped frames (``ds`` / ``mean_col`` / ``lo-L`` /
+    ``hi-L``). Panels share a y axis by default, because the comparison the
+    slide is making is of *width* and that only reads if the scales match.
+    """
+    fans = list(fans)
+    fig, axes = plt.subplots(1, len(fans), figsize=figsize, sharey=sharey)
+    axes = np.atleast_1d(axes)
+    titles = list(titles) + [""] * (len(fans) - len(titles))
+    palette = list(colors) if colors is not None else [BLUE] * len(fans)
+    for ax, fan, title, color in zip(axes, fans, titles, palette):
+        fan_chart(history, fan, levels=levels, ax=ax, actual=actual,
+                  history_tail=history_tail, title=title, color=color,
+                  mean_col=mean_col)
+    fig.tight_layout()
+    return fig, axes
+
+
+def interval_bounds_plot(history, forecast_ds, bands, actual=None,
+                         history_tail=24, level=80, colors=None,
+                         figsize=(10, 3.6), titles=None, year_step=1):
+    """Several interval methods as bare bounds, plus their widths by horizon.
+
+    ``bands`` maps a method name to ``(lo, hi)``. The left panel puts the bounds
+    on one time axis; the right turns each pair into width against horizon,
+    which is where a staircase, a narrow band and a jittery one separate.
+    """
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    palette = list(colors) if colors is not None else [ORANGE, GREEN, BLUE, PINK]
+    hist = history.tail(history_tail) if history_tail else history
+    axes[0].plot(hist["ds"], hist["y"], color=BLACK, lw=1.2, label="observed")
+    if actual is not None:
+        axes[0].plot(actual["ds"], actual["y"], color=GREY, lw=1.4, ls="--",
+                     label="actual")
+    for i, (name, (lo, hi)) in enumerate(bands.items()):
+        color = palette[i % len(palette)]
+        lo, hi = np.asarray(lo, dtype=float), np.asarray(hi, dtype=float)
+        axes[0].plot(forecast_ds, lo, color=color, lw=1.6, label=f"{name} {level}%")
+        axes[0].plot(forecast_ds, hi, color=color, lw=1.6)
+        axes[1].plot(np.arange(1, len(lo) + 1), hi - lo, color=color, lw=2,
+                     label=name)
+    t = tuple(titles) if titles else (
+        f"{level}% bounds, same point forecast",
+        "Staircase, narrow, and jittery")
+    axes[0].set(title=t[0])
+    axes[0].legend(frameon=False, ncols=2, fontsize=8)
+    year_xticks([axes[0]], step=year_step)
+    axes[1].set(xlabel="horizon h", ylabel=f"{level}% width", title=t[1])
+    axes[1].legend(frameon=False)
+    fig.tight_layout()
+    return fig, axes
+
+
+def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
+                      ylabel="MASE", ylim=None, titles=None, log_right=True):
+    """One holdout's scores against the mean of many folds, and the spread.
+
+    ``single`` maps model -> score on one window; ``folds`` is a frame with one
+    column per model and one row per fold. The left panel is the ranking
+    question, the right is why one window could not have answered it.
+    """
+    models = list(folds.columns)
+    labels = dict(labels or {})
+    names = [labels.get(m, m) for m in models]
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    t = tuple(titles) if titles else (
+        "Stable ranking, except at the top", "Score distribution across folds")
+
+    x = np.arange(len(models))
+    one = np.array([float(single[m]) for m in models])
+    many = np.array([float(folds[m].mean()) for m in models])
+    axes[0].bar(x - 0.2, one, width=0.4, color=GREY, label="single split")
+    axes[0].bar(x + 0.2, many, width=0.4, color=BLUE,
+                label=f"mean of {len(folds)} folds")
+    axes[0].set_xticks(x, names, rotation=20, ha="right")
+    axes[0].set(ylabel=ylabel, title=t[0], **({"ylim": ylim} if ylim else {}))
+    axes[0].legend(frameon=False, loc="upper center")
+    span = max(one.max(), many.max())
+    for xi, (a, b) in enumerate(zip(one, many)):
+        axes[0].text(xi - 0.2, a + span * 0.02, f"{a:.2f}", ha="center", size=8,
+                     color=BLACK)
+        axes[0].text(xi + 0.2, b + span * 0.02, f"{b:.2f}", ha="center", size=8,
+                     color=BLUE)
+
+    for i, m in enumerate(models):
+        axes[1].scatter(np.full(len(folds), i), folds[m], s=40, color=ORANGE,
+                        alpha=0.75, zorder=3)
+    axes[1].set_xticks(range(len(models)), names, rotation=20, ha="right")
+    axes[1].set(ylabel=ylabel, title=t[1])
+    if log_right:
+        axes[1].set_yscale("log")
+    fig.tight_layout()
+    return fig, axes
+
+
+def coverage_bars(coverage, nominal=0.8, labels=None, ax=None, figsize=(9, 3.4),
+                  title="", tolerance=0.1):
+    """Measured coverage per model against the nominal rate it claims.
+
+    Bars within ``tolerance`` of ``nominal`` are blue, the rest orange: the
+    slide's claim is honest-or-not, so the colour carries it and the reader does
+    not have to compare bar ends to a dashed line by eye.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=figsize)
+    labels = dict(labels or {})
+    names = [labels.get(m, m) for m in coverage]
+    vals = [float(v) for v in coverage.values()]
+    colors = [BLUE if abs(v - nominal) < tolerance else ORANGE for v in vals]
+    ax.barh(names, vals, color=colors, height=0.6)
+    ax.axvline(nominal, color=BLACK, ls="--", lw=1.4)
+    ax.text(nominal, -0.75, f" nominal {nominal:.0%}", size=10)
+    for i, v in enumerate(vals):
+        ax.text(v, i, f" {v:.0%}", va="center", size=10)
+    ax.set(xlim=(0, 1.05), title=title)
+    ax.invert_yaxis()
+    ax.grid(axis="y", visible=False)
+    return ax
+
+
+def width_vs_crps_plot(width, crps, coverage=None, labels=None,
+                       figsize=(10, 3.4), titles=None, level=80):
+    """Sharpness beside a proper score, so narrow-but-wrong is visible.
+
+    Left: mean interval width per model, annotated with the coverage it bought.
+    Right: scaled CRPS, best highlighted. A model can win the left panel and
+    lose the right, which is the whole reason a proper score exists.
+    """
+    models = list(crps)
+    labels = dict(labels or {})
+    names = [labels.get(m, m) for m in models]
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    t = tuple(titles) if titles else (
+        f"Mean {level}% interval width", "Scaled CRPS (lower is better)")
+
+    widths = [float(width[m]) for m in models]
+    axes[0].barh(names, widths, color=GREY, height=0.6)
+    if coverage is not None:
+        for i, m in enumerate(models):
+            axes[0].text(widths[i], i, f"  {coverage[m]:.0%} cov", va="center",
+                         size=9)
+    axes[0].set(title=t[0], xlim=(0, max(widths) * 1.35))
+    axes[0].invert_yaxis()
+    axes[0].grid(axis="y", visible=False)
+
+    metric_bars({n: float(crps[m]) for n, m in zip(names, models)}, ax=axes[1],
+                title=t[1])
+    axes[1].set(xlim=(0, max(float(crps[m]) for m in models) * 1.35))
+    fig.tight_layout()
+    return fig, axes

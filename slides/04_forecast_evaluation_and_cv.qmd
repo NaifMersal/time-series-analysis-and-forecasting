@@ -1,6 +1,6 @@
 ---
 title: "Forecast Evaluation & Cross-Validation"
-subtitle: "Day 2 · Segments 4–5 · fpppy Ch 5.8–5.10, Ch 13"
+subtitle: "Day 2 · Lecture 2 · fpppy Ch 5.8–5.10, Ch 13"
 date: today
 format: revealjs
 ---
@@ -67,8 +67,8 @@ crps = {m: float(scaled_crps(cv.drop(columns=["cutoff"]),
 ## You have 5 forecasts. Which is best?
 
 ::: {.incremental}
-- **Segment 4**: How to score point forecasts fairly
-- **Segment 5**: Why 1 test split is not enough, and how rolling-origin CV fixes it
+- **Part A**: How to score point forecasts fairly
+- **Part B**: Why 1 test split is not enough, and how rolling-origin CV fixes it
 :::
 
 . . .
@@ -104,42 +104,25 @@ MAE and RMSE work well within a single series. To compare across different produ
 ### Plot
 ```{python}
 #| fig-width: 10
-rng = np.random.default_rng(3)
-n = 48
-low = pd.DataFrame({
-    "unique_id": "spare parts",
-    "ds": pd.date_range("2020-01-01", periods=n, freq="MS"),
-    "y": np.clip(rng.poisson(1.4, n).astype(float), 0.2, None),
-})
-pred_hi = low["y"] + 2.0
-pred_lo = low["y"] - 0.15
+low = D.low_volume_demand(n=48, seed=3)
+preds = low[["ds"]].assign(A=low["y"] + 2.0, B=low["y"] - 0.15)
 
-fig, ax = plt.subplots(figsize=(10, 3.6))
-ax.plot(low["ds"], low["y"], color=P.BLACK, lw=1.2, label="Actual (Low Volume)")
-ax.plot(low["ds"], pred_hi, color=P.ORANGE, lw=1.4, label="Forecast A (+2.0)")
-ax.plot(low["ds"], pred_lo, color=P.BLUE, lw=1.4, label="Forecast B (-0.15)")
-ax.set(title="Low-Volume Demand Breaks MAPE")
-ax.legend(frameon=False, ncols=3)
+P.forecast_overlay(low, preds, ["A", "B"], colors=[P.ORANGE, P.BLUE],
+                   labels={"A": "forecast A (+2.0)", "B": "forecast B (-0.15)"},
+                   history_tail=None, history_label="actual (low volume)",
+                   figsize=(10, 3.6), title="Low-volume demand breaks MAPE")
 plt.show()
 ```
 
 ### Code
 ```python
-# Dataset: Simulated low-volume / intermittent demand series (Poisson)
-rng = np.random.default_rng(3)
-n = 48
-low = pd.DataFrame({
-    "unique_id": "spare parts",
-    "ds": pd.date_range("2020-01-01", periods=n, freq="MS"),
-    "y": np.clip(rng.poisson(1.4, n).astype(float), 0.2, None),
-})
-pred_hi = low["y"] + 2.0
-pred_lo = low["y"] - 0.15
+# Dataset: simulated low-volume / intermittent demand (Poisson counts near zero)
+low = D.low_volume_demand(n=48, seed=3)
+preds = low[["ds"]].assign(A=low["y"] + 2.0,      # always 2 units too high
+                           B=low["y"] - 0.15)     # always 0.15 too low
 
-fig, ax = plt.subplots(figsize=(10, 3.6))
-ax.plot(low["ds"], low["y"], color=P.BLACK, lw=1.2, label="Actual (Low Volume)")
-ax.plot(low["ds"], pred_hi, color=P.ORANGE, lw=1.4, label="Forecast A (+2.0)")
-ax.plot(low["ds"], pred_lo, color=P.BLUE, lw=1.4, label="Forecast B (-0.15)")
+P.forecast_overlay(low, preds, ["A", "B"], history_tail=None,
+                   history_label="actual (low volume)")
 ```
 
 :::
@@ -203,20 +186,6 @@ Resist declaring a winner here. The seasonal naive's MASE > 1.0 because forecast
 is the number that gets a model promoted on one lucky year - segment 5 takes it back.
 :::
 
-## $\rightarrow$ Exercise 2.4 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
-
-Open `labs/02_day2_toolbox_and_evaluation.ipynb`
-
-::: {.incremental}
-- Compute MAE, RMSE, MAPE, and MASE for all baselines
-- Construct a scenario where MAPE produces misleading rankings
-- Defend the top-ranked model using MASE
-:::
-
-. . .
-
-*12 minutes.*
-
 # B. One split is not evidence {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
 
 Ch 5.10 · Rolling-origin cross-validation
@@ -243,19 +212,16 @@ Time series cannot use standard k-fold. We need **rolling origins**.
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, ax = plt.subplots(figsize=(10, 4.4))
-P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, ax=ax,
-               title="Expanding Training Window Across Origins")
+P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, figsize=(10, 4.4),
+               title="Expanding training window across origins")
 plt.show()
 ```
 
 ### Code
 ```python
-# Diagram: Rolling-origin cross-validation splits (expanding window)
+# Diagram: rolling-origin cross-validation splits (expanding window)
 # 96 total periods, initial train size 48, horizon 12, step size 12
-fig, ax = plt.subplots(figsize=(10, 4.4))
-P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, ax=ax,
-               title="Expanding Training Window Across Origins")
+P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12)
 ```
 
 :::
@@ -290,45 +256,21 @@ cv = sf.cross_validation(
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, axes = plt.subplots(1, 2, figsize=(10, 3.5))
-
 single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
-x = np.arange(len(MODELS))
-axes[0].bar(x - 0.2, single.values, width=0.4, color=P.GREY, label="Single Split")
-axes[0].bar(x + 0.2, per_window.mean().values, width=0.4, color=P.BLUE,
-            label=f"Mean of {N_WINDOWS} Folds")
-axes[0].set_xticks(x, [LABELS[m] for m in MODELS], rotation=20, ha="right")
-axes[0].set(ylabel="MASE", ylim=(0, 15),
-            title="Stable Ranking - Except at the Top")
-axes[0].legend(frameon=False, loc="upper center")
-for xi, (a, b) in enumerate(zip(single.values, per_window.mean().values)):
-    axes[0].text(xi - 0.2, a + 0.25, f"{a:.2f}", ha="center", size=8, color=P.BLACK)
-    axes[0].text(xi + 0.2, b + 0.25, f"{b:.2f}", ha="center", size=8, color=P.BLUE)
-
-for i, m in enumerate(MODELS):
-    axes[1].scatter(np.full(len(per_window), i), per_window[m], s=40,
-                    color=P.ORANGE, alpha=0.75, zorder=3)
-axes[1].set_xticks(range(len(MODELS)), [LABELS[m] for m in MODELS],
-                   rotation=20, ha="right")
-axes[1].set(ylabel="MASE", title="Score Distribution across Folds")
-axes[1].set_yscale("log")
+P.single_vs_cv_plot(single, per_window[MODELS], labels=LABELS, ylim=(0, 15),
+                    figsize=(10, 3.5), ylabel="MASE",
+                    titles=("Stable ranking, except at the top",
+                            "Score distribution across folds"))
 plt.show()
 ```
 
 ### Code
 ```python
 # Dataset: Victorian takeaway food turnover (cv = sf.cross_validation(spine, n_windows=8))
-# Left: Single 24-month split vs Mean across 8 CV origins
-# Right: Distribution of MASE across individual CV folds
-fig, axes = plt.subplots(1, 2, figsize=(10, 3.5))
-
+# per_window: one row per fold, one column per model.
 single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
-x = np.arange(len(MODELS))
-axes[0].bar(x - 0.2, single.values, width=0.4, color=P.GREY, label="Single Split")
-axes[0].bar(x + 0.2, per_window.mean().values, width=0.4, color=P.BLUE, label=f"Mean of {N_WINDOWS} Folds")
 
-for i, m in enumerate(MODELS):
-    axes[1].scatter(np.full(len(per_window), i), per_window[m], s=40, color=P.ORANGE, alpha=0.75, zorder=3)
+P.single_vs_cv_plot(single, per_window[MODELS], labels=LABELS)
 ```
 
 :::
@@ -348,31 +290,20 @@ One window crowned **STL + drift** at 0.70. Eight folds hand it back, 1.18 to 1.
 ### Plot
 ```{python}
 #| fig-width: 9
-fig, ax = plt.subplots(figsize=(9, 3.4))
-names = [LABELS[m] for m in MODELS]
-vals = [coverage[m] for m in MODELS]
-cols = [P.BLUE if abs(v - 0.8) < 0.1 else P.ORANGE for v in vals]
-ax.barh(names, vals, color=cols, height=0.6)
-ax.axvline(0.8, color=P.BLACK, ls="--", lw=1.4)
-ax.text(0.8, -0.75, " Nominal 80%", size=10)
-for i, v in enumerate(vals):
-    ax.text(v, i, f" {v:.0%}", va="center", size=10)
-ax.set(xlim=(0, 1.05), title=f"80% Interval Coverage ({N_WINDOWS * CV_H} Scored Points)")
-ax.invert_yaxis()
-ax.grid(axis="y", visible=False)
+P.coverage_bars({m: coverage[m] for m in MODELS}, nominal=0.8, labels=LABELS,
+                figsize=(9, 3.4),
+                title=f"80% interval coverage ({N_WINDOWS * CV_H} scored points)")
 plt.show()
 ```
 
 ### Code
 ```python
 # Dataset: Victorian takeaway food turnover (cv across 8 origins x 12 horizon = 96 points)
-# Coverage = percentage of holdout points falling between 80% lo/hi bounds
-fig, ax = plt.subplots(figsize=(9, 3.4))
-names = [LABELS[m] for m in MODELS]
-vals = [coverage[m] for m in MODELS]
-cols = [P.BLUE if abs(v - 0.8) < 0.1 else P.ORANGE for v in vals]
-ax.barh(names, vals, color=cols, height=0.6)
-ax.axvline(0.8, color=P.BLACK, ls="--", lw=1.4)
+# Coverage = share of holdout points falling between the 80% lo/hi bounds.
+coverage = {m: float(((cv["y"] >= cv[f"{m}-lo-80"])
+                      & (cv["y"] <= cv[f"{m}-hi-80"])).mean()) for m in MODELS}
+
+P.coverage_bars(coverage, nominal=0.8, labels=LABELS)
 ```
 
 :::
@@ -407,24 +338,8 @@ levels. Scale-free, lower is better, and you can sort on it.
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, axes = plt.subplots(1, 2, figsize=(10, 3.4))
-names = [LABELS[m] for m in MODELS]
-
-axes[0].barh(names, [width80[m] for m in MODELS], color=P.GREY, height=0.6)
-for i, m in enumerate(MODELS):
-    axes[0].text(width80[m], i, f"  {coverage[m]:.0%} cov", va="center", size=9)
-axes[0].set(title="Mean 80% interval width", xlim=(0, 260))
-axes[0].invert_yaxis()
-axes[0].grid(axis="y", visible=False)
-
-best = min(crps, key=crps.get)
-cols = [P.BLUE if m == best else P.ORANGE for m in MODELS]
-axes[1].barh(names, [crps[m] for m in MODELS], color=cols, height=0.6)
-for i, m in enumerate(MODELS):
-    axes[1].text(crps[m], i, f"  {crps[m]:.3f}", va="center", size=9)
-axes[1].set(title="Scaled CRPS (lower is better)", xlim=(0, 0.42))
-axes[1].invert_yaxis()
-axes[1].grid(axis="y", visible=False)
+P.width_vs_crps_plot(width80, {m: crps[m] for m in MODELS}, coverage=coverage,
+                     labels=LABELS, level=80, figsize=(10, 3.4))
 plt.show()
 ```
 
@@ -487,20 +402,22 @@ Always fit scalers, imputers, and feature engineering strictly on each fold's tr
 - **Data gaps**: verify timestamp continuity across all origins
 :::
 
-## $\rightarrow$ Exercise 2.5 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+## $\rightarrow$ Lab D · Score them honestly {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
 Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
-::: {.incremental}
-- Run rolling-origin cross-validation on all 5 models
-- Compute MASE, RMSSE, scaled CRPS and 80% coverage
-- Watch the single-window winner lose
-- Build the baseline leaderboard for Day 3 models
-:::
+| | | |
+|---|---|---|
+| **2.4** | Metrics and the MAPE trap | 12 min |
+| **2.5** | Cross-validate, and build the leaderboard | 17 min |
 
 . . .
 
-*17 minutes.*
+*29 minutes. The notebook carries the instructions — work down it in order.*
+
+::: {.cardbox .teal}
+Same notebook as Lab C. Pick up at Exercise 2.4.
+:::
 
 ## Day 2 Summary {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 

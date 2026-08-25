@@ -1,6 +1,6 @@
 ---
 title: "Benchmarks, Residuals & Prediction Intervals"
-subtitle: "Day 2 · Segments 1–3 · fpppy Ch 5.1–5.7"
+subtitle: "Day 2 · Lecture 1 · fpppy Ch 5.1–5.7"
 date: today
 format: revealjs
 ---
@@ -156,28 +156,22 @@ Always fit these 4 first. On many series, **Seasonal Naive is tough to beat**.
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, ax = plt.subplots(figsize=(10, 4.6))
-hist = train.tail(72)
-ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="Observed")
-ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="Actual Holdout")
-for m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):
-    ax.plot(fc["ds"], fc[m], lw=1.7, color=c, label=LABELS[m])
-ax.set(title=f"Spine: {H}-Month Benchmark Forecasts")
-ax.legend(frameon=False, ncols=3)
+P.forecast_overlay(train, fc, MODELS, labels=LABELS, actual=test,
+                   history_tail=72, figsize=(10, 4.6),
+                   title=f"Spine: {H}-month benchmark forecasts")
 plt.show()
 ```
 
 ### Code
 ```python
 # Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))
-# Models: StatsForecast(models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12), RandomWalkWithDrift()])
-fig, ax = plt.subplots(figsize=(10, 4.6))
-hist = train.tail(72)
-ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="Observed")
-ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="Actual Holdout")
-for m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):
-    ax.plot(fc["ds"], fc[m], lw=1.7, color=c, label=LABELS[m])
-ax.set(title=f"Spine: {H}-Month Benchmark Forecasts")
+sf = StatsForecast(freq=D.FREQ, n_jobs=1, models=[
+    HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
+    RandomWalkWithDrift(),
+])
+fc = sf.forecast(df=train, h=H, level=[80, 95])
+
+P.forecast_overlay(train, fc, MODELS, labels=LABELS, actual=test, history_tail=72)
 ```
 
 :::
@@ -238,16 +232,13 @@ digraph G {
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, ax = plt.subplots(figsize=(10, 3.9))
-hist = train.tail(60)
-ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="Observed")
-ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.6, ls="--", label="Actual Holdout")
-ax.plot(fc["ds"], fc["SeasonalNaive"], color=P.ORANGE, lw=1.8,
-        label=f"Seasonal naive  (MASE {SN_MASE:.2f})")
-ax.plot(fc_stl["ds"], fc_stl["MSTL"], color=P.BLUE, lw=1.8,
-        label=f"STL + drift  (MASE {STL_MASE:.2f})")
-ax.set(title="Spine: the floor, and the decomposition route")
-ax.legend(frameon=False, ncols=2)
+both = fc[["ds", "SeasonalNaive"]].merge(fc_stl[["ds", "MSTL"]], on="ds")
+P.forecast_overlay(
+    train, both, ["SeasonalNaive", "MSTL"], colors=[P.ORANGE, P.BLUE],
+    labels={"SeasonalNaive": f"Seasonal naive  (MASE {SN_MASE:.2f})",
+            "MSTL": f"STL + drift  (MASE {STL_MASE:.2f})"},
+    actual=test, history_tail=60, ncols=2, figsize=(10, 3.9),
+    title="Spine: the floor, and the decomposition route")
 plt.show()
 ```
 
@@ -259,6 +250,9 @@ sf_stl = StatsForecast(
     freq=D.FREQ, n_jobs=1,
 )
 fc_stl = sf_stl.forecast(df=train, h=H, level=[80, 95])
+
+both = fc[["ds", "SeasonalNaive"]].merge(fc_stl[["ds", "MSTL"]], on="ds")
+P.forecast_overlay(train, both, ["SeasonalNaive", "MSTL"], actual=test)
 ```
 
 :::
@@ -272,21 +266,6 @@ Do not let this land as "STL wins". It wins on THIS window. Segment 5 scores it
 over eight origins and the ordering flips. Flag that now, so the reversal reads
 as the lesson rather than as a contradiction.
 :::
-
-## $\rightarrow$ Exercise 2.1 · The benchmark floor {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
-
-Open `labs/02_day2_toolbox_and_evaluation.ipynb`
-
-::: {.incremental}
-- Fit all four baselines on the training set
-- Plot against the holdout set
-- Identify which method looks most realistic and why
-- Add `MSTL` as a fifth model and write down what you see
-:::
-
-. . .
-
-*13 minutes.*
 
 # B. Residuals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
 
@@ -374,20 +353,6 @@ $$Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}$$
 Rule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data.
 :::
 
-## $\rightarrow$ Exercise 2.2 · Are the residuals white noise? {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
-
-Open `labs/02_day2_toolbox_and_evaluation.ipynb`
-
-::: {.incremental}
-- Run residual diagnostics on Seasonal Naive & Drift
-- Test autocorrelation with Ljung-Box
-- Evaluate: Which properties pass? Which fail?
-:::
-
-. . .
-
-*13 minutes.*
-
 # C. Prediction intervals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
 Ch 5.5 · Quantifying uncertainty
@@ -461,21 +426,20 @@ already known to be false here - segment B just rejected it at p ~ 1e-240.
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, ax = plt.subplots(figsize=(10, 4.6))
-P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=ax,
-            actual=test, history_tail=72,
-            title="Seasonal Naive: 80% and 95% Prediction Intervals")
+P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), actual=test,
+            history_tail=72, figsize=(10, 4.6),
+            title="Seasonal naive: 80% and 95% prediction intervals")
 plt.show()
 ```
 
 ### Code
 ```python
 # Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))
-# Model: SeasonalNaive with prediction intervals at 80% and 95% levels
-fig, ax = plt.subplots(figsize=(10, 4.6))
-P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=ax,
-            actual=test, history_tail=72,
-            title="Seasonal Naive: 80% and 95% Prediction Intervals")
+# as_fan() renames one model's columns to ds / mean / lo-L / hi-L.
+fc = sf.forecast(df=train, h=H, level=[80, 95])
+
+P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), actual=test,
+            history_tail=72)
 ```
 
 :::
@@ -487,41 +451,23 @@ P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=ax,
 ### Plot
 ```{python}
 #| fig-width: 9.5
-fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.7))
-width = (fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]).to_numpy()
-h = np.arange(1, len(width) + 1)
-k = (h - 1) // 12
-axes[0].plot(h, width, color=P.BLUE, lw=4.5, alpha=0.55, label="Actual width")
-axes[0].plot(h, width[0] * np.sqrt(k + 1), color=P.GREEN, lw=2.0,
-             dashes=(6, 4), label=r"$\sqrt{k+1}$ (correct)")
-axes[0].plot(h, width[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls=":",
-             label=r"$\sqrt{h}$ (wrong method)")
-axes[0].set(xlabel="Horizon h", ylabel="80% interval width",
-            title="Seasonal Naive: a Staircase, not a Curve")
-axes[0].legend(frameon=False)
-
-for m, c in zip(["Naive", "SeasonalNaive", "RWD"], [P.GREEN, P.BLUE, P.PINK]):
-    w = fc[f"{m}-hi-80"] - fc[f"{m}-lo-80"]
-    axes[1].plot(h, w, color=c, lw=1.8, label=LABELS[m])
-axes[1].set(xlabel="Horizon h", title="Width Growth by Benchmark")
-axes[1].legend(frameon=False)
+P.interval_width_plot(fc, model="SeasonalNaive",
+                      models=["Naive", "SeasonalNaive", "RWD"], labels=LABELS,
+                      season_length=12, level=80, figsize=(9.5, 3.7),
+                      titles=("Seasonal naive: a staircase, not a curve",
+                              "Width growth by benchmark"))
 plt.show()
 ```
 
 ### Code
 ```python
 # Dataset: Benchmark forecasts on Victorian retail takeaway turnover (fc)
-# Left: the seasonal naive's width against BOTH candidate formulas.
-width = (fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]).to_numpy()
-h = np.arange(1, len(width) + 1)
-k = (h - 1) // 12                      # complete years inside the horizon
-axes[0].plot(h, width, color=P.BLUE, lw=4.5, alpha=0.55, label="Actual width")
-axes[0].plot(h, width[0] * np.sqrt(k + 1), color=P.GREEN, lw=2.0, dashes=(6, 4))
-axes[0].plot(h, width[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls=":")
-
-for m, c in zip(["Naive", "SeasonalNaive", "RWD"], [P.GREEN, P.BLUE, P.PINK]):
-    w = fc[f"{m}-hi-80"] - fc[f"{m}-lo-80"]
-    axes[1].plot(h, w, color=c, lw=1.8, label=LABELS[m])
+# Left  - the seasonal naive's width against BOTH candidate laws: the
+#         sqrt(k+1) staircase (k = complete years inside the horizon) and the
+#         sqrt(h) curve. Which one the data tracks is the point of the slide.
+# Right - the same width for three benchmarks, where the shapes separate.
+P.interval_width_plot(fc, model="SeasonalNaive",
+                      models=["Naive", "SeasonalNaive", "RWD"], labels=LABELS)
 ```
 
 :::
@@ -552,28 +498,10 @@ On this series **all three fail.** The next two methods each buy one of them bac
 ### Plot
 ```{python}
 #| fig-width: 9.5
-r = resid_sn.to_numpy()
-sd = r.std(ddof=1)
-fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.1))
-
-axes[0].plot(fv["ds"].iloc[-len(r):], pd.Series(r).rolling(36).std().to_numpy(),
-             color=P.ORANGE, lw=2)
-axes[0].axhline(sd, color=P.BLACK, ls="--", lw=1.3,
-                label=f"pooled sigma-hat = {sd:.1f}")
-axes[0].set(title="Rolling 3-Year Residual SD", ylabel="SD")
-axes[0].legend(frameon=False)
-
-axes[1].hist(r, bins=45, density=True, color=P.GREY, alpha=0.7)
-grid = np.linspace(r.min(), r.max(), 300)
-axes[1].plot(grid, np.exp(-0.5 * (grid / sd) ** 2) / (sd * np.sqrt(2 * np.pi)),
-             color=P.BLACK, lw=1.6, label="Normal, same SD")
-for v in np.quantile(r, [0.1, 0.9]):
-    axes[1].axvline(v, color=P.BLUE, lw=1.6)
-for v in 1.2816 * sd * np.array([-1.0, 1.0]):
-    axes[1].axvline(v, color=P.ORANGE, ls="--", lw=1.6)
-axes[1].set(title="Central 80%: empirical (blue) vs normal (orange)",
-            xlabel="residual")
-axes[1].legend(frameon=False)
+P.residual_assumption_plot(resid_sn, ds=fv["ds"], window=36, level=80,
+                           figsize=(9.5, 3.1),
+                           titles=("Rolling 3-year residual SD",
+                                   "Central 80%: empirical (blue) vs normal (orange)"))
 plt.show()
 ```
 
@@ -643,9 +571,9 @@ time**: i.i.d. draws from the pool of past errors.
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, ax = plt.subplots(figsize=(10, 3.8))
-P.sim_paths_plot(train, fc["ds"], boot_paths, ax=ax, n_show=8, history_tail=60,
-                 actual=test, title="Eight of the 5000 Simulated Sample Paths")
+P.sim_paths_plot(train, fc["ds"], boot_paths, n_show=8, history_tail=60,
+                 actual=test, figsize=(10, 3.8),
+                 title="Eight of the 5000 simulated sample paths")
 plt.show()
 ```
 
@@ -673,11 +601,11 @@ percentile taken down each column.
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, axes = plt.subplots(1, 2, figsize=(10, 3.3), sharey=True)
-P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=axes[0],
-            actual=test, history_tail=36, title="Gaussian, plus/minus c sigma-hat")
-P.fan_chart(train, boot_fan, levels=(80, 95), ax=axes[1], actual=test,
-            history_tail=36, title="Bootstrap, 5000 paths")
+P.fan_chart_panels(train, [as_fan("SeasonalNaive"), boot_fan],
+                   titles=("Gaussian, plus/minus c sigma-hat",
+                           "Bootstrap, 5000 paths"),
+                   levels=(80, 95), actual=test, history_tail=36,
+                   figsize=(10, 3.3))
 plt.show()
 ```
 
@@ -714,7 +642,7 @@ $$e_{t+h|t} = y_{t+h} - \hat{y}_{t+h|t}$$
 | $\hat{y}_{t+h\,\vert\,t}$ | the forecast made at time $t$ for time $t+h$ |
 
 ::: {.callout-note}
-At $h = 1$ these are exactly the residuals from segment B. For $h > 1$ they are a
+At $h = 1$ these are exactly the residuals from part B. For $h > 1$ they are a
 different, wider set of errors, and they must be *collected*, not fitted.
 :::
 
@@ -748,10 +676,8 @@ toy_err = pd.DataFrame([
      "yhat": toy["y"].iloc[t - 1]}    # naive: y-hat_{t+3|t} = y_t
     for t in (5, 6, 7)
 ])
-fig, ax = plt.subplots(figsize=(9, 3.9))
-P.h_step_error_diagram(toy, toy_err, ax=ax,
+P.h_step_error_diagram(toy, toy_err, figsize=(9, 3.9), xticks=range(1, 11),
                        title="Three 3-step-ahead errors, from three origins")
-ax.set_xticks(range(1, 11))
 plt.show()
 ```
 
@@ -787,8 +713,7 @@ $$\hat{y}_{T+h|T} \pm Q_{1-\alpha}\!\left(\left|e_{t+h|t}\right|\right)$$
 cs = sf.cross_validation(df=train, h=12, step_size=12, n_windows=4)
 cs12 = (cs[cs["ds"] == cs["cutoff"] + pd.DateOffset(months=12)]
         .rename(columns={"SeasonalNaive": "yhat"})[["cutoff", "ds", "y", "yhat"]])
-fig, ax = plt.subplots(figsize=(10, 4.2))
-P.h_step_error_diagram(train.tail(84), cs12, ax=ax,
+P.h_step_error_diagram(train.tail(84), cs12, figsize=(10, 4.2),
                        title="Four origins, h = 12: the errors conformal quantifies")
 plt.show()
 ```
@@ -837,29 +762,15 @@ fc_conf = sf_conf.forecast(df=train, h=24, level=[80, 95])
 ### Plot
 ```{python}
 #| fig-width: 10
-BANDS = [
-    (fc["SeasonalNaive-lo-80"], fc["SeasonalNaive-hi-80"], P.ORANGE, "Gaussian"),
-    (boot_fan["lo-80"], boot_fan["hi-80"], P.GREEN, "Bootstrap"),
-    (fc_conf["SeasonalNaive-lo-80"], fc_conf["SeasonalNaive-hi-80"], P.BLUE,
-     "Conformal"),
-]
-fig, axes = plt.subplots(1, 2, figsize=(10, 3.6))
-hist = train.tail(24)
-axes[0].plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.2, label="Observed")
-axes[0].plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="Actual")
-for lo, hi, c, lab in BANDS:
-    axes[0].plot(fc["ds"], lo, color=c, lw=1.6, label=f"{lab} 80%")
-    axes[0].plot(fc["ds"], hi, color=c, lw=1.6)
-axes[0].set(title="80% Bounds, Same Point Forecast")
-axes[0].legend(frameon=False, ncols=2, fontsize=8)
-P.year_xticks([axes[0]], step=1)
-
-hz = np.arange(1, H + 1)
-for lo, hi, c, lab in BANDS:
-    axes[1].plot(hz, np.asarray(hi) - np.asarray(lo), color=c, lw=2, label=lab)
-axes[1].set(xlabel="Horizon h", ylabel="80% width",
-            title="Staircase, Narrow, and Jittery")
-axes[1].legend(frameon=False)
+BANDS = {
+    "Gaussian": (fc["SeasonalNaive-lo-80"], fc["SeasonalNaive-hi-80"]),
+    "Bootstrap": (boot_fan["lo-80"], boot_fan["hi-80"]),
+    "Conformal": (fc_conf["SeasonalNaive-lo-80"], fc_conf["SeasonalNaive-hi-80"]),
+}
+P.interval_bounds_plot(train, fc["ds"], BANDS, actual=test, history_tail=24,
+                       level=80, figsize=(10, 3.6),
+                       titles=("80% bounds, same point forecast",
+                               "Staircase, narrow, and jittery"))
 plt.show()
 ```
 
@@ -869,11 +780,12 @@ plt.show()
 # fc       - Gaussian, from sf.forecast(..., level=[80, 95])
 # boot_fan - P.paths_to_fan(fc["ds"], boot_paths)
 # fc_conf  - SeasonalNaive(prediction_intervals=ConformalIntervals(n_windows=8, h=24))
-for lo, hi, c, lab in BANDS:
-    axes[0].plot(fc["ds"], lo, color=c, lw=1.6, label=f"{lab} 80%")
-    axes[0].plot(fc["ds"], hi, color=c, lw=1.6)
-    # Right panel: the same three, as width against horizon.
-    axes[1].plot(np.arange(1, 25), np.asarray(hi) - np.asarray(lo), color=c, lw=2)
+BANDS = {
+    "Gaussian": (fc["SeasonalNaive-lo-80"], fc["SeasonalNaive-hi-80"]),
+    "Bootstrap": (boot_fan["lo-80"], boot_fan["hi-80"]),
+    "Conformal": (fc_conf["SeasonalNaive-lo-80"], fc_conf["SeasonalNaive-hi-80"]),
+}
+P.interval_bounds_plot(train, fc["ds"], BANDS, actual=test)
 ```
 
 :::
@@ -937,19 +849,23 @@ far too tight for a forecast issued in 2016. Restricting the pool to the last
 120 residuals takes it to about 87%; the last 60 push it to 91%. The assumption is the knob, and the lab turns it.
 :::
 
-## $\rightarrow$ Exercise 2.3 · Intervals, and how much to believe them {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+## $\rightarrow$ Lab C · The toolbox {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
 Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
-::: {.incremental}
-- Build the Gaussian interval, then a 5000-path residual bootstrap
-- Add a split-conformal interval and compare all three
-- Measure coverage, and say which assumption each method is spending
-:::
+| | | |
+|---|---|---|
+| **2.1** | The benchmark floor | 13 min |
+| **2.2** | Are the residuals white noise? | 13 min |
+| **2.3** | Intervals, and how much to believe them | 20 min |
 
 . . .
 
-*20 minutes.*
+*46 minutes. The notebook carries the instructions — work down it in order.*
+
+::: {.cardbox .teal}
+2.3 is the long one. Get to it with time to spare.
+:::
 
 ## Part 1 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
