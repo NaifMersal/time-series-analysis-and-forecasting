@@ -1293,22 +1293,14 @@ Now build the case where MAPE misleads. Construct a near-zero series and two
 forecasts: one that is a little too **low**, one that is much too **high**.
 """),
     code("""
-rng = np.random.default_rng(3)
-n = 48
-low = pd.DataFrame({
-    "ds": pd.date_range("2020-01-01", periods=n, freq="MS"),
-    "y": np.clip(rng.poisson(1.4, n).astype(float), 0.2, None),
-})
+# The same simulated series the slide used: Poisson counts that sit near zero.
+low = D.low_volume_demand(n=48, seed=3)
+print(low["y"].describe().round(2).to_string())
 
 # TODO: forecast A is always 2.0 units too HIGH; forecast B is always 0.15 too LOW.
 #       Compute MAE and MAPE for each. Which does MAE prefer? Which does MAPE prefer?
 """, """
-rng = np.random.default_rng(3)
-n = 48
-low = pd.DataFrame({
-    "ds": pd.date_range("2020-01-01", periods=n, freq="MS"),
-    "y": np.clip(rng.poisson(1.4, n).astype(float), 0.2, None),
-})
+low = D.low_volume_demand(n=48, seed=3)
 
 pred_hi = low["y"] + 2.0
 pred_lo = low["y"] - 0.15
@@ -1477,7 +1469,8 @@ table.round(3)
     md("""
 ### Stretch - how much does one window matter?
 
-Score each fold separately and look at the spread.
+Score each fold separately, and put your single-window answer from Exercise 2.4
+next to the eight-fold one. `P.single_vs_cv_plot` is the helper the slide used.
 """),
     code("""
 # Stretch - your code here.
@@ -1488,13 +1481,8 @@ per_fold = pd.DataFrame([
     for cut, g in cv.groupby("cutoff")
 ]).reset_index(drop=True)
 
-fig, ax = plt.subplots(figsize=(8, 3.8))
-for i, m in enumerate(MODELS):
-    ax.scatter(np.full(len(per_fold), i), per_fold[m], s=45, color=P.ORANGE,
-               alpha=0.75, zorder=3)
-ax.set_xticks(range(len(MODELS)), [LABELS[m] for m in MODELS], rotation=20, ha="right")
-ax.set(ylabel="MASE", title="One dot per fold")
-ax.set_yscale("log")
+single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
+P.single_vs_cv_plot(single, per_fold[MODELS], labels=LABELS, ylim=(0, 15))
 plt.show()
 
 sn = per_fold["SeasonalNaive"]
@@ -1504,6 +1492,25 @@ print("\\nThe RANKING was identical in every fold. The NUMBER was not. Report "
       "the ranking with confidence and the number with a spread.")
 """),
 
+    md("""
+Adding a model to this harness is meant to be a few lines, and it is: build the
+`StatsForecast` object, call `cross_validation` with the same `h`, `step_size`,
+`n_windows` and `LEVELS`, score it the way the cell above scores the others, and
+call `lb.record(...)`. Nothing else in the notebook changes.
+
+One wrinkle worth knowing before Day 3. Not every model produces prediction
+intervals on its own - `WindowAverage` raises *"You must pass
+`prediction_intervals` to compute them"* if you ask it for a level. The fix is
+the argument from Exercise 2.3:
+
+```python
+WindowAverage(window_size=12,
+              prediction_intervals=ConformalIntervals(n_windows=4, h=12))
+```
+
+Any model at all can be given a conformal interval, which is why this harness
+can score models it has never met.
+"""),
     md("""
 ---
 ## End of Day 2

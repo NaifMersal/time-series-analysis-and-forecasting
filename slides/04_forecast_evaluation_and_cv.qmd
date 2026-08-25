@@ -78,6 +78,22 @@ crps = {m: float(scaled_crps(cv.drop(columns=["cutoff"]),
 A standard way to score any forecasting model, built and used today.
 :::
 
+::: {.notes}
+Pick this up from lecture 1 rather than restarting. They left the room with five
+forecasts and one number each, measured on a single 24-month window, and the STL
+route on top at 0.70. This lecture asks whether that number means anything.
+
+The answer, twice over, is no: not with that metric, and not on that many
+windows.
+
+Say what leaves the room today. By the end of Exercise 2.5 there is a file,
+labs/leaderboard.csv, with one row per benchmark and four columns that matter:
+MASE, RMSSE, scaled CRPS, and 80% coverage. Day 3 appends to that same file.
+
+That framing is worth repeating at the end of every exercise in this lecture.
+The point of the harness is that adding a model to it is a few lines.
+:::
+
 # A. Scoring a point forecast {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
 
 Ch 5.8 · Point forecast metrics
@@ -97,7 +113,7 @@ Forecast error: $e_{T+h} = y_{T+h} - \hat{y}_{T+h|T}$
 MAE and RMSE work well within a single series. To compare across different products or series, use MASE.
 :::
 
-## The flaw with MAPE
+## MAPE explodes when the actual is near zero
 
 ::: {.panel-tabset}
 
@@ -132,7 +148,18 @@ P.forecast_overlay(low, preds, ["A", "B"], history_tail=None,
 - Forecast B: MAE = 0.15, MAPE = **23%**
 :::
 
-## 3 reasons to avoid MAPE for model selection
+::: {.notes}
+Read the two forecasts off the chart before quoting the numbers, and let the
+room commit. Forecast A is two units too high everywhere; forecast B is fifteen
+hundredths too low everywhere. Everyone picks B, and everyone is right.
+
+Then show the MAPE column: A scores 304%, B scores 23%. MAPE agrees here. Now
+ask what happens when the actual is 0.2 and you are two units out - the
+percentage error is a thousand percent, and it is the denominator doing that,
+not the forecast.
+:::
+
+## Three reasons MAPE cannot select a model
 
 ::: {.incremental}
 1. **Undefined at zero**: explodes on intermittent / low-volume demand
@@ -146,7 +173,7 @@ P.forecast_overlay(low, preds, ["A", "B"], history_tail=None,
 Report MAPE to executives if required, but **never optimize models using MAPE**.
 :::
 
-## Scaled Errors: MASE
+## Dividing by the benchmark makes errors comparable
 
 Error divided by the in-sample Seasonal Naive error ($Q$):
 
@@ -160,7 +187,17 @@ $$\text{MASE} = \frac{\text{MAE}}{Q}$$
 - **$\text{MASE} > 1$** $\rightarrow$ **Worse** than simple baseline
 :::
 
-## Benchmarks scored on test set
+::: {.notes}
+The denominator is the whole idea: divide by the in-sample one-step seasonal
+naive error, and the metric becomes scale-free and readable. MASE below 1 beats
+the benchmark, above 1 loses to it.
+
+Warn them the seasonal naive will score above 1 on this data, and that this is
+not a contradiction: forecasting 24 months out is harder than the one-step
+in-sample errors sitting in the denominator.
+:::
+
+## On this one window the STL route wins every metric
 
 ```{python}
 #| fig-width: 10
@@ -190,7 +227,7 @@ is the number that gets a model promoted on one lucky year - segment 5 takes it 
 
 Ch 5.10 · Rolling-origin cross-validation
 
-## Why a single train/test split fails
+## One split gives a number with no error bar
 
 ::: {.incremental}
 - A single 24-month split is just **one sample point**
@@ -205,7 +242,15 @@ Ch 5.10 · Rolling-origin cross-validation
 Time series cannot use standard k-fold. We need **rolling origins**.
 :::
 
-## Rolling-Origin Cross-Validation
+::: {.notes}
+This is the hinge of the day. One split gives one number, and one number has no
+error bar, so it cannot support a ranking.
+
+Ask the room how confident they would be in a drug trial with one patient. Same
+objection, same fix: more origins.
+:::
+
+## Rolling the origin turns one score into a distribution
 
 ::: {.panel-tabset}
 
@@ -230,6 +275,15 @@ P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12)
 Each fold trains only on past data. **No fold ever peeks into its future**.
 :::
 
+::: {.notes}
+Walk the diagram fold by fold. Blue is what the model saw, orange is what it was
+scored on, grey is the future it was not allowed to know about. Every row moves
+the boundary forward and never backwards.
+
+Say explicitly why k-fold is wrong here: shuffling puts future rows in the
+training set, which is leakage, and the last slide of this deck comes back to it.
+:::
+
 ## Three knobs control the CV: h, step_size and n_windows
 
 ```python
@@ -249,7 +303,15 @@ cv = sf.cross_validation(
 - **`n_windows`**: number of independent test origins
 :::
 
-## Cross-validation results across 8 folds
+::: {.notes}
+Pick h from the decision, not from the data. If the plan is quarterly, h is
+three, and a model that wins at h=12 is not the one you want.
+
+The trade in n_windows is honest: more windows is a steadier estimate and a
+shorter first training set. Eight is what this series affords.
+:::
+
+## Eight folds keep the ranking and move the winner
 
 ::: {.panel-tabset}
 
@@ -283,7 +345,7 @@ One window crowned **STL + drift** at 0.70. Eight folds hand it back, 1.18 to 1.
 :::
 
 
-## Interval coverage across all 8 folds
+## Only the seasonal naive's band is close to honest
 
 ::: {.panel-tabset}
 
@@ -313,6 +375,16 @@ P.coverage_bars(coverage, nominal=0.8, labels=LABELS)
 - **Mean Model**: 0% coverage (fails on trending data)
 :::
 
+::: {.notes}
+The mean model scores exactly 0%. Not "poorly" - zero. On a series that grew
+sixfold, an interval centred on the historical average never touches the last
+few years at all, and that is worth pausing on: a model can be so wrong that its
+uncertainty estimate is not even wrong in an interesting way.
+
+The seasonal naive's 77% against a nominal 80% is the honest result here, and
+96% on the single window in lecture 1 is the same interval measured badly.
+:::
+
 ## Coverage checks the band. It cannot rank.
 
 Ch 5.9 · Scoring the whole distribution
@@ -329,6 +401,15 @@ Ch 5.9 · Scoring the whole distribution
 ::: {.cardbox .teal}
 **Scaled CRPS** averages the quantile (pinball) loss over the whole ladder of
 levels. Scale-free, lower is better, and you can sort on it.
+:::
+
+::: {.notes}
+The infinity example is the one that lands: an interval of plus or minus
+infinity has perfect coverage and zero value. Coverage is a pass/fail check on
+honesty, not a score.
+
+That is what a proper score fixes, and it is why LEVELS has five entries rather
+than just 80 - scaled CRPS needs a ladder of quantiles to integrate over.
 :::
 
 ## Narrow is not the same as good
@@ -365,11 +446,16 @@ Narrowness that is not earned gets charged for.
 :::
 
 ::: {.notes}
-This is the slide that stops "my intervals are tighter" from being an argument.
-Tighter is only better if calibration holds; CRPS is what prices the trade.
+This is the Ch 5.9 payoff, so give it the time. It is the slide that stops "my
+intervals are tighter" from being an argument.
+
+The STL route has the narrower 80% band - about 40 units against the seasonal
+naive's 49 - and it loses on CRPS, 0.034 to 0.031, because those narrow bands
+miss more often: 61% coverage against 77%. Tighter is only better if you were
+right, and CRPS is what prices that trade in one number.
 :::
 
-## Information leakage risks
+## Leakage is a model seeing its own future
 
 ```{dot}
 //| fig-width: 9.5
@@ -390,16 +476,58 @@ digraph G {
 ```
 
 ::: {.notes}
-Always fit scalers, imputers, and feature engineering strictly on each fold's training history.
+Always fit scalers, imputers, and feature engineering strictly on each fold's
+training history. The third box is the one that gets past code review, because
+nobody wrote a line that looks wrong - they just kept trying models until the
+test score improved. The next slide runs that one.
 :::
 
-## Evaluation pitfalls to avoid
+## Choosing per fold with the answer in hand buys 24%
+
+```{python}
+#| echo: true
+honest = per_window["SeasonalNaive"].mean()        # one rule, fixed in advance
+oracle = per_window[MODELS].min(axis=1).mean()     # best model per fold
+
+print(f"seasonal naive, every fold  : MASE {honest:.2f}")
+print(f"best model, chosen per fold : MASE {oracle:.2f}")
+print(f"discount bought by peeking  : {1 - oracle / honest:.0%}")
+```
+
+::: {.cardbox .coral}
+No rule available *before* a fold produces the second number. It is the holdout
+leaking into the choice of model.
+:::
+
+::: {.notes}
+Run this one live. The seasonal naive wins four folds and the STL route wins the
+other four, and swapping between them fold by fold takes the average from 1.18
+to 0.90 - a 24% improvement bought entirely by knowing the answer first.
+
+Ask the room what rule they would have written in advance to make those swaps.
+There isn't one. That is the whole definition of leakage: a number produced by a
+decision that could not have been made at forecast time.
+
+This is also the honest version of what happened in lecture 1, where a single
+window crowned the STL route at 0.70.
+:::
+
+## Four ways an honest team still fools itself
 
 ::: {.incremental}
 - **Regime changes**: verify if old folds disagree with recent folds
 - **Underpowered sample**: evaluate over sufficient origins ($>50$ points)
 - **Overlapping folds**: beware overly narrow confidence intervals when `step_size < h`
 - **Data gaps**: verify timestamp continuity across all origins
+:::
+
+::: {.notes}
+None of these require anyone to be careless. Every one of them has shipped from
+a competent team.
+
+If you have a war story, this is where it goes. If not, the honest version is
+the one this course just walked through: a single window crowned the STL route
+at 0.70 and eight windows handed it back.
 :::
 
 ## $\rightarrow$ Lab D · Score them honestly {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
@@ -413,7 +541,7 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 . . .
 
-*29 minutes. The notebook carries the instructions — work down it in order.*
+*29 minutes. The notebook carries the instructions; work down it in order.*
 
 ::: {.cardbox .teal}
 Same notebook as Lab C. Pick up at Exercise 2.4.
@@ -441,4 +569,14 @@ white noise (Ljung-Box p about 1e-240). That is Day 3's opening.
 ::: {.cardbox .teal}
 You now have an evaluation harness and the first rows of the leaderboard. Every
 Day 3 model plugs into this harness and joins this leaderboard.
+:::
+
+::: {.notes}
+Close on what is now on disk, and on what it does not do. The leaderboard is
+real: seasonal naive at MASE 1.18 and scaled CRPS 0.031 over eight folds, and
+every Day 3 model has to get past those numbers.
+
+And the floor is not finished. The seasonal naive's residuals failed Ljung-Box
+at p about 1e-240, so there is signal in this series that nothing today
+captured. That is Day 3's opening sentence.
 :::

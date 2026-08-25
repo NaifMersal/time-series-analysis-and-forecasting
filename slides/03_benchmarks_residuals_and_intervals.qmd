@@ -126,15 +126,28 @@ Day 1 found the spine's signal is seasonality. Day 2 builds the floor a model mu
 . . .
 
 ::: {.callout-important}
-## The interval rule
+## A forecast without a range is half an answer
 A point forecast without an interval is an incomplete guess.
+:::
+
+::: {.notes}
+Open by picking Day 1 back up rather than restarting. Yesterday ended with the
+feature sweep: across 148 retail series trend strength was above 0.96 almost
+everywhere, so trend told you nothing, and seasonal strength was the feature
+that separated one series from another. That is the finding this whole day is
+built on. If seasonality is the signal, then the model to beat is the one that
+does nothing but repeat last year's season - and that is where we start.
+
+Say out loud what the day produces: a leaderboard file with real numbers in it,
+which Day 3 has to beat. Nobody leaves with a model today. They leave with the
+scoreboard.
 :::
 
 # A. The benchmark floor {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
 
 Ch 5.1–5.2 · Simple, strong baselines
 
-## Four essential benchmarks
+## Four benchmarks set the floor a model must clear
 
 ::: {.incremental}
 - **Mean**: average of all historical observations
@@ -149,7 +162,18 @@ Ch 5.1–5.2 · Simple, strong baselines
 Always fit these 4 first. On many series, **Seasonal Naive is tough to beat**.
 :::
 
-## The four benchmarks in action
+::: {.notes}
+Do not let these sound like toys. On a seasonal series a seasonal naive is a
+genuinely hard opponent, and by the end of today they will have watched it beat
+a decomposition model over eight folds.
+
+Worth saying which is which in plain language: the mean forgets time entirely,
+the naive remembers only yesterday, the seasonal naive remembers this month last
+year, and the drift draws a straight line through the first and last points. Ask
+the room which one they expect to win here before you show them.
+:::
+
+## Only one benchmark has the shape of the data
 
 ::: {.panel-tabset}
 
@@ -176,7 +200,16 @@ P.forecast_overlay(train, fc, MODELS, labels=LABELS, actual=test, history_tail=7
 
 :::
 
-## Why benchmarks are non-negotiable
+::: {.notes}
+Point at the flat pink line first. That is the mean model, and on a series that
+has grown sixfold it is visibly hopeless - which is the point of showing it. The
+green naive line is flat too, but at the right level.
+
+The orange seasonal naive is the only one with the shape of the data in it. Let
+the room see that before any number is quoted.
+:::
+
+## A benchmark is what turns a score into evidence
 
 ::: {.incremental}
 - **Objective evidence**: proves the complex model adds value
@@ -190,6 +223,16 @@ P.forecast_overlay(train, fc, MODELS, labels=LABELS, actual=test, history_tail=7
 ::: {.callout-tip}
 ## The question to ask in every review
 *"What is the simple baseline, and by how much did we beat it?"*
+:::
+
+::: {.notes}
+This is the slide to slow down on if the room is senior. The question in the
+callout is the one to take back to work: it costs nothing to ask, and it is the
+single most effective check on a forecasting claim.
+
+The MASE point is worth a sentence now because the metric arrives in lecture 2:
+the benchmark is not only a rival, it is also the denominator that makes errors
+comparable across series.
 :::
 
 ## Decomposition is also a forecasting method
@@ -223,6 +266,16 @@ digraph G {
 
 ::: {.cardbox .teal}
 `MSTL` is this whole diagram in one object.
+:::
+
+::: {.notes}
+Ch 5.7. They built every box in this diagram yesterday - STL, the seasonally
+adjusted series, the seasonal component. The only new idea is that you can
+forecast the two pieces separately and add them back.
+
+MSTL bundles the whole diagram. The course pins trend_forecaster to drift on
+purpose: the default is AutoETS, which is Day 3's material, and we do not want a
+Day 3 model quietly winning a Day 2 comparison.
 :::
 
 ## The decomposition route clears the floor
@@ -271,7 +324,7 @@ as the lesson rather than as a contradiction.
 
 Ch 5.3–5.4 · Has the model finished?
 
-## Fitted values vs. Forecast errors
+## Residuals flatter, forecast errors do not
 
 **Residual** ($e_t$): Error on *in-sample training data* (one-step ahead)
 
@@ -285,7 +338,17 @@ $$e_t = y_t - \hat{y}_{t|t-1}$$
 - **Forecast Errors** = Out-of-sample holdout errors (honest)
 :::
 
-## Properties of good residuals
+::: {.notes}
+This distinction causes more confusion later than anything else in the day, so
+make it concrete: a residual is what the model got wrong on data it had already
+seen; a forecast error is what it got wrong on data it had not. Residuals
+flatter, forecast errors do not.
+
+Everything in segment B is residuals. Everything in lecture 2 is forecast
+errors. Say that now and it saves a question later.
+:::
+
+## Two properties finish a model, two license its intervals
 
 :::: {.columns}
 ::: {.column width="50%"}
@@ -310,7 +373,16 @@ $$e_t = y_t - \hat{y}_{t|t-1}$$
 :::
 ::::
 
-## Diagnosing the Seasonal Naive
+::: {.notes}
+The split matters: the first two are about whether the model is finished, and
+the last two are about whether its intervals can be trusted. A model can pass
+the left column and fail the right, and the intervals will still be wrong.
+
+Segments C, D and E are, in order, the three ways to stop relying on the right
+column.
+:::
+
+## The best benchmark here fails all three diagnostics
 
 ::: {.panel-tabset}
 
@@ -336,6 +408,17 @@ fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
 ::: {.incremental}
 - Residuals show expanding variance over time
 - Autocorrelation spikes remain outside bounds $\rightarrow$ Signal left uncaptured
+:::
+
+::: {.notes}
+Three panels, three verdicts. The time plot fans out - the spread in the 2010s
+is roughly three times the spread in the 1980s, so constant variance fails. The
+ACF has spikes well outside the bounds, so uncorrelated fails. The histogram is
+sharply peaked with fat tails, so normal fails.
+
+Do not treat that as a failure of the seasonal naive. It is the honest state of
+the best benchmark on this series, and every interval method in this deck is a
+response to one of those three lines.
 :::
 
 ## Ljung-Box tests whether the autocorrelations are jointly zero
@@ -397,6 +480,15 @@ $$\hat{\sigma} = \sqrt{\frac{1}{T - K - M}\sum_{t=1}^{T} e_t^2}
 - $c = 1.28$ for 80%, $c = 1.96$ for 95%
 :::
 
+::: {.notes}
+Two things students trip on. The M term: a seasonal naive cannot produce a
+fitted value for its first twelve months, so twelve residuals are missing and
+the denominator has to know that. And c is a normal quantile - 1.28 and 1.96 are
+only right if the residuals are normal, which we just showed they are not.
+
+Flag that now. The rest of the deck is the repair.
+:::
+
 ## How fast the range widens depends on the method
 
 | Benchmark | $h$-step forecast standard deviation |
@@ -419,7 +511,7 @@ All four formulas assume the residuals are uncorrelated. That assumption is
 already known to be false here - segment B just rejected it at p ~ 1e-240.
 :::
 
-## Fan Chart: Visualising uncertainty
+## The interval is the forecast, the line is its middle
 
 ::: {.panel-tabset}
 
@@ -442,6 +534,16 @@ P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), actual=test,
             history_tail=72)
 ```
 
+:::
+
+::: {.notes}
+Make the room read the dashed actual line against the bands rather than admiring
+the shading. Ask how many of the 24 points fall inside the 80% band. It looks
+excellent here, and lecture 2 shows that a single 24-point window cannot measure
+a coverage rate at all.
+
+If you want one sentence for this slide: the interval is the forecast, and the
+line down the middle is just its most likely value.
 :::
 
 ## The seasonal naive does not widen like $\sqrt{h}$
@@ -491,6 +593,13 @@ sqrt(h) curve would have it 4.9x wider by h = 24; it is only 1.41x wider.
 On this series **all three fail.** The next two methods each buy one of them back.
 :::
 
+::: {.notes}
+Count them off on your fingers, because the next three segments buy them back
+one at a time and it helps if the room is counting with you. Bootstrap buys back
+normality. Conformal buys back the distribution entirely. Nothing in this course
+buys back independence.
+:::
+
 ## Two of the three fail on this series
 
 ::: {.panel-tabset}
@@ -524,6 +633,17 @@ np.quantile(r, [0.1, 0.9])                    # the bootstrap's cut points
 ::: {.incremental}
 - The rolling SD wanders between **4 and 35**: never the single 17.6 assumed
 - Excess kurtosis **≈ 5.7**: sharper peak *and* fatter tails than a normal
+:::
+
+::: {.notes}
+Left panel: the rolling standard deviation climbs from about 8 to about 25, and
+the dashed line is the single pooled sigma-hat that the closed-form interval
+uses for the whole series. One number for a spread that tripled.
+
+Right panel: the blue lines are the empirical central 80%, the dashed orange are
+where the normal assumption puts them. The normal cuts sit further out, which is
+the tails being fat and the peak being sharp. The Gaussian interval is paying
+for a shape the data does not have.
 :::
 
 # D. Bootstrapped intervals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
@@ -564,6 +684,17 @@ time**: i.i.d. draws from the pool of past errors.
 - On this series the second one is false: the residual SD tripled.
 :::
 
+::: {.notes}
+Every interval method spends an assumption; the honest question is which one.
+The bootstrap trades normality for identical distribution, and on this series
+that trade is a bad one - the residual SD tripled, so 1980s errors are in the
+same draw pool as 2010s errors.
+
+That is not a reason to avoid the bootstrap. It is a reason to know which knob
+you are turning, and the lab turns it: restricting the pool to recent residuals
+moves coverage from about 62% to about 87%.
+:::
+
 ## 5000 possible futures
 
 ::: {.panel-tabset}
@@ -592,6 +723,17 @@ P.sim_paths_plot(train, fc["ds"], boot_paths, n_show=8, actual=test)
 ::: {.cardbox .teal}
 The band is not the method. The **paths** are the method; the band is a
 percentile taken down each column.
+:::
+
+::: {.notes}
+This is the slide that fixes the most common misconception about the bootstrap.
+Students see the shaded band and assume the band is the method. It is not. The
+method is these paths; the band is a percentile taken down each column
+afterwards.
+
+Trace one path with your finger from the origin out to 24 months, and say: this
+is one possible future, drawn by taking last year's value and adding a real
+error we actually observed at some point in the past.
 :::
 
 ## Bootstrap vs Gaussian on the spine
@@ -625,6 +767,15 @@ P.fan_chart(train, boot_fan, levels=(80, 95), actual=test)
 - Sharp peak, fat tails. That is what excess kurtosis of 5.7 buys you
 :::
 
+::: {.notes}
+Same model, same point forecast, same data. Only the assumption changed, and the
+80% band got a fifth narrower.
+
+Notice the 95% bands barely differ. That is the shape of the residuals showing
+up exactly where you would expect it: the sharp peak makes the central 80%
+tighter, and the fat tails put the 95% back where the normal had it.
+:::
+
 # E. Conformal prediction {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
 
 Ch 5.5 · Distribution-free intervals
@@ -644,6 +795,15 @@ $$e_{t+h|t} = y_{t+h} - \hat{y}_{t+h|t}$$
 ::: {.callout-note}
 At $h = 1$ these are exactly the residuals from part B. For $h > 1$ they are a
 different, wider set of errors, and they must be *collected*, not fitted.
+:::
+
+::: {.notes}
+Notation discipline pays off here. e_{t+h|t} carries two indices for a reason:
+which point is being forecast, and which origin it was forecast from. A 12-step
+error made in 2010 and a 12-step error made in 2016 are two members of the same
+calibration set.
+
+Residuals had one index because there was only ever one origin: yesterday.
 :::
 
 ## A worked example of $e_{t+h|t}$
@@ -681,6 +841,16 @@ P.h_step_error_diagram(toy, toy_err, figsize=(9, 3.9), xticks=range(1, 11),
 plt.show()
 ```
 
+:::
+
+::: {.notes}
+Walk this by hand on the numbers. Stand at t=5, the naive forecast for t=8 is
+whatever y_5 was, then look up what actually happened at t=8 and subtract.
+That single number is one member of the calibration set.
+
+Slide the origin forward and you get another. Conformal prediction is nothing
+more elaborate than collecting those and taking a quantile of their absolute
+values.
 :::
 
 ## Exchangeability, not i.i.d.
@@ -734,7 +904,7 @@ statsforecast does exactly this internally: n_windows rolling origins, the
 absolute error at each horizon, then the empirical quantile of those.
 :::
 
-## In statsforecast: one argument
+## Any model at all can be given a conformal interval
 
 ```python
 from statsforecast.utils import ConformalIntervals
@@ -755,7 +925,18 @@ fc_conf = sf_conf.forecast(df=train, h=24, level=[80, 95])
 - With 8 windows only 16 scores sit behind each horizon, so the band is **visibly jittery**
 :::
 
-## Three intervals, one model
+::: {.notes}
+This is the practical payoff of the whole segment and the thing a Day 3 author
+will need: any model that has no closed-form interval gets one from
+prediction_intervals=ConformalIntervals(...). Not every statsforecast model can
+produce intervals on its own; all of them can produce conformal ones.
+
+The jitter warning is worth making concrete. With eight windows there are only
+sixteen scores behind each horizon, so the band wobbles. That is a small sample
+showing through, not a bug.
+:::
+
+## One point forecast, three different bands
 
 ::: {.panel-tabset}
 
@@ -790,7 +971,16 @@ P.interval_bounds_plot(train, fc["ds"], BANDS, actual=test)
 
 :::
 
-## Which one should you use?
+::: {.notes}
+One point forecast, three bands. Left panel says they are not the same object;
+right panel says how they differ in shape. Gaussian is the staircase, bootstrap
+is narrow, conformal is jittery.
+
+Resist ranking them from this figure. That is the next slide, and the answer is
+that 24 points cannot rank them.
+:::
+
+## Each method buys back a different assumption
 
 ```{python}
 #| echo: false
@@ -817,6 +1007,15 @@ print(pd.DataFrame(rows).to_string(index=False,
 ::: {.callout-important}
 Those coverage numbers come from **24 points**. That is not enough to separate
 them, which is the next slide.
+:::
+
+::: {.notes}
+The table is the takeaway; the printed numbers above it are the trap. Read the
+coverage column out loud and then say plainly that those numbers came from 24
+points and cannot separate three methods.
+
+If the room wants a default: conformal, because it assumes least, and because it
+is the one that generalises to models that have no formula.
 :::
 
 ## Why one test window is misleading
@@ -861,7 +1060,7 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 . . .
 
-*46 minutes. The notebook carries the instructions — work down it in order.*
+*46 minutes. The notebook carries the instructions; work down it in order.*
 
 ::: {.cardbox .teal}
 2.3 is the long one. Get to it with time to spare.
@@ -880,4 +1079,13 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 ::: {.cardbox .teal}
 Next: Forecast evaluation metrics and rolling-origin cross-validation.
+:::
+
+::: {.notes}
+The through-line to name before the break: the seasonal naive is the number to
+beat, and its residuals are emphatically not white noise. Both halves of that
+matter. The first says today produces a floor; the second says the floor leaves
+a lot on the table, which is where Day 3 opens.
+
+Break here. Lecture 2 is scoring, and it takes the STL result apart.
 :::
