@@ -389,9 +389,9 @@ column.
 
 ### Plot
 ```{python}
-#| fig-width: 8.6
+#| fig-width: 8.2
 resid = fv["y"] - fv["SeasonalNaive"]
-P.residual_diagnostics(resid, ds=fv["ds"], figsize=(8.6, 3.5),
+P.residual_diagnostics(resid, ds=fv["ds"], figsize=(8.2, 2.9),
                        title="Seasonal naive: residual diagnostics")
 plt.show()
 ```
@@ -405,18 +405,10 @@ P.residual_diagnostics(resid, ds=fv["ds"])
 
 :::
 
-```{python}
-#| echo: false
-r = resid.dropna()
-print(f"mean residual {r.mean():+.2f}   "
-      f"SD, first 10 years {r.head(120).std():.1f}   "
-      f"SD, last 10 years {r.tail(120).std():.1f}")
-```
-
 ::: {.incremental}
-- **Zero mean** fails: the forecast is biased high by about 8 units
-- **Constant variance** fails: the spread grows with the level
-- **Uncorrelated** fails: ACF spikes stay outside the bounds, so signal is left
+- **Zero mean** fails: mean residual $+7.9$, so the forecast runs low
+- **Constant variance** fails: SD $8.5$ in the first decade, $26.2$ in the last
+- **Uncorrelated** fails: ACF spikes stay outside the bounds
 :::
 
 ::: {.notes}
