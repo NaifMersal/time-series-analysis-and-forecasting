@@ -205,10 +205,13 @@ print(f"rows: {len(spine)} -> {len(broken)}, and pandas still reports no error")
 print(f"month-to-month steps seen  : {sorted(step.dropna().unique().astype(int))}")
 print(f"steps longer than a month  : {int((step > 32).sum())}")
 
-# "12 rows back" is no longer "12 months back" after a gap.
-i = int(holes.max()) + 20
-print(f"\\nrow {i} is {broken['ds'][i].date()}; 12 rows earlier is "
-      f"{broken['ds'][i - 12].date()}, not the same month a year before")
+# "12 rows back" is no longer "12 months back" once a gap is inside the window.
+g = int(step.idxmax())          # first row after the biggest gap
+i = g + 6                       # a row whose previous 12 span that gap
+print(f"\\nbiggest jump: {broken['ds'][g - 1].date()} -> {broken['ds'][g].date()}")
+print(f"row {i} is {broken['ds'][i].date()}, and 12 rows back is "
+      f"{broken['ds'][i - 12].date()}")
+print("which is no longer the same month one year earlier")
 """),
     md("""
 **Repairing a gap.** Reindex onto the full date range, then decide what the
