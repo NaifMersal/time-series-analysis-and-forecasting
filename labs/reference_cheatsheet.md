@@ -69,6 +69,12 @@ it. Repair with `.asfreq()` or `.reindex()` so the gap becomes a visible `NaN`.
 $$r_k = \frac{\sum_{t=k+1}^{T}(y_t-\bar y)(y_{t-k}-\bar y)}{\sum_{t=1}^{T}(y_t-\bar y)^2}
 \qquad\text{bounds } \pm\frac{1.96}{\sqrt{T}}$$
 
+```python
+P.acf_plot(df["y"], nlags=36, highlight_every=12)   # draw the correlogram
+r, bound = P.acf_values(df["y"], nlags=36)          # the numbers behind it:
+                                                    # r[k-1] is r_k, bound is 1.96/sqrt(T)
+```
+
 | What the correlogram shows | What it means |
 |---|---|
 | Slow decay, all positive | **trend** |
