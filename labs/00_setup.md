@@ -4,7 +4,7 @@ Twenty minutes, once. Day 1 opens with content, not an install clinic.
 
 ## What you need
 
-- **Python 3.11 or 3.12** (3.13+ is not supported by every dependency yet)
+- **Python 3.11, 3.12 or 3.13** (3.14+ is not supported by every dependency yet)
 - **[uv](https://docs.astral.sh/uv/)**: the installer this project uses
 - Internet access **once**, to download packages and datasets. After that the whole
   course runs offline.
