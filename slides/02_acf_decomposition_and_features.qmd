@@ -238,7 +238,7 @@ $$\hat{T}_t = \frac{1}{m}\sum_{j=-k}^{k} y_{t+j} \qquad (m = 2k + 1)$$
 
 ```{python}
 #| fig-width: 10
-fig, ax = plt.subplots(figsize=(10, 2.5))
+fig, ax = plt.subplots(figsize=(10, 2.2))
 P.trend_overlay_plot(
     spine, {"3-MA": P.centred_ma(spine["y"], 3),
             "12-month MA": P.centred_ma(spine["y"], 12)},
@@ -249,15 +249,15 @@ plt.show()
 ```
 
 ::: {.cardbox .teal}
-Set the window to one seasonal period, so it covers each month once:
-$m = 3$ keeps the season, $m = 12$ erases it. An even $m$ needs one extra
-step, two slides on.
+Set the window to one seasonal period: $m = 3$ keeps the season,
+$m = 12$ erases it.
 :::
 
 ::: {.notes}
 The 3-MA still wobbles because three months is a quarter of a cycle, so it averages
-a high month with two lower ones and keeps the shape. Twelve months covers every
-month once, which is the next slide.
+a high month with two lower ones and keeps the shape. Twelve covers every month
+once. Twelve is even and has no middle month, which is the wrinkle the next slide
+deals with, so do not use the name 2x12-MA yet.
 :::
 
 ## A whole-cycle window cancels the season
