@@ -26,9 +26,9 @@ noise = D.white_noise(n=len(spine), seed=7)
 ## Where we are going
 
 ::: {.incremental}
-- **Day 1** — Patterns, decomposition, and features
-- **Day 2** — Baselines, uncertainty, and evaluation
-- **Day 3** — Forecasting models
+- **Day 1**: Patterns, decomposition, and features
+- **Day 2**: Baselines, uncertainty, and evaluation
+- **Day 3**: Forecasting models
 :::
 
 . . .
@@ -42,13 +42,13 @@ Diagnose a series, build a baseline, and prove whether anything beats it.
 
 Ch 1
 
-## Forecasting drives decisions
+## Forecasts exist to change decisions
 
 ::: {.incremental}
-- **Inventory** — how much stock to hold
-- **Staffing** — how many people to roster
-- **Energy** — when generation must ramp up
-- **Finance** — cash flow and budget targets
+- **Inventory**: how much stock to hold
+- **Staffing**: how many people to roster
+- **Energy**: when generation must ramp up
+- **Finance**: cash flow and budget targets
 :::
 
 . . .
@@ -61,28 +61,28 @@ A forecast is only useful if it **changes a decision**.
 The decision dictates the entire setup: the forecast horizon, the time frequency, and the error metric you care about.
 :::
 
-## What can be forecast?
-
-Three factors determine predictability:
+## Three factors dictate predictability
 
 ::: {.incremental}
-1. **Understanding** — how well we understand the drivers
-2. **Data** — how much historical data exists
-3. **Influence** — whether the forecast changes the outcome
+1. **Understanding**: how well we understand the drivers
+2. **Data**: how much historical data exists
+3. **Influence**: whether the forecast changes the outcome
 :::
+
+. . .
 
 ::: {.notes}
-Point 3 is critical: if a demand forecast causes price cuts or stockouts, it alters future demand (self-fulfilling or self-defeating forecasts).
+Point 3 is key: if a demand forecast causes price cuts or stockouts, it alters future demand (self-fulfilling or self-defeating forecasts).
 :::
 
-## Predictability: Two extremes
+## High data and clear drivers make series predictable
 
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.cardbox .teal}
 [Electricity Demand]{.card-title}
 
-- Clear drivers (weather, calendar)
+- Clear physical drivers (weather, calendar)
 - High volume of historical data
 - Forecast does not change demand
 - $\rightarrow$ **Highly predictable**
@@ -94,13 +94,13 @@ Point 3 is critical: if a demand forecast causes price cuts or stockouts, it alt
 
 - Weakly understood drivers
 - Forecast moves the market
-- No stable pattern
+- No stable recurring pattern
 - $\rightarrow$ **Hard to beat today's price**
 :::
 :::
 ::::
 
-## Three model types
+## Pure time series models require no future drivers
 
 ```{dot}
 //| fig-width: 9.5
@@ -128,7 +128,7 @@ digraph G {
 Days 1–2 focus on **pure time series** (Box 2). Day 3 covers mixed models.
 :::
 
-## Why past history often wins
+## Past history avoids missing future predictors
 
 Time series models only need to know: **what happened next last time?**
 
@@ -139,26 +139,26 @@ Time series models only need to know: **what happened next last time?**
 :::
 
 ::: {.notes}
-Relying on past history is not laziness; it is often the most robust, honest model choice in production.
+Relying on past history is not laziness; it is often the most dependable, honest model choice in production.
 :::
 
 # B. What is in a time series {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
 
 Ch 2 · Patterns and components
 
-## Three core patterns
+## Trend, seasonality, and cycles are distinct patterns
 
 ::: {.incremental}
-- **Trend** — Long-term increase or decrease
-- **Seasonality** — Repeating pattern at a **fixed, known period** (day, week, year)
-- **Cycle** — Rises and falls with **no fixed period** (business cycles)
+- **Trend**: Long-term increase or decrease
+- **Seasonality**: Repeating pattern at a **fixed, known period** (day, week, year)
+- **Cycle**: Rises and falls with **no fixed period** (business cycles)
 :::
 
 ::: {.notes}
 Trend does not have to be linear. Cycles are usually longer than seasonality and vary in length.
 :::
 
-## Seasonality vs. Cycle
+## Seasonality has a fixed calendar period; cycles vary
 
 :::: {.columns}
 ::: {.column width="50%"}
@@ -188,7 +188,7 @@ Trend does not have to be linear. Cycles are usually longer than seasonality and
 Treating a cycle as seasonality causes models to predict peaks at the wrong time with false confidence.
 :::
 
-## Four series, four patterns
+## Four series show four distinct temporal patterns
 
 ```{python}
 #| fig-width: 10
@@ -202,16 +202,17 @@ P.plot_series(lynx, ax=axes[1, 0], title="Cycle, no fixed period (lynx)",
               color=P.ORANGE, ylabel="pelts traded")
 P.plot_series(noise, ax=axes[1, 1], title="No pattern (white noise)",
               color=P.GREY, ylabel="z")
+P.thin_xticks(axes, n=4)
 for ax in axes.ravel():
     ax.set_xlabel("")
 plt.show()
 ```
 
 ::: {.notes}
-The lynx peaks occur 8–11 years apart—never the exact same gap. This is a cycle, not seasonality.
+The lynx peaks occur 8–11 years apart, never the exact same gap. This is a cycle, not seasonality.
 :::
 
-## Components of a time series
+## Time series split into trend, season, and remainder
 
 ::: {.incremental}
 - **Additive**: $y_t = S_t + T_t + R_t$
@@ -226,15 +227,16 @@ The lynx peaks occur 8–11 years apart—never the exact same gap. This is a cy
 | $T_t$ | **Trend-Cycle** component (underlying direction) |
 | $R_t$ | **Remainder** (random noise / unexplained variation) |
 
-## Additive or Multiplicative?
+## Expanding swings require multiplicative models
 
 ```{python}
-#| fig-width: 10
-fig, axes = plt.subplots(1, 2, figsize=(10, 3.9))
+#| fig-width: 9.5
+fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.1))
 P.plot_series(beer.tail(120), ax=axes[0], color=P.BLUE, ylabel="megalitres",
               title="Additive: swing size is constant")
 P.plot_series(souvenirs, ax=axes[1], color=P.ORANGE, ylabel="sales ($)",
               title="Multiplicative: swing grows with level")
+P.thin_xticks(axes, n=4)
 for ax in axes:
     ax.set_xlabel("")
 plt.show()
@@ -245,7 +247,7 @@ plt.show()
 - Growing swing $\rightarrow$ **Multiplicative** (fix with log transform)
 :::
 
-## The Golden Rule {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+## The Golden Rule: The order is the data {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
 ::: {.r-fit-text}
 The order **is** the data.
@@ -263,7 +265,7 @@ The order **is** the data.
 Random shuffling allows models to look into the future. Day 2 introduces rolling-origin evaluation.
 :::
 
-## Shuffling destroys temporal signal
+## Shuffling destroys all autocorrelation and structure
 
 ```{python}
 #| fig-width: 10
@@ -280,6 +282,7 @@ P.acf_plot(y, nlags=36, ax=axes[1, 0], highlight_every=12,
            title="Original ACF: Rich Structure")
 P.acf_plot(shuffled, nlags=36, ax=axes[1, 1], color=P.ORANGE,
            title="Shuffled ACF: Zero Structure")
+P.thin_xticks(axes[0], n=4)
 plt.show()
 ```
 
@@ -305,7 +308,7 @@ Open `labs/01_day1_structure_and_diagnostics.ipynb`
 
 Ch 2.2–2.5 · The essential plots
 
-## Four diagnostic plots
+## Four diagnostic plots reveal different structural features
 
 | Plot | Core Question |
 |---|---|
@@ -321,23 +324,24 @@ Ch 2.2–2.5 · The essential plots
 Always check the time plot first for outliers, gaps, and structural breaks.
 :::
 
-## 1. Time plot
+## Time plots reveal long-term trend and variance growth
 
 ```{python}
-#| fig-width: 10
-fig, ax = plt.subplots(figsize=(10, 3.6))
+#| fig-width: 9.5
+fig, ax = plt.subplots(figsize=(9.5, 3.0))
 P.plot_series(spine, ax=ax, ylabel="turnover ($M)",
               title=f"{D.SPINE_ID}, monthly")
+P.thin_xticks(ax, n=6)
 plt.show()
 ```
 
 ::: {.incremental}
 - Upward trend, roughly eightfold over 37 years
 - The seasonal swing widens as the level rises
-- A sharp step up in 2009 and a dip around 2000: ask what happened before modelling
+- Sharp 2009 step and 2000 dip: investigate breaks before modelling
 :::
 
-## 2. Seasonal plot
+## Seasonal plots expose repeating annual shapes
 
 ```{python}
 #| fig-width: 10
@@ -357,12 +361,10 @@ plt.show()
 :::
 
 ::: {.notes}
-Ten years, not all 37. Over the full span the level grows eightfold, so the lines
-stack by year and the shape is unreadable. Say that out loud, it is the same
-problem the next slide makes explicit.
+Ten years, not all 37. Over the full span the level grows eightfold, so the lines stack by year and the shape is unreadable.
 :::
 
-## 3. Subseries plot: Seasonality isolated
+## Subseries plots isolate pure seasonal means
 
 ```{python}
 #| fig-width: 10
@@ -376,7 +378,7 @@ plt.show()
 Differences in the horizontal means highlight the pure seasonal pattern.
 :::
 
-## 4. When trend swamps the subseries plot
+## Strong trend obscures raw month-to-month means
 
 ```{python}
 #| fig-width: 10
@@ -395,7 +397,7 @@ When trend growth is massive (8x), seasonal differences appear tiny until trend 
 The seasonality is real (as seen in the seasonal plot), but raw monthly means fail to reveal it clearly under strong growth.
 :::
 
-## Always verify timestamps first
+## Verify timestamp continuity before fitting models
 
 ```{python}
 #| echo: true
@@ -432,7 +434,7 @@ Open `labs/01_day1_structure_and_diagnostics.ipynb`
 - Forecasts exist to **inform decisions**
 - **Trend, Seasonality, Cycle** are distinct patterns
 - Multiplicative swings become additive under a **log transform**
-- **Order is the data** — never shuffle
+- **Order is the data**: never shuffle
 :::
 
 . . .

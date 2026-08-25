@@ -34,14 +34,14 @@ _stl_log = STL(np.log(spine["y"].to_numpy()), period=12, robust=True).fit()
 season_only = spine.assign(y=np.asarray(_stl_log.seasonal))
 ```
 
-## Beyond visual inspection
+## Numerical diagnostics replace subjective visual inspection
 
 Describing patterns by eye has 3 fatal flaws:
 
 ::: {.incremental}
-- **Does not scale** — impossible across hundreds of series
-- **Subjective** — different people see different patterns
-- **No significance test** — cannot tell signal from noise
+- **Does not scale**: impossible across hundreds of series
+- **Subjective**: different people see different patterns
+- **No significance test**: cannot tell signal from noise
 :::
 
 . . .
@@ -75,11 +75,10 @@ plt.show()
 :::
 
 ::: {.notes}
-The trend is removed here with a 12-month moving average, which is segment 4. Do not
-teach it yet. The point is only that the raw lag plot cannot separate the two.
+The trend is removed here with a 12-month moving average, which is segment 4. Do not teach it yet. The point is only that the raw lag plot cannot separate the two.
 :::
 
-## Autocorrelation ($r_k$)
+## Autocorrelation measures correlation with lagged history
 
 Quantifies linear correlation between $y_t$ and its lag $y_{t-k}$:
 
@@ -111,7 +110,7 @@ plt.show()
 - Dashed lines are the 95% bounds, $\pm 1.96 / \sqrt{T}$
 :::
 
-## Significance Bounds
+## Significance bounds identify meaningful correlation
 
 If a series is pure white noise:
 
@@ -125,7 +124,7 @@ $$r_k \sim N\left(0,\ \tfrac{1}{T}\right)$$
 - With 36 lags, ~1–2 spikes outside the bounds can occur by chance
 :::
 
-## Three distinct ACF signatures
+## Trend, seasonality, and noise produce distinct correlograms
 
 ```{python}
 #| fig-width: 10
@@ -147,7 +146,7 @@ P.thin_xticks(axes[0], n=3)
 plt.show()
 ```
 
-## How to interpret any ACF
+## ACF shapes diagnose underlying series structure
 
 | Visual Pattern | Underlying Property |
 |---|---|
@@ -180,7 +179,7 @@ Open `labs/01_day1_structure_and_diagnostics.ipynb`
 
 Ch 3 · Separating trend, season, and noise
 
-## 1. Stabilise the variance (Box-Cox)
+## Box-Cox transforms stabilise expanding seasonal variance
 
 ```{python}
 #| fig-width: 10
@@ -193,6 +192,7 @@ P.plot_series(spine, ax=axes[0], title="Original: expanding swing",
 axes[1].plot(spine["ds"], yt, color=P.ORANGE, lw=0.9)
 axes[1].set_title(rf"Box-Cox ($\lambda = {lam:.2f}$): constant swing")
 axes[1].set_ylabel("transformed turnover")
+P.thin_xticks(axes, n=4)
 plt.show()
 ```
 
@@ -213,18 +213,17 @@ P.trend_overlay_plot(
             "2×12-MA": P.centred_ma(spine["y"], 12)},
     ax=ax, tail=180, colors=[P.PINK, P.ORANGE], ylabel="turnover ($M)",
     title="Spine, last 15 years: the order $m$ decides what survives")
+P.thin_xticks(ax, n=5)
 plt.show()
 ```
 
 ::: {.cardbox .teal}
-Most common use of a centred moving average: **estimating the trend-cycle of
-seasonal data**. $m = 3$ keeps the season, $m = 12$ erases it.
+Most common use of a centred moving average: **estimating the trend-cycle of seasonal data**. $m = 3$ keeps the season, $m = 12$ erases it.
 :::
 
 ## The season cancels because the window is one whole cycle
 
-Take $y_t = T_t + S_t + R_t$, where $S_t$ has period $m$ and one full cycle sums
-to zero (the usual identifying constraint):
+Take $y_t = T_t + S_t + R_t$, where $S_t$ has period $m$ and one full cycle sums to zero:
 
 $$\sum_{j=0}^{m-1} S_{t+j} = 0$$
 
@@ -236,28 +235,23 @@ $$\hat{T}_t = \underbrace{\frac{1}{m}\sum_{j=-k}^{k} T_{t+j}}_{\text{trend}}
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} S_{t+j}}_{\text{season}}
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} R_{t+j}}_{\text{noise}}$$
 
-## Season deleted, trend kept, noise damped
+## Season cancels, trend survives, and noise is damped
 
 ::: {.incremental}
-- **Season $= 0$, exactly.** The window spans one whole cycle, so that sum *is*
-  the constraint above. Nothing approximate about it.
-- **Trend survives.** If $T_{t+j} \approx a + bj$ locally, then
-  $\frac{1}{m}\sum_j (a + bj) = a = T_t$, because $\sum_{j=-k}^{k} j = 0$.
-  A symmetric window is **unbiased on a linear trend**.
-- **Noise shrinks.** $\operatorname{Var}(\bar{R}) = \sigma^2 / m$: damped by
-  averaging, never removed.
+- **Season $= 0$, exactly**: The window spans one whole cycle, so that sum is the constraint above.
+- **Trend survives**: If $T_{t+j} \approx a + bj$ locally, then $\frac{1}{m}\sum_j (a + bj) = a = T_t$. A symmetric window is **unbiased on a linear trend**.
+- **Noise shrinks**: $\operatorname{Var}(\bar{R}) = \sigma^2 / m$: damped by averaging, never removed.
 :::
 
 . . .
 
 ::: {.cardbox .teal}
-What is left is a trend-cycle estimate.
+What is left is a clean trend-cycle estimate.
 :::
 
 ## An even $m$ needs the 2×$m$-MA to stay centred
 
-Twelve consecutive months have **no middle month**, so their average sits at
-$t + \tfrac{1}{2}$. Average two adjacent 12-MAs to land back on $t$:
+Twelve consecutive months have **no middle month**, so their average sits at $t + \tfrac{1}{2}$. Average two adjacent 12-MAs to land back on $t$:
 
 $$\hat{T}_t = \tfrac{1}{24}y_{t-6} + \tfrac{1}{12}\sum_{j=-5}^{5} y_{t+j}
               + \tfrac{1}{24}y_{t+6}$$
@@ -270,25 +264,22 @@ plt.show()
 ```
 
 ::: {.cardbox .teal}
-$y_{t-6}$ and $y_{t+6}$ are the **same calendar month**, so between them they
-carry $\tfrac{1}{12}$, like every other month. The season still cancels exactly.
+$y_{t-6}$ and $y_{t+6}$ are the **same calendar month**, so between them they carry $\tfrac{1}{12}$, like every other month. The season still cancels exactly.
 :::
 
-## Classical decomposition is that MA plus monthly means
+## Classical decomposition combines moving averages and monthly means
 
 ::: {.incremental}
 1. $\hat{T}_t$ is the 2×12-MA
 2. Detrend: $y_t - \hat{T}_t$
-3. $\hat{S}$ averages the detrended values within each month, then centres them
-   to sum to zero
+3. $\hat{S}$ averages the detrended values within each month, then centres them to sum to zero
 4. $\hat{R}_t = y_t - \hat{T}_t - \hat{S}_t$
 :::
 
 . . .
 
 ::: {.cardbox .navy}
-Every piece is a moving average or a group mean. No fitting, no parameters. That
-simplicity costs something.
+Every piece is a moving average or a group mean. No fitting, no parameters. That simplicity costs something.
 :::
 
 ## The MA trend stops six months short of the present
@@ -301,16 +292,16 @@ P.trend_overlay_plot(
             "STL trend": trend_only["y"].to_numpy()},
     ax=ax, tail=60, colors=[P.ORANGE, P.BLUE], shade_gap="2×12-MA trend",
     ylabel="turnover ($M)", title="Spine, last 5 years")
+P.thin_xticks(ax, n=5)
 plt.show()
 ```
 
 ::: {.incremental}
-- The first and last $m/2$ observations get no trend estimate, and the last one
-  is exactly where you forecast from
+- The first and last $m/2$ observations get no trend estimate, and the last one is exactly where you forecast from
 - Monthly means impose one seasonal shape on all 37 years
 :::
 
-## 3. STL Decomposition
+## STL isolates trend, evolving season, and remainder
 
 ```{python}
 #| fig-width: 9
@@ -324,16 +315,17 @@ dcmp = spine.assign(
 fig, axes = P.decomposition_plot(
     dcmp, ["transformed", "trend", "seasonal", "remainder"],
     "STL decomposition of the transformed spine")
+P.thin_xticks(axes[-1], n=5)
 plt.show()
 ```
 
-## Why STL works well
+## STL adapts to changing seasonal shapes and handles outliers
 
 ::: {.incremental}
-- **Adaptive** — seasonal pattern can evolve smoothly over time
-- **Flexible trend** — estimates non-linear trend curves
-- **Robust** — outliers do not distort the trend (`robust=True`)
-- **Remainder** — isolates pure unexplained variation
+- **Adaptive**: seasonal pattern can evolve smoothly over time
+- **Flexible trend**: estimates non-linear trend curves
+- **Outlier-resistant**: unusual spikes do not distort the trend (`robust=True`)
+- **Remainder**: isolates pure unexplained variation
 :::
 
 ::: {.notes}
@@ -351,12 +343,12 @@ ax.plot(spine["ds"], dcmp["transformed"] - dcmp["seasonal"], color=P.ORANGE,
 ax.set(title="Observed vs. seasonally adjusted ($y_t - S_t$)",
        ylabel="transformed turnover")
 ax.legend(frameon=False)
+P.thin_xticks(ax, n=5)
 plt.show()
 ```
 
 ::: {.cardbox .navy}
-The step up in 2009 and the dip around 2000 are level shifts, not season. Both
-are much easier to see once the annual swing is gone.
+The step up in 2009 and the dip around 2000 are level shifts, not season. Both are much easier to see once the annual swing is gone.
 :::
 
 ## $\rightarrow$ Exercise 1.4 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
@@ -377,7 +369,7 @@ Open `labs/01_day1_structure_and_diagnostics.ipynb`
 
 Ch 4 · Summarising thousands of series
 
-## The portfolio scaling problem
+## Summary features compress portfolios for automated analysis
 
 ::: {.incremental}
 - In practice, you manage **hundreds or thousands** of series
@@ -392,7 +384,7 @@ Ch 4 · Summarising thousands of series
 A **feature** is a numerical summary of a whole series (e.g. trend strength, seasonal strength, entropy).
 :::
 
-## Strength of Trend & Seasonality
+## Variance ratios quantify trend and seasonal strength
 
 Using STL component variances:
 
@@ -432,36 +424,34 @@ ax.scatter(feat["trend_strength"], feat["seasonal_strength"], s=26,
 lo = feat.nsmallest(1, "seasonal_strength").iloc[0]
 hi = feat.nlargest(1, "seasonal_strength").iloc[0]
 mine = feat[feat["unique_id"] == D.SPINE_ID].iloc[0]
-marks = [(lo, P.BLACK, "least seasonal", (0, -14)),
-         (hi, P.ORANGE, "most seasonal", (0, 12)),
-         (mine, P.GREEN, "the spine", (0, 12))]
+marks = [(lo, P.BLACK, "least seasonal", (-12, -18)),
+         (hi, P.ORANGE, "most seasonal", (-14, 0)),
+         (mine, P.GREEN, "the spine", (-14, 0))]
 for row, col, note, off in marks:
     ax.scatter([row["trend_strength"]], [row["seasonal_strength"]], s=130,
                color=col, zorder=3)
     ax.annotate(f"{note}\n{row['unique_id']}",
                 (row["trend_strength"], row["seasonal_strength"]),
                 textcoords="offset points", xytext=off, size=9, color=col,
-                ha="right", va="bottom" if off[1] > 0 else "top",
-                bbox=dict(facecolor="white", alpha=0.85, edgecolor="none",
-                          pad=1.5))
+                ha="right", va="center" if off[1] == 0 else ("bottom" if off[1] > 0 else "top"),
+                bbox=dict(facecolor="white", alpha=0.92, edgecolor="none",
+                          pad=2.0))
 ax.set(xlabel="Trend strength ($F_T$)", ylabel="Seasonal strength ($F_S$)",
-       title="148 Australian retail series", ylim=(0.10, 1.14))
+       title="148 Australian retail series", ylim=(0.10, 1.15))
 plt.show()
 ```
 
 ::: {.notes}
-Every series here scores above 0.89 on trend strength, so trend tells you nothing
-about which series is which. Seasonal strength runs from 0.26 to 0.98, and that is
-the axis worth acting on.
+Every series here scores above 0.89 on trend strength, so trend tells you nothing about which series is which. Seasonal strength runs from 0.26 to 0.98, and that is the axis worth acting on.
 :::
 
-## Practical uses of feature maps
+## Feature maps enable portfolio triage and model routing
 
 ::: {.incremental}
-- **Triage** — focus manual attention on unusual series
-- **Model Routing** — skip seasonal models if $F_S \approx 0$
-- **Anomaly Detection** — feature outliers often indicate data errors
-- **Clustering** — group similar series for global models
+- **Triage**: focus manual attention on unusual series
+- **Model Routing**: skip seasonal models if $F_S \approx 0$
+- **Anomaly Detection**: feature outliers often indicate data errors
+- **Clustering**: group similar series for global models
 :::
 
 . . .
