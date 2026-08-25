@@ -317,7 +317,7 @@ $callout-color-success: $sdaia-green;
 
 /* Reusable card box — replaces hand-rolled inline-style boxes.
    Usage:  ::: {.cardbox} ... :::            (coral accent border, default)
-           ::: {.cardbox .teal} ... :::      (teal / .purple / .navy modifiers) */
+   ::: {.cardbox .teal} ... :::      (teal / .purple / .navy modifiers) */
 .reveal .cardbox {
   background: rgba(28, 53, 94, 0.05);
   border: 1px solid var(--sdaia-border);
@@ -325,6 +325,57 @@ $callout-color-success: $sdaia-green;
   border-radius: 12px;
   padding: 0.5em 0.8em;
   color: var(--text);
+}
+
+/* Panel tabset styling (Plot / Code toggle switch) */
+.reveal .panel-tabset {
+  margin-top: 0.2em;
+}
+
+.reveal .panel-tabset [role="tablist"] {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--sdaia-border);
+  margin-bottom: 0.4em;
+  padding-left: 0;
+  list-style: none;
+}
+
+.reveal .panel-tabset [role="tablist"] li {
+  margin: 0;
+  padding: 0;
+}
+
+.reveal .panel-tabset [role="tablist"] li a {
+  display: inline-block;
+  padding: 0.2em 0.65em;
+  font-size: 0.65em;
+  font-weight: 700;
+  color: var(--muted);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  text-decoration: none;
+  background: transparent;
+  transition: all 0.15s ease-in-out;
+}
+
+.reveal .panel-tabset [role="tablist"] li a:hover {
+  color: var(--sdaia-navy);
+  background: rgba(28, 53, 94, 0.04);
+}
+
+.reveal .panel-tabset [role="tablist"] li a[aria-selected="true"],
+.reveal .panel-tabset [role="tablist"] li a.active {
+  color: var(--sdaia-navy);
+  background: #f7f9fc;
+  border-color: var(--sdaia-border);
+  border-bottom: 2px solid #f7f9fc;
+  margin-bottom: -2px;
+}
+
+.reveal .panel-tabset .tab-content {
+  padding: 0.1em 0;
 }
 
 .reveal .cardbox.teal   { border-left-color: var(--sdaia-teal); }

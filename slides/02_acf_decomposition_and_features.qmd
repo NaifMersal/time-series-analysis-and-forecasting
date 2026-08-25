@@ -37,8 +37,13 @@ season_only = spine.assign(y=np.asarray(_stl_log.seasonal))
 
 ## Eyeballing cannot be tested, and does not scale
 
-Just before the exercise, the subseries plot could not show the spine's seasonality
-under a sixfold trend. Describing patterns by eye has a wider problem:
+::: {.notes}
+Pick up from where we stopped: just before the exercise, the subseries plot could not
+show the spine's seasonality underneath a sixfold trend. That was not a bad plot, it is
+the limit of looking.
+:::
+
+Describing patterns by eye has a wider problem:
 
 ::: {.incremental}
 - **Does not scale**: impossible across hundreds of series
@@ -77,6 +82,9 @@ new thing is that x and y are the same column, offset by k.
 
 ## A lag plot on a trending series only shows the trend
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 detrended = spine["y"].to_numpy() - P.centred_ma(spine["y"], 12)
@@ -88,6 +96,21 @@ axes[0, 0].set_ylabel("raw turnover ($M)", size=10)
 axes[1, 0].set_ylabel("trend removed ($M)", size=10)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (spine = D.spine())
+# Detrended with a 12-month centred moving average:
+detrended = spine["y"].to_numpy() - P.centred_ma(spine["y"], 12)
+
+fig, axes = plt.subplots(2, 3, figsize=(10, 4.4))
+P.lag_plot_grid(spine["y"], lags=(1, 6, 12), axes=axes[0])
+P.lag_plot_grid(pd.Series(detrended).dropna(), lags=(1, 6, 12), axes=axes[1])
+axes[0, 0].set_ylabel("raw turnover ($M)", size=10)
+axes[1, 0].set_ylabel("trend removed ($M)", size=10)
+```
+
+:::
 
 ::: {.incremental}
 - Raw (top): every lag scores $r \approx 0.98$, which is the trend talking
@@ -115,6 +138,9 @@ $$r_k \sim N\left(0,\ \tfrac{1}{T}\right)$$
 
 ## Slow decay: the spine ACF is dominated by trend
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9
 fig, ax = plt.subplots(figsize=(9, 3.6))
@@ -122,6 +148,16 @@ P.acf_plot(spine["y"], nlags=36, ax=ax, highlight_every=12, ylim=(-0.15, 1.05),
            title="Spine ACF, 36 lags (annual lags in orange)")
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (spine = D.spine())
+fig, ax = plt.subplots(figsize=(9, 3.6))
+P.acf_plot(spine["y"], nlags=36, ax=ax, highlight_every=12, ylim=(-0.15, 1.05),
+           title="Spine ACF, 36 lags (annual lags in orange)")
+```
+
+:::
 
 ::: {.incremental}
 - Every lag sits far outside the bounds and decays slowly, which is trend
@@ -137,6 +173,9 @@ show. Removing the trend is what the next segment does.
 
 ## Each component has its own ACF signature
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, axes = plt.subplots(2, 4, figsize=(11.5, 5.0))
@@ -157,9 +196,33 @@ P.acf_plot(lynx["y"], nlags=30, ax=axes[1, 2], color=P.PINK,
            title="Oscillating wave")
 P.acf_plot(noise["y"], nlags=36, ax=axes[1, 3], color=P.GREY,
            title="All inside bounds")
-P.thin_xticks(axes[0], n=2)
+P.thin_xticks(axes[0], n=4)
 plt.show()
 ```
+
+### Code
+```python
+# Datasets / Components:
+# 1. Trend only: trend_only = spine STL trend component
+# 2. Seasonality only: season_only = spine log-STL seasonal component
+# 3. Cycle: lynx = D.lynx() (Canadian lynx pelts)
+# 4. White noise: noise = D.white_noise(n=len(spine), seed=7)
+
+fig, axes = plt.subplots(2, 4, figsize=(11.5, 5.0))
+# Top row: Time series
+P.plot_series(trend_only, ax=axes[0, 0], title="Trend only", ylabel="turnover ($M)")
+P.plot_series(season_only, ax=axes[0, 1], title="Seasonality only", color=P.BLUE, ylabel="seasonal swing")
+P.plot_series(lynx, ax=axes[0, 2], title="Cycle (lynx)", color=P.PINK, ylabel="pelts")
+P.plot_series(noise, ax=axes[0, 3], title="White noise", color=P.GREY, ylabel="z")
+
+# Bottom row: Corresponding ACF correlograms
+P.acf_plot(trend_only["y"], nlags=36, ax=axes[1, 0], title="Slow decay")
+P.acf_plot(season_only["y"], nlags=36, ax=axes[1, 1], highlight_every=12, color=P.BLUE, title="Spikes at 12, 24, 36")
+P.acf_plot(lynx["y"], nlags=30, ax=axes[1, 2], color=P.PINK, title="Oscillating wave")
+P.acf_plot(noise["y"], nlags=36, ax=axes[1, 3], color=P.GREY, title="All inside bounds")
+```
+
+:::
 
 
 ::: {.notes}
@@ -205,6 +268,9 @@ Ch 3 · Separating trend, season, and noise
 
 ## Box-Cox flattens the growing swing
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 lam = boxcox_lambda(spine["y"].to_numpy(), method="loglik")
@@ -219,6 +285,21 @@ P.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,
 P.thin_xticks(axes, n=4)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (spine = D.spine())
+# Box-Cox transformation with optimal log-likelihood lambda:
+lam = boxcox_lambda(spine["y"].to_numpy(), method="loglik")
+yt = boxcox(spine["y"].to_numpy(), lam)
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.8))
+P.plot_series(spine, ax=axes[0], title="Original: expanding swing", ylabel="turnover ($M)")
+P.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,
+              ylabel="transformed turnover", title=rf"Box-Cox ($\lambda = {lam:.2f}$): constant swing")
+```
+
+:::
 
 ::: {.incremental}
 - When swing grows with level, transform before decomposing
@@ -236,6 +317,9 @@ in the segment runs on the transformed series.
 
 $$\hat{T}_t = \frac{1}{m}\sum_{j=-k}^{k} y_{t+j} \qquad (m = 2k + 1)$$
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, ax = plt.subplots(figsize=(10, 2.2))
@@ -247,6 +331,19 @@ P.trend_overlay_plot(
 P.thin_xticks(ax, n=5)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (spine = D.spine(), last 15 years / 180 obs)
+fig, ax = plt.subplots(figsize=(10, 2.2))
+P.trend_overlay_plot(
+    spine, {"3-MA": P.centred_ma(spine["y"], 3),
+            "12-month MA": P.centred_ma(spine["y"], 12)},
+    ax=ax, tail=180, colors=[P.PINK, P.ORANGE], ylabel="turnover ($M)",
+    title="Spine, last 15 years: the order $m$ decides what survives")
+```
+
+:::
 
 ::: {.cardbox .teal}
 Set the window to one seasonal period: $m = 3$ keeps the season,
@@ -289,12 +386,24 @@ Twelve consecutive months have **no middle month**, so their average sits at $t 
 $$\hat{T}_t = \tfrac{1}{24}y_{t-6} + \tfrac{1}{12}\sum_{j=-5}^{5} y_{t+j}
               + \tfrac{1}{24}y_{t+6}$$
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 7.5
-fig, ax = plt.subplots(figsize=(7.5, 1.5))
+fig, ax = plt.subplots(figsize=(7.5, 2.4))
 P.ma_weight_plot(12, ax=ax, title="13 weights, symmetric about $t$")
 plt.show()
 ```
+
+### Code
+```python
+# 2x12 Centred Moving Average filter weights:
+fig, ax = plt.subplots(figsize=(7.5, 2.4))
+P.ma_weight_plot(12, ax=ax, title="13 weights, symmetric about $t$")
+```
+
+:::
 
 ::: {.cardbox .teal}
 $y_{t-6}$ and $y_{t+6}$ are the **same calendar month**, so between them they carry $\tfrac{1}{12}$, like every other month. The season still cancels exactly.
@@ -330,6 +439,9 @@ which the next slide shows.
 
 ## The MA trend stops six months short of the present
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, ax = plt.subplots(figsize=(10, 3.3))
@@ -340,6 +452,18 @@ P.trend_overlay_plot(
 P.thin_xticks(ax, n=5)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (spine = D.spine(), last 5 years / 60 obs)
+fig, ax = plt.subplots(figsize=(10, 3.3))
+P.trend_overlay_plot(
+    spine, {"2×12-MA trend": P.centred_ma(spine["y"], 12)},
+    ax=ax, tail=60, colors=[P.ORANGE], shade_gap="2×12-MA trend",
+    ylabel="turnover ($M)", title="Spine, last 5 years")
+```
+
+:::
 
 ::: {.incremental}
 - The first and last $m/2$ observations get no trend estimate
@@ -353,6 +477,9 @@ The other cost of classical decomposition: monthly means impose one seasonal sha
 
 ## STL (Seasonal-Trend using Loess) splits all three
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9
 res = STL(yt, period=12, robust=True).fit()
@@ -369,6 +496,23 @@ P.thin_xticks(axes[-1], n=5)
 plt.show()
 ```
 
+### Code
+```python
+# Dataset: Transformed spine turnover (yt = Box-Cox of D.spine())
+res = STL(yt, period=12, robust=True).fit()
+dcmp = spine.assign(
+    **{"transformed turnover": yt},
+    trend=np.asarray(res.trend),
+    seasonal=np.asarray(res.seasonal),
+    remainder=np.asarray(res.resid),
+)
+fig, axes = P.decomposition_plot(
+    dcmp, ["transformed turnover", "trend", "seasonal", "remainder"],
+    "STL decomposition of the transformed spine")
+```
+
+:::
+
 ## STL bends where classical decomposition cannot
 
 ::: {.incremental}
@@ -384,6 +528,9 @@ STL = Seasonal-Trend decomposition using Loess. Key parameters: period (must pro
 
 ## Adjusting reveals the level shifts the season was hiding
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9.5
 fig, ax = plt.subplots(figsize=(9.5, 4.0))
@@ -394,6 +541,18 @@ P.adjusted_plot(dcmp, dcmp["transformed turnover"],
 P.thin_xticks(ax, n=5)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Transformed spine turnover (dcmp = STL components of transformed spine)
+fig, ax = plt.subplots(figsize=(9.5, 4.0))
+P.adjusted_plot(dcmp, dcmp["transformed turnover"],
+                dcmp["transformed turnover"] - dcmp["seasonal"], ax=ax,
+                title="Observed vs. seasonally adjusted ($y_t - S_t$)",
+                ylabel="transformed turnover")
+```
+
+:::
 
 ::: {.cardbox .navy}
 The step up in 2009 and the dip around 2000 are level shifts, not season. Both are much easier to see once the annual swing is gone.
@@ -455,6 +614,9 @@ the component barely changes the variance, the component was not there.
 
 ## Only seasonal strength separates the portfolio
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9.5
 def stl_features(g):
@@ -483,6 +645,31 @@ P.feature_scatter(feat, ax=ax, marks=[(hi, P.ORANGE, "most seasonal"),
                   title="148 Australian retail series, both axes on the full 0 to 1 scale")
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: 148 Australian retail monthly series (allr = D.retail_all())
+def stl_features(g):
+    y = np.log(np.clip(g["y"].to_numpy(), 1e-6, None))
+    r = STL(y, period=12, robust=True).fit()
+    R, T_, S = np.asarray(r.resid), np.asarray(r.trend), np.asarray(r.seasonal)
+    vr = np.var(R)
+    return pd.Series({
+        "trend_strength": max(0.0, 1 - vr / np.var(T_ + R)),
+        "seasonal_strength": max(0.0, 1 - vr / np.var(S + R)),
+    })
+
+allr = D.retail_all()
+feat = allr.groupby("unique_id")[["y"]].apply(stl_features, include_groups=False).reset_index()
+
+fig, ax = plt.subplots(figsize=(9.5, 4.3))
+P.feature_scatter(feat, ax=ax, marks=[(hi, P.ORANGE, "most seasonal"),
+                                      (mine, P.BLACK, "the spine"),
+                                      (lo, P.PINK, "least seasonal")],
+                  title="148 Australian retail series, both axes on the full 0 to 1 scale")
+```
+
+:::
 
 ::: {.notes}
 Every one of the 148 scores above 0.89 on trend strength and 97% score above 0.96, so trend tells you nothing about which series is which. Seasonal strength runs from 0.26 to 0.98, and that is the axis worth acting on.

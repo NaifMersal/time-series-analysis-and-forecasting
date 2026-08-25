@@ -81,6 +81,9 @@ Always fit these 4 first. On many series, **Seasonal Naive is tough to beat**.
 
 ## The four benchmarks in action
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, ax = plt.subplots(figsize=(10, 4.6))
@@ -93,6 +96,21 @@ ax.set(title=f"Spine — {H}-Month Benchmark Forecasts")
 ax.legend(frameon=False, ncols=3)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))
+# Models: StatsForecast(models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12), RandomWalkWithDrift()])
+fig, ax = plt.subplots(figsize=(10, 4.6))
+hist = train.tail(72)
+ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="Observed")
+ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="Actual Holdout")
+for m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):
+    ax.plot(fc["ds"], fc[m], lw=1.7, color=c, label=LABELS[m])
+ax.set(title=f"Spine — {H}-Month Benchmark Forecasts")
+```
+
+:::
 
 ## Why benchmarks are non-negotiable
 
@@ -169,6 +187,9 @@ $$e_t = y_t - \hat{y}_{t|t-1}$$
 
 ## Diagnosing the Seasonal Naive
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9.5
 resid = fv["y"] - fv["SeasonalNaive"]
@@ -176,6 +197,16 @@ fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
                                    title="Seasonal Naive — Residual Diagnostics")
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover in-sample fitted values (fv = train merged with StatsForecast fitted values)
+resid = fv["y"] - fv["SeasonalNaive"]
+fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
+                                   title="Seasonal Naive — Residual Diagnostics")
+```
+
+:::
 
 ::: {.incremental}
 - Residuals show expanding variance over time
@@ -260,6 +291,9 @@ Uncertainty widens with $\sqrt{h}$ — rapid growth early on, decelerating at lo
 
 ## Fan Chart: Visualising uncertainty
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, ax = plt.subplots(figsize=(10, 4.6))
@@ -269,8 +303,23 @@ P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=ax,
 plt.show()
 ```
 
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))
+# Model: SeasonalNaive with prediction intervals at 80% and 95% levels
+fig, ax = plt.subplots(figsize=(10, 4.6))
+P.fan_chart(train, as_fan("SeasonalNaive"), levels=(80, 95), ax=ax,
+            actual=test, history_tail=72,
+            title="Seasonal Naive: 80% and 95% Prediction Intervals")
+```
+
+:::
+
 ## How intervals widen with horizon
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9.5
 fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.7))
@@ -290,6 +339,23 @@ axes[1].set(xlabel="Horizon h", title="Width Growth by Benchmark")
 axes[1].legend(frameon=False)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Benchmark forecasts on Victorian retail takeaway turnover (fc)
+# Compare interval width growth vs theoretical sqrt(h) expansion:
+fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.7))
+width = fc["SeasonalNaive-hi-80"] - fc["SeasonalNaive-lo-80"]
+h = np.arange(1, len(width) + 1)
+axes[0].plot(h, width, color=P.BLUE, lw=2, label="Actual Width")
+axes[0].plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls="--", label=r"$\text{Width}_1 \times \sqrt{h}$")
+
+for m, c in zip(["Naive", "SeasonalNaive", "RWD"], [P.GREEN, P.BLUE, P.PINK]):
+    w = fc[f"{m}-hi-80"] - fc[f"{m}-lo-80"]
+    axes[1].plot(h, w, color=c, lw=1.8, label=LABELS[m])
+```
+
+:::
 
 ## Why one test window is misleading
 

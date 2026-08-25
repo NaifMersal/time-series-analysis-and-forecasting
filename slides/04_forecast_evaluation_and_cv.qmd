@@ -86,6 +86,9 @@ MAE and RMSE work well within a single series. To compare across different produ
 
 ## The flaw with MAPE
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 rng = np.random.default_rng(3)
@@ -106,6 +109,27 @@ ax.set(title="Low-Volume Demand Breaks MAPE")
 ax.legend(frameon=False, ncols=3)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Simulated low-volume / intermittent demand series (Poisson)
+rng = np.random.default_rng(3)
+n = 48
+low = pd.DataFrame({
+    "unique_id": "spare parts",
+    "ds": pd.date_range("2020-01-01", periods=n, freq="MS"),
+    "y": np.clip(rng.poisson(1.4, n).astype(float), 0.2, None),
+})
+pred_hi = low["y"] + 2.0
+pred_lo = low["y"] - 0.15
+
+fig, ax = plt.subplots(figsize=(10, 3.6))
+ax.plot(low["ds"], low["y"], color=P.BLACK, lw=1.2, label="Actual (Low Volume)")
+ax.plot(low["ds"], pred_hi, color=P.ORANGE, lw=1.4, label="Forecast A (+2.0)")
+ax.plot(low["ds"], pred_lo, color=P.BLUE, lw=1.4, label="Forecast B (-0.15)")
+```
+
+:::
 
 ::: {.incremental}
 - Forecast A: MAE = 2.00, MAPE = **184%**
@@ -198,6 +222,9 @@ Time series cannot use standard k-fold. We need **rolling origins**.
 
 ## Rolling-Origin Cross-Validation
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, ax = plt.subplots(figsize=(10, 4.4))
@@ -206,6 +233,17 @@ P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, ax=ax,
 plt.show()
 ```
 
+### Code
+```python
+# Diagram: Rolling-origin cross-validation splits (expanding window)
+# 96 total periods, initial train size 48, horizon 12, step size 12
+fig, ax = plt.subplots(figsize=(10, 4.4))
+P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, ax=ax,
+               title="Expanding Training Window Across Origins")
+```
+
+:::
+
 ::: {.cardbox .teal}
 Each fold trains only on past data. **No fold ever peeks into its future**.
 :::
@@ -213,6 +251,7 @@ Each fold trains only on past data. **No fold ever peeks into its future**.
 ## Key CV parameters
 
 ```python
+# Cross-validation setup with StatsForecast on Victorian takeaway turnover (spine):
 cv = sf.cross_validation(
     df=spine,
     h=12,          # Forecast horizon matched to business need
@@ -230,6 +269,9 @@ cv = sf.cross_validation(
 
 ## Cross-validation results across 8 folds
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, axes = plt.subplots(1, 2, figsize=(10, 4.0))
@@ -253,12 +295,33 @@ axes[1].set_yscale("log")
 plt.show()
 ```
 
+### Code
+```python
+# Dataset: Victorian takeaway food turnover (cv = sf.cross_validation(spine, n_windows=8))
+# Left: Single 24-month split vs Mean across 8 CV origins
+# Right: Distribution of MASE across individual CV folds
+fig, axes = plt.subplots(1, 2, figsize=(10, 4.0))
+
+single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
+x = np.arange(len(MODELS))
+axes[0].bar(x - 0.2, single.values, width=0.4, color=P.GREY, label="Single Split")
+axes[0].bar(x + 0.2, per_window.mean().values, width=0.4, color=P.BLUE, label=f"Mean of {N_WINDOWS} Folds")
+
+for i, m in enumerate(MODELS):
+    axes[1].scatter(np.full(len(per_window), i), per_window[m], s=40, color=P.ORANGE, alpha=0.75, zorder=3)
+```
+
+:::
+
 ::: {.notes}
 Notice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky/unlucky, but the average is robust.
 :::
 
 ## Interval coverage across all 8 folds
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9
 fig, ax = plt.subplots(figsize=(9, 3.4))
@@ -275,6 +338,20 @@ ax.invert_yaxis()
 ax.grid(axis="y", visible=False)
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian takeaway food turnover (cv across 8 origins x 12 horizon = 96 points)
+# Coverage = percentage of holdout points falling between 80% lo/hi bounds
+fig, ax = plt.subplots(figsize=(9, 3.4))
+names = [LABELS[m] for m in MODELS]
+vals = [coverage[m] for m in MODELS]
+cols = [P.BLUE if abs(v - 0.8) < 0.1 else P.ORANGE for v in vals]
+ax.barh(names, vals, color=cols, height=0.6)
+ax.axvline(0.8, color=P.BLACK, ls="--", lw=1.4)
+```
+
+:::
 
 ::: {.incremental}
 - **Seasonal Naive**: 77% coverage (near nominal 80%)

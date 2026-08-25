@@ -107,16 +107,16 @@ Point 3 is key: if a demand forecast causes price cuts or stockouts, it alters f
 digraph G {
     bgcolor="transparent";
     rankdir=LR;
-    graph [fontname="Segoe UI"];
-    node [shape=box style="rounded,filled" fontname="Segoe UI" fontsize=13
-          color="#1C355E" penwidth=2 margin="0.18,0.10"];
-    edge [fontname="Segoe UI" fontsize=11 color="#5b6678" penwidth=1.6];
+    graph [fontname="Helvetica"];
+    node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=14
+          color="#1C355E" penwidth=2 margin="0.30,0.18"];
+    edge [fontname="Helvetica" fontsize=11 color="#5b6678" penwidth=1.6];
 
-    E [label="1. Explanatory\nPredictors only\ny = f(weather, price, ...)"
+    E [label="1. Explanatory\nweather, price, promotions"
        fillcolor="#00AE8D" fontcolor="white"];
-    T [label="2. Time Series\nPast history of y only\ny(t) = f(y(t-1), y(t-2), ...)"
+    T [label="2. Time Series\npast values of y only"
        fillcolor="#1C355E" fontcolor="white"];
-    M [label="3. Mixed\nDrivers + history\ny(t) = f(drivers, y(t-1), ...)"
+    M [label="3. Mixed\nboth"
        fillcolor="#625D9C" fontcolor="white"];
 
     T -> M [label="add drivers"];
@@ -191,6 +191,9 @@ Treating a cycle as seasonality causes models to predict peaks at the wrong time
 
 ## Four series show four distinct temporal patterns
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, axes = plt.subplots(2, 2, figsize=(10, 5.4))
@@ -208,6 +211,23 @@ for ax in axes.ravel():
     ax.set_xlabel("")
 plt.show()
 ```
+
+### Code
+```python
+# Datasets:
+# 1. Victorian retail takeaway turnover: spine = D.spine()
+# 2. Australian quarterly beer production: beer = D.beer()
+# 3. Canadian lynx pelts (annual): lynx = D.lynx()
+# 4. Simulated white noise: noise = D.white_noise(n=len(spine), seed=7)
+
+fig, axes = plt.subplots(2, 2, figsize=(10, 5.4))
+P.plot_series(spine, ax=axes[0, 0], title="Trend + seasonality (retail)", ylabel="turnover ($M)")
+P.plot_series(beer, ax=axes[0, 1], title="Seasonality + drifting trend (beer)", color=P.BLUE, ylabel="megalitres")
+P.plot_series(lynx, ax=axes[1, 0], title="Cycle, no fixed period (lynx)", color=P.PINK, ylabel="pelts traded")
+P.plot_series(noise, ax=axes[1, 1], title="No pattern (white noise)", color=P.GREY, ylabel="z")
+```
+
+:::
 
 ::: {.notes}
 The lynx peaks occur 8–11 years apart, never the exact same gap. This is a cycle, not seasonality.
@@ -233,6 +253,9 @@ why it is written trend-cycle.
 
 ## Expanding swings require multiplicative models
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9.5
 fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.1))
@@ -245,6 +268,21 @@ for ax in axes:
     ax.set_xlabel("")
 plt.show()
 ```
+
+### Code
+```python
+# Datasets:
+# 1. Australian beer production (last 10 years / 120 obs): beer.tail(120)
+# 2. Souvenir shop sales: souvenirs = D.souvenirs()
+
+fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.1))
+P.plot_series(beer.tail(120), ax=axes[0], color=P.BLUE, ylabel="megalitres",
+              title="Additive: swing size is constant")
+P.plot_series(souvenirs, ax=axes[1], color=P.ORANGE, ylabel="sales ($)",
+              title="Multiplicative: swing grows with level")
+```
+
+:::
 
 ::: {.cardbox .purple}
 - Constant swing $\rightarrow$ **Additive**
@@ -278,6 +316,9 @@ Random shuffling allows models to look into the future. Day 2 introduces rolling
 
 ## Same values, shuffled: every pattern is gone
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 rng = np.random.default_rng(0)
@@ -294,6 +335,22 @@ for ax in axes:
     ax.set_xlabel("")
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: spine = D.spine() (441 monthly observations)
+rng = np.random.default_rng(0)
+y = spine["y"].to_numpy()
+shuffled = rng.permutation(y)
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
+P.plot_series(spine, ax=axes[0], color=P.BLACK, ylabel="turnover ($M)",
+              title="Original: trend and season")
+P.plot_series(spine.assign(y=shuffled), ax=axes[1], color=P.ORANGE,
+              title="Shuffled: same 441 values, new order")
+```
+
+:::
 
 ::: {.incremental}
 - Same mean, same variance, same histogram
@@ -341,6 +398,9 @@ Always check the time plot first for outliers, gaps, and structural breaks.
 
 ## Time plots reveal long-term trend and variance growth
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 9.5
 fig, ax = plt.subplots(figsize=(9.5, 3.0))
@@ -349,6 +409,16 @@ P.plot_series(spine, ax=ax, ylabel="turnover ($M)",
 P.thin_xticks(ax, n=6)
 plt.show()
 ```
+
+### Code
+```python
+# Data: Victorian takeaway food turnover (D.spine())
+fig, ax = plt.subplots(figsize=(9.5, 3.0))
+P.plot_series(spine, ax=ax, ylabel="turnover ($M)",
+              title=f"{D.SPINE_ID}, monthly")
+```
+
+:::
 
 ::: {.incremental}
 - Upward trend, roughly sixfold over 37 years
@@ -365,6 +435,9 @@ later, one step in 2009.
 
 ## Seasonal plots expose repeating annual shapes
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 sp = D.add_calendar(spine)
@@ -377,6 +450,20 @@ P.seasonal_plot(recent, "year", "month", ax=ax, season_labels=P.MONTH_LABELS,
 plt.show()
 ```
 
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (last 10 years):
+# spine = D.spine(); sp = D.add_calendar(spine)
+recent = sp[sp["year"] >= sp["year"].max() - 9]
+
+fig, ax = plt.subplots(figsize=(9.5, 3.7))
+P.seasonal_plot(recent, "year", "month", ax=ax, season_labels=P.MONTH_LABELS,
+                ylabel="turnover ($M)", xlabel="", colorbar=True,
+                title="One line per year, last 10 years")
+```
+
+:::
+
 ::: {.incremental}
 - Every year peaks in **December** and troughs in **February**
 - The shape repeats while the level climbs: that is seasonality, not cycle
@@ -388,6 +475,9 @@ Ten years, not all 37. Over the full span the level grows sixfold, so the lines 
 
 ## Subseries plots isolate pure seasonal means
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, axes = P.subseries_plot(D.add_calendar(beer), "quarter",
@@ -396,12 +486,25 @@ fig, axes = P.subseries_plot(D.add_calendar(beer), "quarter",
 plt.show()
 ```
 
+### Code
+```python
+# Dataset: Australian quarterly beer production (1956 to 2010): beer = D.beer()
+fig, axes = P.subseries_plot(D.add_calendar(beer), "quarter",
+                             ylabel="megalitres", season_labels=P.QUARTER_LABELS,
+                             title="Beer production by quarter, 1956 to 2010 (orange line = quarter mean)")
+```
+
+:::
+
 ::: {.cardbox .teal}
 Differences in the horizontal means highlight the pure seasonal pattern.
 :::
 
 ## Strong trend obscures raw month-to-month means
 
+::: {.panel-tabset}
+
+### Plot
 ```{python}
 #| fig-width: 10
 fig, axes = P.subseries_plot(sp, "month", ylabel="turnover ($M)",
@@ -409,6 +512,17 @@ fig, axes = P.subseries_plot(sp, "month", ylabel="turnover ($M)",
                              title="Spine turnover by month, 1982 to 2018")
 plt.show()
 ```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (D.spine(), 1982-2018):
+# sp = D.add_calendar(spine)
+fig, axes = P.subseries_plot(sp, "month", ylabel="turnover ($M)",
+                             season_labels=P.MONTH_LABELS,
+                             title="Spine turnover by month, 1982 to 2018")
+```
+
+:::
 
 ::: {.callout-important}
 ## Trend Obscures Month-to-Month Means
@@ -461,7 +575,7 @@ Open `labs/01_day1_structure_and_diagnostics.ipynb`
 ## Part 1 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
 ::: {.incremental}
-- Forecasts exist to **inform decisions**
+- Forecasts exist to **change decisions**
 - **Trend, Seasonality, Cycle** are distinct patterns
 - Multiplicative swings become additive under a **log transform**
 - **Order is the data**: never shuffle
