@@ -913,9 +913,9 @@ hold, and what does that imply?
 - **Zero mean:** the seasonal naive's mean residual is clearly positive, because
   the series trends upward and last year's value is systematically too low. That
   is a *bias*: the forecast will be low every time.
-- **Constant variance:** fails - the late-period standard deviation is several
-  times the early one, because the series grew eightfold. This is exactly what
-  the Box-Cox transform in 1.4 addresses.
+- **Constant variance:** fails - the late-period standard deviation is roughly
+  double the early one, because the series itself grew about sixfold. This is
+  exactly what the Box-Cox transform in 1.4 addresses.
 - **Normal:** roughly, but with heavy tails.
 
 Implication: the benchmark floor is a floor, not a model. The failures are
@@ -933,6 +933,9 @@ shape has changed", the variance says "transform first".
 Three ways to draw an interval around the same point forecast, each spending a
 different assumption: **Gaussian** (part a), **bootstrap** (part b) and
 **conformal** (part c).
+
+*This is the long exercise of the day.* If the room is short on time, **part c
+is the one to come back to later** - nothing in 2.4 or 2.5 depends on it.
 
 ## Part a - the Gaussian interval
 """),
@@ -1232,7 +1235,7 @@ for tail in (60, 120, 180, None):
     print(f"pool = {label:>8} residuals   mean width {np.mean(widths):5.1f}   "
           f"coverage {np.concatenate(inside).mean():5.1%}  (96 points)")
 
-print("\\nThe bootstrap covers only about 62% with the full 405-residual pool: "
+print("\\nThe bootstrap covers only about 61% with the full 405-residual pool: "
       "pooling the early, low-spread residuals with the recent, high-spread ones "
       "makes the draw pool far too tight for a recent forecast. Coverage climbs "
       "monotonically as the pool gets shorter and more recent: about 75% with the "
@@ -1402,10 +1405,11 @@ for m in MODELS:
     crps = scaled_crps(cv.drop(columns=["cutoff"]), models={m: qcols(m)},
                        quantiles=QUANTILES)[m].iloc[0]
     inside = ((cv["y"] >= cv[f"{m}-lo-80"]) & (cv["y"] <= cv[f"{m}-hi-80"])).mean()
-    rows.append({"model": LABELS[m], "mase": np.mean(fold_mase),
-                 "rmsse": np.mean(fold_rmsse), "crps": float(crps),
+    rows.append({"model": LABELS[m], "mase": float(np.mean(fold_mase)),
+                 "rmsse": float(np.mean(fold_rmsse)), "crps": float(crps),
                  "coverage_80": float(inside),
-                 "mase_min": np.min(fold_mase), "mase_max": np.max(fold_mase)})
+                 "mase_min": float(np.min(fold_mase)),
+                 "mase_max": float(np.max(fold_mase))})
 
 summary = pd.DataFrame(rows)
 
@@ -1463,6 +1467,7 @@ for _, row in summary.iterrows():
         row["model"], day=2,
         mase=float(row["mase"]), rmsse=float(row["rmsse"]),
         crps=float(row["crps"]), coverage_80=float(row["coverage_80"]),
+        mase_min=float(row["mase_min"]), mase_max=float(row["mase_max"]),
         notes="Day 2 baseline, 8-fold rolling origin",
     )
 

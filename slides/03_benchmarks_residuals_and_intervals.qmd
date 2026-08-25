@@ -242,13 +242,14 @@ Ch 5.7 · You already built this on Day 1
 
 ```{dot}
 //| fig-width: 9
+//| fig-height: 2.6
 digraph G {
     bgcolor="transparent";
     rankdir=LR;
-    ranksep=0.5; nodesep=0.25;
-    node [shape=box style="rounded,filled" fontsize=13
-          color="#1C355E" penwidth=2 margin="0.18,0.10"];
-    edge [fontsize=11 color="#5b6678" penwidth=1.6];
+    ranksep=0.4; nodesep=0.2;
+    node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=13
+          color="#1C355E" penwidth=2 margin="0.16,0.08"];
+    edge [fontname="Helvetica" fontsize=11 color="#5b6678" penwidth=1.6];
 
     Y  [label="y_t" fillcolor="#1C355E" fontcolor="white"];
     S  [label="STL" fillcolor="#1C355E" fontcolor="white"];
@@ -383,7 +384,7 @@ Segments C, D and E are, in order, the three ways to stop relying on the right
 column.
 :::
 
-## The best benchmark here fails all three diagnostics
+## The best benchmark here fails three of the four
 
 ::: {.panel-tabset}
 
@@ -412,32 +413,37 @@ P.residual_diagnostics(resid, ds=fv["ds"])
 :::
 
 ::: {.notes}
-Three panels, three verdicts. The time plot fans out - the spread in the 2010s
-is roughly three times the spread in the 1980s, so constant variance fails. The
-ACF has spikes well outside the bounds, so uncorrelated fails. The histogram is
-sharply peaked with fat tails, so normal fails.
+Three panels, and the three bullets read straight off them.
 
-Do not treat that as a failure of the seasonal naive. It is the honest state of
-the best benchmark on this series, and every interval method in this deck is a
-response to one of those three lines.
+The time plot sits above zero far more than below, which is the bias: a seasonal
+naive repeats last year on a series that grows about 6% a year, so it runs low
+every month. Mean residual +7.9 against a series in the hundreds.
+
+The same panel fans out, so constant variance fails. The ACF spikes well outside
+the bounds, so uncorrelated fails.
+
+The fourth property, normality, is not on this slide because it is segment C's
+business. The histogram is already telling you the answer if you look at it.
+
+Do not treat any of this as a failure of the seasonal naive. It is the honest
+state of the best benchmark on this series, and every interval method later in
+this deck is a response to one of these lines.
 :::
 
-## Ljung-Box tests whether the autocorrelations are jointly zero
-
-The first $\ell$ autocorrelations, tested jointly:
+## Ljung-Box tests all the lags at once
 
 $$Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}$$
 
 ::: {.incremental}
-- **Small $p$-value ($p < 0.05$)** $\rightarrow$ Significant autocorrelation $\rightarrow$ **Model incomplete**
-- **Large $p$-value ($p \ge 0.05$)** $\rightarrow$ Residuals are indistinguishable from white noise
+- $p < 0.05$: autocorrelation is real, so the **model is not finished**
+- $p \ge 0.05$: residuals are indistinguishable from white noise
 :::
 
 ```{python}
 #| echo: true
-r = resid.dropna()                      # no fitted value for the first m months
-lb_p = acorr_ljungbox(r, lags=[24], return_df=True)["lb_pvalue"].iloc[0]
-print(f"Seasonal naive residuals, {len(r)} obs, lag 24:  p = {lb_p:.1e}")
+r = resid.dropna()
+p = acorr_ljungbox(r, lags=[24], return_df=True)["lb_pvalue"].iloc[0]
+print(f"{len(r)} residuals, lag 24:  p = {p:.1e}")
 ```
 
 ::: {.notes}
@@ -612,7 +618,7 @@ normality. Conformal buys back the distribution entirely. Nothing in this course
 buys back independence.
 :::
 
-## The spread grew eightfold and the tails are fat
+## The spread tripled and the tails are fat
 
 ::: {.panel-tabset}
 
@@ -651,7 +657,7 @@ np.quantile(r, [0.1, 0.9])                    # the bootstrap's cut points
 Left panel: a 36-month rolling standard deviation runs from about 4 in the
 mid-1980s to about 34 at its peak, and the dashed line is the single pooled
 sigma-hat of 17.6 that the closed-form interval uses for the whole series. One
-number, for a spread that moved by a factor of eight.
+number, for a spread that is nowhere near constant.
 
 Right panel: the blue lines are the empirical central 80%, the dashed orange are
 where the normal assumption puts them. The normal cuts sit further out, which is
@@ -711,7 +717,7 @@ same draw pool as 2010s errors.
 
 That is not a reason to avoid the bootstrap. It is a reason to know which knob
 you are turning, and the lab turns it: restricting the pool to recent residuals
-moves coverage from about 62% to about 87%.
+moves coverage from about 61% to about 87%.
 :::
 
 ## 5000 possible futures
@@ -755,7 +761,7 @@ is one possible future, drawn by taking last year's value and adding a real
 error we actually observed at some point in the past.
 :::
 
-## Bootstrap vs Gaussian on the spine
+## Dropping normality buys a fifth off the 80% band
 
 ::: {.panel-tabset}
 
@@ -766,7 +772,7 @@ P.fan_chart_panels(train, [as_fan("SeasonalNaive"), boot_fan],
                    titles=("Gaussian, plus/minus c sigma-hat",
                            "Bootstrap, 5000 paths"),
                    levels=(80, 95), actual=test, history_tail=36,
-                   figsize=(10, 3.3))
+                   colors=[P.ORANGE, P.ORANGE], figsize=(10, 3.3))
 plt.show()
 ```
 
@@ -983,7 +989,7 @@ BANDS = {
     "Conformal": (fc_conf["SeasonalNaive-lo-80"], fc_conf["SeasonalNaive-hi-80"]),
 }
 P.interval_bounds_plot(train, fc["ds"], BANDS, actual=test, history_tail=24,
-                       level=80, figsize=(10, 3.6),
+                       level=80, figsize=(10, 2.9),
                        titles=("80% bounds, same point forecast",
                                "Staircase, narrow, and jittery"))
 plt.show()
@@ -1078,7 +1084,7 @@ print("80% coverage over 96 scored points:   "
 
 ::: {.notes}
 The bootstrap's 61% is the identically-distributed assumption being punished:
-pooling 1980s residuals (SD about 8) with 2010s residuals (SD 25) makes the draw pool
+pooling 1980s residuals (SD 8.5) with 2010s residuals (SD 26) makes the draw pool
 far too tight for a forecast issued in 2016. Restricting the pool to the last
 120 residuals takes it to about 87%; the last 60 push it to 91%. The assumption is the knob, and the lab turns it.
 :::
@@ -1102,7 +1108,7 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 one to leave for later.
 :::
 
-## Part 1 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+## The floor is set, and it is not finished {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
 ::: {.incremental}
 - Always start with the **4 baseline models**, then the **decomposition route**

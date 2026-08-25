@@ -30,11 +30,10 @@ LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
           "MSTL": "STL + drift"}
 
 # One ladder of levels for every forecast: 80 is what coverage is read off,
-# the rest let Ch 5.9 score the whole distribution.
-LEVELS = [20, 40, 60, 80, 95]
-QCOLS = ["lo-95", "lo-80", "lo-60", "lo-40", "lo-20",
-         "hi-20", "hi-40", "hi-60", "hi-80", "hi-95"]
-QUANTILES = np.array([0.025, 0.10, 0.20, 0.30, 0.40, 0.60, 0.70, 0.80, 0.90, 0.975])
+# the rest let Ch 5.9 score the whole distribution. The lists live in coursekit
+# so the deck, the lab and Day 3 cannot drift apart; s16 shows them written out,
+# which is where they are being taught.
+from coursekit.scoring import LEVELS, QCOLS, QUANTILES
 
 sf = StatsForecast(
     models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
@@ -128,6 +127,9 @@ $$\text{MAE}' = \frac{1}{n}\sum \lvert k y_t - k\hat{y}_t \rvert = k\,\text{MAE}
 $$PE'_t = \frac{k y_t - k\hat{y}_t}{k y_t} = PE_t
 \qquad
 \text{MASE}' = \frac{k\,\text{MAE}}{k\,Q} = \text{MASE}$$
+
+$Q$ is MASE's denominator: the in-sample seasonal naive's own average error.
+It is measured in the same units as the data, so it scales with $k$ too.
 
 . . .
 
@@ -446,8 +448,8 @@ P.coverage_bars(coverage, nominal=0.8, labels=LABELS)
 :::
 
 ::: {.incremental}
-- **Seasonal Naive**: 77% coverage (near nominal 80%)
-- **Mean Model**: 0% coverage (fails on trending data)
+- **Seasonal naive**: 77% coverage, near the nominal 80%
+- **Mean model**: 0% coverage, on a series that grew sixfold
 :::
 
 ::: {.notes}
@@ -537,9 +539,9 @@ right, and CRPS is what prices that trade in one number.
 digraph G {
     bgcolor="transparent";
     rankdir=LR;
-    node [shape=box style="rounded,filled" fontsize=12
+    node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=12
           color="#1C355E" penwidth=2 margin="0.16,0.09"];
-    edge [fontsize=11 color="#5b6678" penwidth=1.6];
+    edge [fontname="Helvetica" fontsize=11 color="#5b6678" penwidth=1.6];
 
     A [label="Scaling or normalising\non the full series" fillcolor="#FF7A5C" fontcolor="white"];
     B [label="Centred rolling\nwindow features" fillcolor="#FF7A5C" fontcolor="white"];
@@ -561,8 +563,9 @@ test score improved. The next slide runs that one.
 
 ```{python}
 #| echo: true
-honest = per_window["SeasonalNaive"].mean()      # rule fixed in advance
-oracle = per_window[MODELS].min(axis=1).mean()   # best model per fold
+# one rule fixed in advance, against the best model in each fold
+honest = per_window["SeasonalNaive"].mean()
+oracle = per_window[MODELS].min(axis=1).mean()
 
 print(f"seasonal naive, every fold  : MASE {honest:.2f}")
 print(f"best model, chosen per fold : MASE {oracle:.2f}")
@@ -592,7 +595,7 @@ window crowned the STL route at 0.70.
 ::: {.incremental}
 - **Regime changes**: verify if old folds disagree with recent folds
 - **Underpowered sample**: evaluate over sufficient origins ($>50$ points)
-- **Overlapping folds**: beware overly narrow confidence intervals when `step_size < h`
+- **Overlapping folds**: `step_size < h` reuses points, so intervals read too narrow
 - **Data gaps**: verify timestamp continuity across all origins
 :::
 

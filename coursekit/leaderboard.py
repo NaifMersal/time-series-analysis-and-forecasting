@@ -27,18 +27,25 @@ import pandas as pd
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / "labs" / "leaderboard.csv"
 
 #: Columns every row carries. ``day`` keeps the table readable once Day 3 lands.
-CORE_COLUMNS = ["model", "day", "mase", "rmsse", "crps", "coverage_80", "notes"]
+CORE_COLUMNS = ["model", "day", "mase", "rmsse", "crps", "coverage_80",
+                "mase_min", "mase_max", "notes"]
 
 
 def record(model: str, *, day: int | None = None, mase: float | None = None,
            rmsse: float | None = None, crps: float | None = None,
-           coverage_80: float | None = None,
+           coverage_80: float | None = None, mase_min: float | None = None,
+           mase_max: float | None = None,
            notes: str = "", path: Path | str | None = None,
            **extra) -> pd.DataFrame:
     """Append (or replace) one model's row and return the whole table.
 
     Re-recording a model overwrites its existing row rather than duplicating
     it, so re-running a lab cell is idempotent -- students *will* re-run cells.
+
+    ``mase_min`` / ``mase_max`` are the best and worst fold, and they are core
+    columns rather than extras because Day 2 spends an hour arguing that a mean
+    with no spread is not evidence. ``coursekit.scoring.score_cv`` returns them,
+    so ``lb.record(name, **score_cv(...))`` fills them in.
     """
     path = Path(path) if path is not None else DEFAULT_PATH
     row = {
@@ -48,6 +55,8 @@ def record(model: str, *, day: int | None = None, mase: float | None = None,
         "rmsse": rmsse,
         "crps": crps,
         "coverage_80": coverage_80,
+        "mase_min": mase_min,
+        "mase_max": mase_max,
         "notes": notes,
         **extra,
     }

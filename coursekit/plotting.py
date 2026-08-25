@@ -489,7 +489,7 @@ def residual_diagnostics(resid, ds=None, nlags=24, title="", bins=25,
 # --------------------------------------------------------------------------
 
 def fan_chart(history, forecast, levels=(80, 95), ax=None, title="",
-              actual=None, history_tail=None, color=BLUE, mean_col="mean",
+              actual=None, history_tail=None, color=ORANGE, mean_col="mean",
               figsize=(9, 4)):
     """Point forecast with nested prediction intervals.
 
@@ -510,8 +510,8 @@ def fan_chart(history, forecast, levels=(80, 95), ax=None, title="",
     ax.plot(forecast["ds"], forecast[mean_col], color=color, lw=1.8,
             label="forecast")
     if actual is not None:
-        ax.plot(actual["ds"], actual["y"], color=ORANGE, lw=1.3, ls="--",
-                label="actual")
+        ax.plot(actual["ds"], actual["y"], color=GREY, lw=1.5, ls="--",
+                label="actual holdout")
     ax.set(title=title, xlabel="", ylabel="y")
     ax.legend(loc="upper left", frameon=False, ncols=2)
     return ax
@@ -677,7 +677,8 @@ def cv_staircase(n_obs=60, initial=36, horizon=6, step=6, ax=None,
         plt.Rectangle((0, 0), 1, 1, color=GREY, alpha=0.30),
     ]
     ax.legend(handles, ["train", "forecast (scored)", "not yet seen"],
-              loc="lower right", frameon=False, ncols=3)
+              loc="lower center", bbox_to_anchor=(0.5, -0.42), frameon=False,
+              ncols=3)
     return ax
 
 
@@ -878,6 +879,21 @@ def interval_bounds_plot(history, forecast_ds, bands, actual=None,
     return fig, axes
 
 
+def _spread_labels(values, min_gap):
+    """Nudge label positions apart so near-equal values stay readable.
+
+    A slope chart's whole job is to show a crossing, and a crossing means two
+    values ended up close together, which is exactly when their labels collide.
+    Returns y positions in data units, in the order given.
+    """
+    order = np.argsort(np.asarray(values, dtype=float))
+    out = np.asarray(values, dtype=float).copy()
+    for a, b in zip(order[:-1], order[1:]):
+        if out[b] - out[a] < min_gap:
+            out[b] = out[a] + min_gap
+    return out
+
+
 def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
                       ylabel="MASE", ylim=None, titles=None, log_right=True,
                       note=None):
@@ -887,10 +903,15 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
     column per model and one row per fold. The left panel is the ranking
     question, the right is why one window could not have answered it.
 
+    The left panel is a slope chart rather than paired bars on purpose. The
+    question it answers is not "how big is each score" but "did the order
+    change", and a reversal is a crossing: two lines that swap ends. As bars, a
+    1.18 against a 1.22 is two pixels and nobody in the room sees it.
+
     Pass only the models you want compared. One model an order of magnitude
-    worse than the rest flattens the whole left panel against a shared axis, and
-    the point of the panel is usually a difference of a few hundredths at the
-    top; ``note`` prints a line under the panel saying what was left out.
+    worse than the rest flattens the whole panel against a shared axis, and the
+    difference that matters is usually a few hundredths at the top; ``note``
+    prints a line underneath saying what was left out.
     """
     models = list(folds.columns)
     labels = dict(labels or {})
@@ -899,24 +920,30 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
     t = tuple(titles) if titles else (
         "Stable ranking, except at the top", "Score distribution across folds")
 
-    x = np.arange(len(models))
     one = np.array([float(single[m]) for m in models])
     many = np.array([float(folds[m].mean()) for m in models])
-    axes[0].bar(x - 0.2, one, width=0.4, color=GREY, label="single split")
-    axes[0].bar(x + 0.2, many, width=0.4, color=BLUE,
-                label=f"mean of {len(folds)} folds")
-    axes[0].set_xticks(x, names, rotation=20, ha="right")
-    axes[0].set(ylabel=ylabel, title=t[0], **({"ylim": ylim} if ylim else {}))
-    axes[0].legend(frameon=False, loc="upper center")
-    span = max(one.max(), many.max())
-    for xi, (a, b) in enumerate(zip(one, many)):
-        axes[0].text(xi - 0.2, a + span * 0.02, f"{a:.2f}", ha="center", size=8,
-                     color=BLACK)
-        axes[0].text(xi + 0.2, b + span * 0.02, f"{b:.2f}", ha="center", size=8,
-                     color=BLUE)
+    palette = MODEL_COLORS
+    span = float(max(one.max(), many.max()) - min(one.min(), many.min())) or 1.0
+    left_y = _spread_labels(one, span * 0.055)
+    right_y = _spread_labels(many, span * 0.055)
+    for i, (m, name) in enumerate(zip(models, names)):
+        color = palette[i % len(palette)]
+        axes[0].plot([0, 1], [one[i], many[i]], color=color, lw=2.2,
+                     marker="o", ms=7, zorder=3)
+        axes[0].annotate(f"{one[i]:.2f}", (0, left_y[i]), xytext=(-9, 0),
+                         textcoords="offset points", ha="right", va="center",
+                         size=9, color=color)
+        axes[0].annotate(f"{name}  {many[i]:.2f}", (1, right_y[i]), xytext=(9, 0),
+                         textcoords="offset points", ha="left", va="center",
+                         size=9, color=color)
+    axes[0].set_xticks([0, 1], ["one 24-month\nwindow",
+                                f"mean of {len(folds)}\nrolling folds"])
+    axes[0].set(ylabel=ylabel, title=t[0], xlim=(-0.55, 1.85),
+                **({"ylim": ylim} if ylim else {}))
+    axes[0].grid(axis="x", visible=False)
 
     if note:
-        axes[0].annotate(note, xy=(0.5, -0.34), xycoords="axes fraction",
+        axes[0].annotate(note, xy=(0.5, -0.30), xycoords="axes fraction",
                          ha="center", size=8, color=GREY)
 
     for i, m in enumerate(models):
