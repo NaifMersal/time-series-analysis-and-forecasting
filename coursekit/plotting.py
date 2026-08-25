@@ -96,6 +96,36 @@ def thin_xticks(axes, n=4):
     return axes
 
 
+def year_xticks(axes, step=10, minor=1, fmt="%Y", rotation=0):
+    """Put a date axis on a plain calendar-year scale.
+
+    A label every ``step`` years, and an unlabelled tick plus a faint gridline
+    on every ``minor``-th year. That minor grid is the point of this helper:
+    on annual data like ``D.lynx()`` the question students are asked is how
+    many years apart the peaks fall, and they cannot count that off an axis
+    whose only marks are 20 years apart.
+
+    Set ``minor=0`` to drop the yearly grid, and ``rotation=90`` when the
+    labels are dense enough to collide.
+
+    Unlike :func:`thin_xticks`, which picks a step to keep small panels
+    readable, this one is told the step -- so call it *after* ``thin_xticks``
+    if both touch the same axes.
+    """
+    import matplotlib.dates as mdates
+
+    for ax in np.atleast_1d(axes).ravel():
+        ax.xaxis.set_major_locator(mdates.YearLocator(step))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter(fmt))
+        if minor:
+            ax.xaxis.set_minor_locator(mdates.YearLocator(minor))
+            ax.grid(True, which="minor", axis="x", lw=0.4, alpha=0.3)
+        if rotation:
+            plt.setp(ax.get_xticklabels(), rotation=rotation,
+                     ha="right" if rotation % 180 else "center")
+    return axes
+
+
 def plot_series(df, x="ds", y="y", ax=None, title="", xlabel="", ylabel="",
                 color=BLACK, **kw):
     """Plot one series. Stand-in for the book's `plot_series` helper."""

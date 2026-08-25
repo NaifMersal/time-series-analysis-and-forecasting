@@ -114,6 +114,9 @@ fig, axes = plt.subplots(2, 3, figsize=(12, 6))
 for ax, (name, df) in zip(axes.ravel(), series.items()):
     P.plot_series(df, ax=ax, title=name)
 P.thin_xticks(axes, n=3)
+# lynx is annual: decade labels and a tick on every year, so you can count the
+# gap between one peak and the next.
+P.year_xticks(axes[0, 2], step=10, minor=1, rotation=45)
 plt.show()
 """),
     md("""

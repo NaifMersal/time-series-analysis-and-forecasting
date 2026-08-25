@@ -6,6 +6,10 @@ quarto-required: ">= 1.8.26"
 # it in sync with the skill's bundle/_quarto.yml when branding changes.
 
 project:
+  # `website` (not the default project type) is what `quarto publish` requires;
+  # without it publishing fails with "not a website, manuscript or book project".
+  # No `website:` navbar/sidebar block on purpose - index.qmd is the whole site.
+  type: website
   output-dir: output
   # Decks import `coursekit` from executable {python} cells, so cells must run
   # with the repo root as cwd.
@@ -37,7 +41,7 @@ format:
       data-background-image: "slides_template/assets/anim.svg"
       data-background-opacity: "0.15"
       data-background-size: "cover"
-    chalkboard: false
+    chalkboard: true
     multiplex: false
     help: true
     progress: true

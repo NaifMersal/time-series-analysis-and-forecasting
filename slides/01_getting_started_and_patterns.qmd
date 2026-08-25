@@ -100,33 +100,37 @@ Point 3 is key: if a demand forecast causes price cuts or stockouts, it alters f
 :::
 ::::
 
-## Pure time series models require no future drivers
+## Pure time series models require no future drivers {.smaller}
 
-```{dot}
-//| fig-width: 9.5
-digraph G {
-    bgcolor="transparent";
-    rankdir=LR;
-    graph [fontname="Helvetica"];
-    node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=14
-          color="#1C355E" penwidth=2 margin="0.30,0.18"];
-    edge [fontname="Helvetica" fontsize=11 color="#5b6678" penwidth=1.6];
+Forecasting hourly **electricity demand (ED)** — three ways to write the same job:
 
-    E [label="1. Explanatory\nweather, price, promotions"
-       fillcolor="#00AE8D" fontcolor="white"];
-    T [label="2. Time Series\npast values of y only"
-       fillcolor="#1C355E" fontcolor="white"];
-    M [label="3. Mixed\nboth"
-       fillcolor="#625D9C" fontcolor="white"];
+::: {.cardbox .teal}
+[1. Explanatory]{.card-title} — *why is demand what it is?* Every driver on the
+right needs its own forecast first.
 
-    T -> M [label="add drivers"];
-    E -> M [label="add history"];
-}
-```
+$$\small \text{ED} = f(\text{temperature},\ \text{economy},\ \text{population},\ \text{time of day},\ \text{day of week},\ \text{error})$$
+:::
 
-::: {.callout-note}
-## Course Focus
-Days 1–2 stay on **pure time series** (Box 2). Day 3 goes further.
+::: {.cardbox .navy}
+[2. Time series]{.card-title} — *what happened next last time?* Everything on the
+right is already recorded.
+
+$$\small \text{ED}_{t+1} = f(\text{ED}_t,\ \text{ED}_{t-1},\ \text{ED}_{t-2},\ \text{ED}_{t-3},\ \ldots,\ \text{error})$$
+:::
+
+::: {.cardbox .purple}
+[3. Mixed]{.card-title} — *dynamic regression:* past demand **plus** drivers, so
+the drivers' forecast error rides along.
+
+$$\small \text{ED}_{t+1} = f(\text{ED}_t,\ \text{temperature}_{t+1},\ \text{time of day},\ \text{day of week},\ \text{error})$$
+:::
+
+**Course focus:** Days 1–2 stay on **model 2**. Day 3 goes further.
+
+::: {.notes}
+This is fpppy 1.4. The point is not that explanatory models are worse — it is that
+their right-hand side is unavailable at forecast time, so you end up forecasting
+the predictors too, and inherit that error.
 :::
 
 ## Past history avoids missing future predictors
@@ -196,7 +200,7 @@ Treating a cycle as seasonality causes models to predict peaks at the wrong time
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, axes = plt.subplots(2, 2, figsize=(10, 5.4))
+fig, axes = plt.subplots(2, 2, figsize=(10, 4.5))
 
 P.plot_series(spine, ax=axes[0, 0], title="Trend + seasonality (retail)",
               ylabel="turnover ($M)")
@@ -207,6 +211,9 @@ P.plot_series(lynx, ax=axes[1, 0], title="Cycle, no fixed period (lynx)",
 P.plot_series(noise, ax=axes[1, 1], title="No pattern (white noise)",
               color=P.GREY, ylabel="z")
 P.thin_xticks(axes, n=4)
+# lynx is annual and the question is how many years apart the peaks fall,
+# so that panel gets a decade label and a tick on every single year.
+P.year_xticks(axes[1, 0], step=10, minor=1)
 for ax in axes.ravel():
     ax.set_xlabel("")
 plt.show()
@@ -225,6 +232,9 @@ P.plot_series(spine, ax=axes[0, 0], title="Trend + seasonality (retail)", ylabel
 P.plot_series(beer, ax=axes[0, 1], title="Seasonality + drifting trend (beer)", color=P.BLUE, ylabel="megalitres")
 P.plot_series(lynx, ax=axes[1, 0], title="Cycle, no fixed period (lynx)", color=P.PINK, ylabel="pelts traded")
 P.plot_series(noise, ax=axes[1, 1], title="No pattern (white noise)", color=P.GREY, ylabel="z")
+
+# Decade labels, plus a tick on every year, so the peak-to-peak gaps are countable
+P.year_xticks(axes[1, 0], step=10, minor=1)
 ```
 
 :::
