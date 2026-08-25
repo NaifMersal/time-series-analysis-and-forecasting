@@ -118,6 +118,20 @@ res.trend, res.seasonal, res.resid
 
 Seasonally adjusted = `w - res.seasonal`.
 
+**Decomposition is also a forecasting method** (Ch 5.7): forecast the seasonally
+adjusted part with something that handles trend, re-seasonalise with a seasonal naive.
+`MSTL` is that whole recipe in one model.
+
+```python
+from statsforecast.models import MSTL, RandomWalkWithDrift
+MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())
+```
+
+Forecasting on a transformed scale? Back-transforming returns the **median** of the
+forecast distribution, not the mean (Ch 5.6). Medians do not add up, so a regional
+total summed from back-transformed store forecasts is biased low until you apply the
+bias adjustment.
+
 STL over classical decomposition: it estimates the trend all the way to both ends (which
 is the end you forecast from), and it lets the seasonal shape change over time.
 
@@ -142,8 +156,10 @@ data problems, then **plot the series** that look odd.
 | Naive | `Naive()` | the last value |
 | **Seasonal naive** | `SeasonalNaive(season_length=m)` | same season last year |
 | Drift | `RandomWalkWithDrift()` | last value + average slope |
+| STL + drift | `MSTL(season_length=m, trend_forecaster=RandomWalkWithDrift())` | decompose, forecast, re-seasonalise |
 
-Every real model must beat these, and you must say *by how much*.
+Every real model must beat the first four, and you must say *by how much*. The STL
+route is not a benchmark - it is the cheapest thing that is actually trying.
 
 ---
 
@@ -179,7 +195,7 @@ $\hat\sigma_h$ is **not** $\hat\sigma\sqrt h$ for every method. That is the naiv
 |---|---|
 | Mean | $\hat\sigma\sqrt{1 + 1/T}$ |
 | Naive | $\hat\sigma\sqrt h$ |
-| Seasonal naive | $\hat\sigma\sqrt{k+1}$, $k = \lfloor (h-1)/m \rfloor$ — a **staircase**, flat inside a year |
+| Seasonal naive | $\hat\sigma\sqrt{k+1}$, $k = \lfloor (h-1)/m \rfloor$: a **staircase**, flat inside a year |
 | Drift | $\hat\sigma\sqrt{h\,(1 + h/(T-1))}$ |
 
 **Intervals are usually too narrow.** The formula covers randomness *given the model*, not
@@ -193,7 +209,7 @@ points that is $\pm16\%$. One window cannot measure coverage.
 | Method | Assumes | Interval is |
 |---|---|---|
 | Gaussian | residuals uncorrelated, constant variance, **normal** | $\hat y \pm c\,\hat\sigma_h$ |
-| Bootstrap | residuals uncorrelated and **i.i.d. from $\hat F$** — one distribution whose characteristics do not change over time | percentiles of simulated paths |
+| Bootstrap | residuals uncorrelated and **i.i.d. from $\hat F$**: one distribution whose characteristics do not change over time | percentiles of simulated paths |
 | Split conformal | past $h$-step errors **exchangeable** with future ones (weaker than i.i.d.: order carries no information) | $\hat y_{T+h\vert T} \pm Q_{1-\alpha}(\lvert e_{t+h\vert t}\rvert)$ |
 
 **Bootstrap.** Resample past residuals into the model's own recursion, then take
@@ -208,7 +224,7 @@ P.sim_paths_plot(train, fc["ds"], paths, n_show=8)   # the paths, not the band
 ```
 
 `resid_tail=N` draws only from the last `N` residuals. On a series whose error spread
-grows with its level, a shorter and more recent pool is the more honest one — coverage on
+grows with its level, a shorter and more recent pool is the more honest one: coverage on
 the spine goes 62% (all 405 residuals) → about 87% (last 120), against a nominal 80%.
 
 **Conformal.** The calibration set is $h$-step forecast errors, collected by rolling the
@@ -234,7 +250,7 @@ Needs $2h+1$ observations minimum. With 8 windows only 16 scores sit behind each
 so the band comes out visibly jittery.
 
 On the spine, 80% coverage over 8 rolling origins: Gaussian 77%, bootstrap 62%,
-conformal 83%. None of the three assumptions actually holds here — pick knowing which one
+conformal 83%. None of the three assumptions actually holds here: pick knowing which one
 you are spending.
 
 ---
@@ -248,6 +264,7 @@ you are spending.
 | MAPE | yes | **no** | report if asked; never select on it |
 | **MASE** | **yes** | **yes** | **default** |
 | **RMSSE** | **yes** | **yes** | default, squared-error flavour |
+| **scaled CRPS** | **yes** | **yes** | **default for the whole distribution** |
 
 $$\text{MASE}=\frac{\text{mean}(|e_t|)}{Q},\qquad
 Q=\frac{1}{T-m}\sum_{t=m+1}^{T}|y_t-y_{t-m}|$$
@@ -259,8 +276,20 @@ MAPE fails three ways: undefined at zero, explosive near it, and asymmetric, opt
 it biases your forecasts low.
 
 ```python
-from utilsforecast.losses import mase, rmsse
+from utilsforecast.losses import mase, rmsse, scaled_crps
 mase(merged, models=MODELS, seasonality=12, train_df=train)
+```
+
+Coverage checks whether the 80% band is honest. It cannot **rank**: an interval of
+plus-or-minus infinity covers everything and is worth nothing. **Scaled CRPS** averages
+the quantile (pinball) loss over a ladder of levels, so width and misses are priced
+together in one scale-free number. Lower is better.
+
+```python
+QCOLS = ['lo-95', 'lo-80', 'lo-60', 'lo-40', 'lo-20',
+         'hi-20', 'hi-40', 'hi-60', 'hi-80', 'hi-95']
+QUANTILES = np.array([.025, .10, .20, .30, .40, .60, .70, .80, .90, .975])
+scaled_crps(cv, models={m: [f'{m}-{c}' for c in QCOLS]}, quantiles=QUANTILES)
 ```
 
 ---
@@ -268,7 +297,8 @@ mase(merged, models=MODELS, seasonality=12, train_df=train)
 ## Rolling-origin cross-validation
 
 ```python
-cv = sf.cross_validation(df=series, h=12, step_size=12, n_windows=8, level=[80])
+cv = sf.cross_validation(df=series, h=12, step_size=12, n_windows=8,
+                         level=[20, 40, 60, 80, 95])   # a ladder, so CRPS has quantiles
 ```
 
 - `h`, the horizon **the business actually plans on**
@@ -277,9 +307,13 @@ cv = sf.cross_validation(df=series, h=12, step_size=12, n_windows=8, level=[80])
 
 Score each fold against **its own** training data. No fold ever sees its own future.
 
-Expect the **ranking** to be stable and the **number** not to be: on our spine the
+Expect the **ranking** to be broadly stable and the **number** not to be: on our spine the
 seasonal naive scored between 0.71 and 1.90 MASE depending on the fold. Report the
-ranking with confidence, the number with a spread.
+ranking with confidence, the number with a spread - and check the top two yourself.
+
+The top of the table is exactly where one window lies to you. STL + drift beat the
+seasonal naive 0.70 to 1.11 on a single 24-month holdout and lost 1.22 to 1.18 over
+eight origins.
 
 ---
 

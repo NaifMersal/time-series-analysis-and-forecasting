@@ -310,13 +310,16 @@ P.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,
 ::: {.incremental}
 - When swing grows with level, transform before decomposing
 - $\lambda \approx 0 \implies$ Use a standard **log transform** ($\log y_t$)
+- Forecasting on it? Back-transforming returns the **median**, not the mean (Ch 5.6)
 :::
 
 
 ::: {.notes}
 Lambda came out near zero, which is the log case. Worth saying that Box-Cox is a
 family with the log at one end, not a separate technique. Everything after this slide
-in the segment runs on the transformed series.
+in the segment runs on the transformed series. The median-vs-mean point is the
+one they will trip over in production: if a regional total is the sum of 40
+back-transformed store forecasts, that total is biased low unless you correct it.
 :::
 
 ## A centred moving average estimates the trend-cycle

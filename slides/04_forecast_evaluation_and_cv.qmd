@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsforecast import StatsForecast
-from statsforecast.models import (HistoricAverage, Naive, RandomWalkWithDrift,
-                                  SeasonalNaive)
-from utilsforecast.losses import mae, mape, mase, rmse, rmsse
+from statsforecast.models import (MSTL, HistoricAverage, Naive,
+                                  RandomWalkWithDrift, SeasonalNaive)
+from utilsforecast.losses import mae, mape, mase, rmse, rmsse, scaled_crps
 
 from coursekit import datasets as D
 from coursekit import plotting as P
@@ -24,22 +24,31 @@ spine = D.spine()
 H = 24
 train, test = D.train_test(spine, h=H)
 
-MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD"]
+MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD", "MSTL"]
 LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
-          "SeasonalNaive": "Seasonal naive", "RWD": "Drift"}
+          "SeasonalNaive": "Seasonal naive", "RWD": "Drift",
+          "MSTL": "STL + drift"}
+
+# One ladder of levels for every forecast: 80 is what coverage is read off,
+# the rest let Ch 5.9 score the whole distribution.
+LEVELS = [20, 40, 60, 80, 95]
+QCOLS = ["lo-95", "lo-80", "lo-60", "lo-40", "lo-20",
+         "hi-20", "hi-40", "hi-60", "hi-80", "hi-95"]
+QUANTILES = np.array([0.025, 0.10, 0.20, 0.30, 0.40, 0.60, 0.70, 0.80, 0.90, 0.975])
 
 sf = StatsForecast(
     models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
-            RandomWalkWithDrift()],
+            RandomWalkWithDrift(),
+            MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())],
     freq=D.FREQ, n_jobs=1,
 )
-fc = sf.forecast(df=train, h=H, level=[80])
+fc = sf.forecast(df=train, h=H, level=LEVELS)
 merged = test.merge(fc, on=["unique_id", "ds"])
 
 # Rolling-origin cross-validation: 8 origins, one year forecast each.
 N_WINDOWS, CV_H = 8, 12
 cv = sf.cross_validation(df=spine, h=CV_H, step_size=CV_H,
-                         n_windows=N_WINDOWS, level=[80])
+                         n_windows=N_WINDOWS, level=LEVELS)
 
 per_window = pd.DataFrame([
     mase(g.drop(columns=["cutoff"]), models=MODELS, seasonality=12,
@@ -49,9 +58,13 @@ per_window = pd.DataFrame([
 
 coverage = {m: float(((cv["y"] >= cv[f"{m}-lo-80"])
                       & (cv["y"] <= cv[f"{m}-hi-80"])).mean()) for m in MODELS}
+width80 = {m: float((cv[f"{m}-hi-80"] - cv[f"{m}-lo-80"]).mean()) for m in MODELS}
+crps = {m: float(scaled_crps(cv.drop(columns=["cutoff"]),
+                             models={m: [f"{m}-{c}" for c in QCOLS]},
+                             quantiles=QUANTILES)[m].iloc[0]) for m in MODELS}
 ```
 
-## You have 4 forecasts. Which is best?
+## You have 5 forecasts. Which is best?
 
 ::: {.incremental}
 - **Segment 4**: How to score point forecasts fairly
@@ -179,12 +192,15 @@ scores.index = [LABELS[m] for m in scores.index]
 print(scores.round(2).to_string())
 ```
 
-::: {.cardbox .teal}
-Seasonal Naive wins across all metrics ($\text{MASE} = 1.11$).
+::: {.cardbox .coral}
+On **this window** the STL route wins on every metric ($\text{MASE} = 0.70$), with the
+seasonal naive second at $1.11$. Hold that thought for two slides.
 :::
 
 ::: {.notes}
-MASE > 1.0 because forecasting 24 months ahead is harder than in-sample 1-step naive errors.
+Resist declaring a winner here. The seasonal naive's MASE > 1.0 because forecasting
+24 months ahead is harder than in-sample 1-step naive errors. The STL route's 0.70
+is the number that gets a model promoted on one lucky year - segment 5 takes it back.
 :::
 
 ## $\rightarrow$ Exercise 2.4 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
@@ -274,7 +290,7 @@ cv = sf.cross_validation(
 ### Plot
 ```{python}
 #| fig-width: 10
-fig, axes = plt.subplots(1, 2, figsize=(10, 4.0))
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.5))
 
 single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
 x = np.arange(len(MODELS))
@@ -282,8 +298,12 @@ axes[0].bar(x - 0.2, single.values, width=0.4, color=P.GREY, label="Single Split
 axes[0].bar(x + 0.2, per_window.mean().values, width=0.4, color=P.BLUE,
             label=f"Mean of {N_WINDOWS} Folds")
 axes[0].set_xticks(x, [LABELS[m] for m in MODELS], rotation=20, ha="right")
-axes[0].set(ylabel="MASE", title="Model Ranking is Stable")
-axes[0].legend(frameon=False)
+axes[0].set(ylabel="MASE", ylim=(0, 15),
+            title="Stable Ranking - Except at the Top")
+axes[0].legend(frameon=False, loc="upper center")
+for xi, (a, b) in enumerate(zip(single.values, per_window.mean().values)):
+    axes[0].text(xi - 0.2, a + 0.25, f"{a:.2f}", ha="center", size=8, color=P.BLACK)
+    axes[0].text(xi + 0.2, b + 0.25, f"{b:.2f}", ha="center", size=8, color=P.BLUE)
 
 for i, m in enumerate(MODELS):
     axes[1].scatter(np.full(len(per_window), i), per_window[m], s=40,
@@ -300,7 +320,7 @@ plt.show()
 # Dataset: Victorian takeaway food turnover (cv = sf.cross_validation(spine, n_windows=8))
 # Left: Single 24-month split vs Mean across 8 CV origins
 # Right: Distribution of MASE across individual CV folds
-fig, axes = plt.subplots(1, 2, figsize=(10, 4.0))
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.5))
 
 single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
 x = np.arange(len(MODELS))
@@ -316,6 +336,10 @@ for i, m in enumerate(MODELS):
 ::: {.notes}
 Notice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky or unlucky; the 8-fold average is what to trust.
 :::
+::: {.cardbox .coral}
+One window crowned **STL + drift** at 0.70. Eight folds hand it back, 1.18 to 1.22.
+:::
+
 
 ## Interval coverage across all 8 folds
 
@@ -358,6 +382,78 @@ ax.axvline(0.8, color=P.BLACK, ls="--", lw=1.4)
 - **Mean Model**: 0% coverage (fails on trending data)
 :::
 
+## Coverage checks the band. It cannot rank.
+
+Ch 5.9 · Scoring the whole distribution
+
+::: {.incremental}
+- Coverage answers one question: **is the 80% band honest?**
+- It says nothing about **width**: an interval of $\pm\infty$ covers 100%
+- Two models at 80% coverage can be worlds apart in usefulness
+- A **proper score** charges you for width *and* for misses, in one number
+:::
+
+. . .
+
+::: {.cardbox .teal}
+**Scaled CRPS** averages the quantile (pinball) loss over the whole ladder of
+levels. Scale-free, lower is better, and you can sort on it.
+:::
+
+## Narrow is not the same as good
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 10
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.4))
+names = [LABELS[m] for m in MODELS]
+
+axes[0].barh(names, [width80[m] for m in MODELS], color=P.GREY, height=0.6)
+for i, m in enumerate(MODELS):
+    axes[0].text(width80[m], i, f"  {coverage[m]:.0%} cov", va="center", size=9)
+axes[0].set(title="Mean 80% interval width", xlim=(0, 260))
+axes[0].invert_yaxis()
+axes[0].grid(axis="y", visible=False)
+
+best = min(crps, key=crps.get)
+cols = [P.BLUE if m == best else P.ORANGE for m in MODELS]
+axes[1].barh(names, [crps[m] for m in MODELS], color=cols, height=0.6)
+for i, m in enumerate(MODELS):
+    axes[1].text(crps[m], i, f"  {crps[m]:.3f}", va="center", size=9)
+axes[1].set(title="Scaled CRPS (lower is better)", xlim=(0, 0.42))
+axes[1].invert_yaxis()
+axes[1].grid(axis="y", visible=False)
+plt.show()
+```
+
+### Code
+```python
+# Dataset: Victorian takeaway food turnover, 8 rolling origins x 12 months
+from utilsforecast.losses import scaled_crps
+
+QCOLS = ["lo-95", "lo-80", "lo-60", "lo-40", "lo-20",
+         "hi-20", "hi-40", "hi-60", "hi-80", "hi-95"]
+QUANTILES = np.array([0.025, 0.10, 0.20, 0.30, 0.40, 0.60, 0.70, 0.80, 0.90, 0.975])
+
+crps = {m: scaled_crps(cv.drop(columns=["cutoff"]),
+                       models={m: [f"{m}-{c}" for c in QCOLS]},
+                       quantiles=QUANTILES)[m].iloc[0] for m in MODELS}
+```
+
+:::
+
+::: {.cardbox .coral}
+The STL route's intervals are the **narrowest** here, and it still loses on CRPS.
+Narrowness that is not earned gets charged for.
+:::
+
+::: {.notes}
+This is the slide that stops "my intervals are tighter" from being an argument.
+Tighter is only better if calibration holds; CRPS is what prices the trade.
+:::
+
 ## Information leakage risks
 
 ```{dot}
@@ -396,8 +492,9 @@ Always fit scalers, imputers, and feature engineering strictly on each fold's tr
 Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 ::: {.incremental}
-- Run rolling-origin cross-validation on 4 baselines
-- Compute MASE, RMSSE, and 80% coverage
+- Run rolling-origin cross-validation on all 5 models
+- Compute MASE, RMSSE, scaled CRPS and 80% coverage
+- Watch the single-window winner lose
 - Build the baseline leaderboard for Day 3 models
 :::
 
@@ -408,10 +505,11 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 ## Day 2 Summary {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
 ::: {.incremental}
-- Always start with the **4 baseline models**
+- Always start with the **4 baseline models**, then the **decomposition route**
 - Diagnose **residuals** (uncorrelated, zero-mean)
 - Report **prediction intervals**, and know which assumption each one spends
-- Evaluate with **MASE** and **Rolling-Origin CV**
+- Evaluate with **MASE**, **scaled CRPS** and **Rolling-Origin CV**
+- One window picks winners it cannot defend
 :::
 
 . . .

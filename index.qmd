@@ -44,11 +44,13 @@ correlogram · Box-Cox and STL · features across a whole portfolio.
 | Segments 4–5 | [Forecast Evaluation & Cross-Validation](slides/04_forecast_evaluation_and_cv.html) |
 | Exercises | [`labs/02_day2_toolbox_and_evaluation.ipynb`](labs/02_day2_toolbox_and_evaluation.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/02_day2_toolbox_and_evaluation.ipynb) |
 
-The benchmark floor · fitted values and residuals · Ljung-Box · prediction intervals and
-why they widen · Gaussian, bootstrap and conformal intervals and what each one spends ·
-MAE, RMSE, MAPE and why MASE instead · rolling-origin cross-validation · leakage.
+The benchmark floor · forecasting from a decomposition · fitted values and residuals ·
+Ljung-Box · prediction intervals and why they widen · Gaussian, bootstrap and conformal
+intervals and what each one spends · MAE, RMSE, MAPE and why MASE instead · scaled CRPS,
+because coverage cannot rank · rolling-origin cross-validation · leakage.
 
-Day 2 ends with an **evaluation harness** and the first rows of the course leaderboard.
+Day 2 ends with an **evaluation harness** and the first rows of the course leaderboard,
+and with a model that wins on one window and loses over eight.
 
 ## Day 3: Models
 

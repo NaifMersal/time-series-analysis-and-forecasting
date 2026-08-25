@@ -11,10 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsforecast import StatsForecast
-from statsforecast.models import (HistoricAverage, Naive, RandomWalkWithDrift,
-                                  SeasonalNaive)
+from statsforecast.models import (MSTL, HistoricAverage, Naive,
+                                  RandomWalkWithDrift, SeasonalNaive)
 from statsforecast.utils import ConformalIntervals
 from statsmodels.stats.diagnostic import acorr_ljungbox
+from utilsforecast.losses import mase
 
 from coursekit import datasets as D
 from coursekit import plotting as P
@@ -36,6 +37,20 @@ fv = sf.forecast_fitted_values()
 MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD"]
 LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
           "SeasonalNaive": "Seasonal naive", "RWD": "Drift"}
+
+# --- Ch 5.7: the decomposition route, as a fifth model -------------------
+sf_stl = StatsForecast(
+    models=[MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())],
+    freq=D.FREQ, n_jobs=1,
+)
+fc_stl = sf_stl.forecast(df=train, h=H, level=[80, 95])
+
+_scored = (test.merge(fc[["unique_id", "ds", "SeasonalNaive"]], on=["unique_id", "ds"])
+               .merge(fc_stl[["unique_id", "ds", "MSTL"]], on=["unique_id", "ds"]))
+STL_MASE, SN_MASE = (
+    float(mase(_scored, models=[m], seasonality=12, train_df=train)[m].iloc[0])
+    for m in ("MSTL", "SeasonalNaive")
+)
 
 # --- the three ways to draw the same interval, on one holdout -------------
 resid_sn = (fv["y"] - fv["SeasonalNaive"]).dropna()
@@ -183,6 +198,81 @@ ax.set(title=f"Spine: {H}-Month Benchmark Forecasts")
 *"What is the simple baseline, and by how much did we beat it?"*
 :::
 
+## Decomposition is also a forecasting method
+
+Ch 5.7 · You already built this on Day 1
+
+```{dot}
+//| fig-width: 11
+digraph G {
+    bgcolor="transparent";
+    rankdir=LR;
+    ranksep=0.5; nodesep=0.25;
+    node [shape=box style="rounded,filled" fontname="Noto Sans" fontsize=13
+          color="#1C355E" penwidth=2 margin="0.18,0.10"];
+    edge [fontname="Noto Sans" fontsize=11 color="#5b6678" penwidth=1.6];
+
+    Y  [label="y_t" fillcolor="#1C355E" fontcolor="white"];
+    S  [label="STL" fillcolor="#1C355E" fontcolor="white"];
+    A  [label="Seasonally adjusted\ntrend + remainder" fillcolor="#00C9A7"];
+    N  [label="Seasonal\ncomponent" fillcolor="#9B8EC0" fontcolor="white"];
+    FA [label="Drift\nforecast" fillcolor="#00C9A7"];
+    FN [label="Seasonal naive\nforecast" fillcolor="#9B8EC0" fontcolor="white"];
+    R  [label="Recombine" fillcolor="#FF7A5C" fontcolor="white"];
+
+    Y -> S;
+    S -> A; S -> N;
+    A -> FA; N -> FN;
+    FA -> R; FN -> R;
+}
+```
+
+::: {.cardbox .teal}
+`MSTL` is this whole diagram in one object.
+:::
+
+## The decomposition route clears the floor
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 10
+fig, ax = plt.subplots(figsize=(10, 3.9))
+hist = train.tail(60)
+ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="Observed")
+ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.6, ls="--", label="Actual Holdout")
+ax.plot(fc["ds"], fc["SeasonalNaive"], color=P.ORANGE, lw=1.8,
+        label=f"Seasonal naive  (MASE {SN_MASE:.2f})")
+ax.plot(fc_stl["ds"], fc_stl["MSTL"], color=P.BLUE, lw=1.8,
+        label=f"STL + drift  (MASE {STL_MASE:.2f})")
+ax.set(title="Spine: the floor, and the decomposition route")
+ax.legend(frameon=False, ncols=2)
+plt.show()
+```
+
+### Code
+```python
+# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))
+sf_stl = StatsForecast(
+    models=[MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())],
+    freq=D.FREQ, n_jobs=1,
+)
+fc_stl = sf_stl.forecast(df=train, h=H, level=[80, 95])
+```
+
+:::
+
+::: {.cardbox .coral}
+The seasonal naive repeats last year's **level**; STL lets drift carry the growth.
+:::
+
+::: {.notes}
+Do not let this land as "STL wins". It wins on THIS window. Segment 5 scores it
+over eight origins and the ordering flips. Flag that now, so the reversal reads
+as the lesson rather than as a contradiction.
+:::
+
 ## $\rightarrow$ Exercise 2.1 · The benchmark floor {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
 
 Open `labs/02_day2_toolbox_and_evaluation.ipynb`
@@ -191,6 +281,7 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 - Fit all four baselines on the training set
 - Plot against the holdout set
 - Identify which method looks most realistic and why
+- Add `MSTL` as a fifth model and write down what you see
 :::
 
 . . .
@@ -863,7 +954,7 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 ## Part 1 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
 ::: {.incremental}
-- Always start with the **4 baseline models**
+- Always start with the **4 baseline models**, then the **decomposition route**
 - Check that residuals are **uncorrelated and zero-mean**
 - Report **prediction intervals**, not just single numbers
 - Know which **assumption** each interval method spends: normality, i.i.d., or exchangeability

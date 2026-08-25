@@ -640,11 +640,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsforecast import StatsForecast
-from statsforecast.models import (HistoricAverage, Naive, RandomWalkWithDrift,
-                                  SeasonalNaive)
+from statsforecast.models import (MSTL, HistoricAverage, Naive,
+                                  RandomWalkWithDrift, SeasonalNaive)
 from statsforecast.utils import ConformalIntervals
 from statsmodels.stats.diagnostic import acorr_ljungbox
-from utilsforecast.losses import mae, mape, mase, rmse, rmsse
+from utilsforecast.losses import mae, mape, mase, rmse, rmsse, scaled_crps
 
 from coursekit import checks
 from coursekit import datasets as D
@@ -656,6 +656,12 @@ P.use_course_style()
 spine = D.spine()
 H = 24
 train, test = D.train_test(spine, h=H)
+
+# Every forecast today is asked for the same ladder of intervals. 80 is the one
+# we read coverage off; the rest are there so Exercise 2.5 can score the whole
+# forecast DISTRIBUTION and not just one band.
+LEVELS = [20, 40, 60, 80, 95]
+
 print(f"train: {len(train)} months to {train['ds'].max().date()}")
 print(f"test : {len(test)} months from {test['ds'].min().date()}")
 """),
@@ -676,7 +682,8 @@ LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
           "SeasonalNaive": "Seasonal naive", "RWD": "Drift"}
 
 # TODO: build a StatsForecast object with all four benchmarks and forecast H
-#       months ahead from `train`, with 80% and 95% intervals, keeping fitted values.
+#       months ahead from `train`, at every level in LEVELS, keeping fitted values.
+BENCHMARKS = ...
 sf = ...
 fc = ...
 
@@ -687,12 +694,11 @@ MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD"]
 LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
           "SeasonalNaive": "Seasonal naive", "RWD": "Drift"}
 
-sf = StatsForecast(
-    models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
-            RandomWalkWithDrift()],
-    freq=D.FREQ, n_jobs=1,
-)
-fc = sf.forecast(df=train, h=H, level=[80, 95], fitted=True)
+BENCHMARKS = [HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
+              RandomWalkWithDrift()]
+
+sf = StatsForecast(models=BENCHMARKS, freq=D.FREQ, n_jobs=1)
+fc = sf.forecast(df=train, h=H, level=LEVELS, fitted=True)
 
 checks.check_ex_2_1(fc, MODELS)
 fc.head()
@@ -725,6 +731,71 @@ hopeless on any trending series. The **naive** method forecasts a flat line at
 the last value, which throws away the seasonality we spent all of Day 1
 establishing. **Drift** at least captures the trend but still ignores season.
 Only the **seasonal naive** reproduces the annual shape.
+"""),
+    md("""
+### A fifth model, out of Day 1
+
+You already know how to take this series apart: STL gives you trend, season and
+remainder. Ch 5.7 turns that into a *forecasting* method. Strip the season off,
+forecast the seasonally adjusted series with something that handles trend -
+drift, say - then add last year's seasonal shape back on top.
+
+`MSTL` is that recipe in one object, and nothing in it is new to you.
+`RandomWalkWithDrift` is a benchmark you fit ten minutes ago; the seasonal part
+is a seasonal naive on the seasonal component.
+"""),
+    code("""
+# TODO: add the STL route as a fifth model - MSTL, season_length=12, with
+#       RandomWalkWithDrift as its trend forecaster - and refit all five.
+sf = ...
+fc = ...
+
+MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD", "MSTL"]
+LABELS["MSTL"] = "STL + drift"
+print(f"{len(MODELS)} models: {', '.join(LABELS[m] for m in MODELS)}")
+""", """
+sf = StatsForecast(
+    models=BENCHMARKS + [MSTL(season_length=12,
+                              trend_forecaster=RandomWalkWithDrift())],
+    freq=D.FREQ, n_jobs=1,
+)
+fc = sf.forecast(df=train, h=H, level=LEVELS, fitted=True)
+
+MODELS = ["HistoricAverage", "Naive", "SeasonalNaive", "RWD", "MSTL"]
+LABELS["MSTL"] = "STL + drift"
+print(f"{len(MODELS)} models: {', '.join(LABELS[m] for m in MODELS)}")
+"""),
+    code("""
+# TODO: plot the STL route against the seasonal naive - the model it has to beat
+#       - over the holdout.
+""", """
+fig, ax = plt.subplots(figsize=(10, 4.6))
+hist = train.tail(60)
+ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="observed")
+ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.6, ls="--", label="actual")
+ax.plot(fc["ds"], fc["SeasonalNaive"], color=P.ORANGE, lw=1.7, label="seasonal naive")
+ax.plot(fc["ds"], fc["MSTL"], color=P.BLUE, lw=1.7, label="STL + drift")
+ax.set(title="The decomposition route vs. the floor")
+ax.legend(frameon=False, ncols=4)
+plt.show()
+"""),
+    md("""
+**Question.** Which of those two tracks the holdout better, and what is the STL
+route doing that the seasonal naive cannot? Write your answer down now - you
+will be asked to revisit it in Exercise 2.5.
+
+<!--STUDENT-->
+*Your answer:*
+
+<!--SOLUTION-->
+*Answer.* The STL route is clearly closer over these 24 months. The seasonal
+naive repeats last year's level exactly, so on a series that grows about 6% a
+year it starts the horizon low and stays low - the gap is a *bias*, visible as
+the forecast sitting under the actuals almost everywhere. The STL route
+separates that trend out and lets drift carry it forward, so it keeps the
+seasonal shape *and* the growth.
+
+Hold that conclusion loosely. It is one window.
 """),
     md("""
 ### Stretch - forecasting on a transformed scale
@@ -1166,7 +1237,7 @@ print("\\nThe bootstrap covers only about 62% with the full 405-residual pool: "
 *Follows segment 4. 12 minutes.*
 """),
     code("""
-# TODO: build a table of MAE, RMSE, MAPE, MASE and RMSSE for all four models
+# TODO: build a table of MAE, RMSE, MAPE, MASE and RMSSE for all five models
 #       on the holdout. MASE and RMSSE need seasonality=12 and train_df=train.
 scores = ...
 
@@ -1227,17 +1298,21 @@ and why not the others?
 *Your answer:*
 
 <!--SOLUTION-->
-*Answer.* Seasonal naive > Naive > Drift > Mean, on MASE.
+*Answer.* STL + drift > Seasonal naive > Naive > Drift > Mean, on MASE.
 
 MASE, because it is scale-free (so this ranking can be compared against other
 series later), it is defined even when the series touches zero, and the
-benchmark is built into it - a MASE of 1.11 immediately tells you the winner is
-still slightly worse than a one-step seasonal naive.
+benchmark is built into it - the seasonal naive's MASE of 1.11 immediately tells
+you it is still slightly worse than a one-step seasonal naive, while the STL
+route's 0.70 says it clears that bar comfortably.
 
 Not MAE or RMSE: correct here, but their units are millions of dollars, so they
 cannot be pooled across series. Not MAPE: this series never approaches zero so
 it happens to behave, but selecting on MAPE builds a habit that breaks the first
 time you meet slow-moving demand.
+
+Note what you have just done: picked a winner off **one** 24-month window. That
+is the exact move Exercise 2.5 is about to take apart.
 """),
 
     # ---------------------------------------------------------------- 2.5
@@ -1252,25 +1327,50 @@ evaluation harness that every Day 3 model gets plugged into.
 """),
     code("""
 # TODO: rolling-origin cross-validation over the WHOLE spine:
-#       8 origins, 12 months forecast each, 80% intervals.
+#       8 origins, 12 months forecast each, every level in LEVELS.
 cv = ...
 
 print(f"folds : {cv['cutoff'].nunique()}")
 print(f"scored points : {len(cv)}")
 cv.head()
 """, """
-cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8, level=[80])
+cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8, level=LEVELS)
 
 print(f"folds : {cv['cutoff'].nunique()}")
 print(f"scored points : {len(cv)}")
 cv.head()
 """),
+    md("""
+Coverage answers one question - *is the 80% band honest?* - and it is blind to
+everything else. An interval of plus-or-minus infinity has perfect coverage and
+is worth nothing, and two models that both cover 80% can have wildly different
+widths. To *rank* forecast distributions you need a proper score.
+
+`scaled_crps` is that score: it averages the quantile (pinball) loss over the
+whole ladder of `LEVELS`, so being too wide, too narrow, or centred in the wrong
+place all cost you, in one scale-free number. Lower is better.
+"""),
+    code("""
+# Which quantile each of those interval columns actually is, low to high.
+QUANTILES = np.array([0.025, 0.10, 0.20, 0.30, 0.40, 0.60, 0.70, 0.80, 0.90, 0.975])
+QCOLS = ["lo-95", "lo-80", "lo-60", "lo-40", "lo-20",
+         "hi-20", "hi-40", "hi-60", "hi-80", "hi-95"]
+
+
+def qcols(model):
+    \"\"\"The ten interval columns of one model, in QUANTILES order.\"\"\"
+    return [f"{model}-{c}" for c in QCOLS]
+
+
+print(qcols("SeasonalNaive"))
+"""),
     code("""
 # TODO: for each model compute, ACROSS FOLDS:
 #         - mean MASE   (score each fold against its own training data)
 #         - mean RMSSE
+#         - scaled CRPS (scaled_crps, pooled over folds, using qcols and QUANTILES)
 #         - empirical 80% coverage
-#       Return a tidy frame with columns: model / mase / rmsse / coverage_80
+#       Return a tidy frame with columns: model / mase / rmsse / crps / coverage_80
 summary = ...
 
 checks.check_ex_2_5(cv, summary)
@@ -1284,15 +1384,44 @@ for m in MODELS:
         g1 = g.drop(columns=["cutoff"])
         fold_mase.append(mase(g1, models=[m], seasonality=12, train_df=tr)[m].iloc[0])
         fold_rmsse.append(rmsse(g1, models=[m], seasonality=12, train_df=tr)[m].iloc[0])
+    crps = scaled_crps(cv.drop(columns=["cutoff"]), models={m: qcols(m)},
+                       quantiles=QUANTILES)[m].iloc[0]
     inside = ((cv["y"] >= cv[f"{m}-lo-80"]) & (cv["y"] <= cv[f"{m}-hi-80"])).mean()
     rows.append({"model": LABELS[m], "mase": np.mean(fold_mase),
-                 "rmsse": np.mean(fold_rmsse), "coverage_80": float(inside),
+                 "rmsse": np.mean(fold_rmsse), "crps": float(crps),
+                 "coverage_80": float(inside),
                  "mase_min": np.min(fold_mase), "mase_max": np.max(fold_mase)})
 
 summary = pd.DataFrame(rows)
 
 checks.check_ex_2_5(cv, summary)
 summary.round(3)
+"""),
+    md("""
+**Go back and read your answer from Exercise 2.1.** On the single 24-month
+window the STL route beat the seasonal naive on MASE, 0.70 to 1.11. What does
+the table above say, and which of the two numbers would you put in front of a
+stakeholder?
+
+<!--STUDENT-->
+*Your answer:*
+
+<!--SOLUTION-->
+*Answer.* Across eight origins the ordering **flips**: the seasonal naive
+averages about 1.18 and the STL route about 1.22, and the seasonal naive wins on
+scaled CRPS too. The single window was not a lie - the STL route really was
+better over those particular 24 months - it was just one draw from a
+distribution wide enough to contain both answers.
+
+The number to report is the eight-fold one, with its spread. The single-window
+0.70 is exactly the kind of result that gets a model promoted into production on
+the strength of a lucky year.
+
+Note also that the STL route earns its worse CRPS with *narrower* intervals
+(about 40 units wide against the seasonal naive's 49) and worse coverage
+(about 61% against 77%). Narrow is not the same as good: CRPS charges you for
+the misses that narrowness buys, which is precisely what coverage on its own
+cannot tell you.
 """),
     md("""
 Write the results to the leaderboard. **This file is the course's running
@@ -1305,8 +1434,8 @@ for _, row in summary.iterrows():
     lb.record(
         row["model"], day=2,
         mase=float(row["mase"]), rmsse=float(row["rmsse"]),
-        coverage_80=float(row["coverage_80"]),
-        notes="benchmark, 8-fold rolling origin",
+        crps=float(row["crps"]), coverage_80=float(row["coverage_80"]),
+        notes="Day 2 baseline, 8-fold rolling origin",
     )
 
 table = lb.show()

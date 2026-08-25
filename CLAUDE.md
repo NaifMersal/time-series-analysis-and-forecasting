@@ -128,7 +128,23 @@ because their prose claimed something the rendered figure did not show.
   strength > 0.96 — trend does not discriminate in retail; seasonality does.
 - Seasonal naive is the clear winner among the benchmarks: MASE ≈ 1.18 over 8 rolling
   folds, versus 2.80 (naive), 3.10 (drift), 12.25 (mean).
-- Its residuals are emphatically not white noise (Ljung-Box p ≈ 1e-240) — the floor leaves
+- Day 2 also teaches **Ch 5.7's decomposition route** as a fifth model:
+  `MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())`. The default
+  `trend_forecaster` is `AutoETS` — the course pins drift on purpose, so no Day 3 model
+  leaks into Day 2.
+- **That fifth model reverses between one window and eight, and the reversal is the
+  lesson.** On the single 24-month holdout it beats the seasonal naive on MASE, 0.70 to
+  1.11; over 8 rolling folds it loses, 1.22 to 1.18. Exercises 2.1 and 2.4 set the trap
+  and 2.5 springs it, `check_ex_2_4` asserts the STL route wins the window and
+  `check_ex_2_5` asserts the seasonal naive wins the folds. Do not "fix" either.
+- 8-fold scaled CRPS: 0.031 (seasonal naive), 0.034 (STL + drift), 0.081 (naive),
+  0.090 (drift), 0.348 (mean). The STL route earns its worse CRPS with the *narrowest*
+  intervals (40 units against 49) and worse coverage (61% against 77%) — that contrast
+  is the whole Ch 5.9 point, coverage checks a band but cannot rank.
+- Day 2 forecasts and cross-validation ask for `LEVELS = [20, 40, 60, 80, 95]`, so
+  `scaled_crps` has a quantile ladder to integrate over. Coverage is still read off
+  `lo-80` / `hi-80`.
+- The seasonal naive's residuals are emphatically not white noise (Ljung-Box p ≈ 1e-240) — the floor leaves
   a lot on the table, which is the opening for Day 3.
 - 80% interval coverage: 77% for seasonal naive over 8 folds, but **96% on a single
   24-month window**. That gap is taught deliberately — one window cannot measure a rate.
@@ -154,4 +170,5 @@ Constraints to carry into that decision:
 - Ch 10 *is* Ch 7 + Ch 9, so if dynamic regression is in, Ch 7 travels with it.
 
 Whatever is chosen plugs into the Day 2 harness and appends to `labs/leaderboard.csv` via
-`coursekit.leaderboard.record(...)`. Adding a model should stay a few lines.
+`coursekit.leaderboard.record(...)` — `mase`, `rmsse`, `crps`, `coverage_80`. Adding a
+model should stay a few lines.

@@ -265,15 +265,18 @@ def check_ex_2_4(scores: pd.DataFrame) -> None:
     missing = needed - set(scores.columns)
     assert not missing, f"scores is missing {sorted(missing)}"
     best = scores["MASE"].idxmin()
-    assert "easonal" in str(best), (
-        f"On this series the seasonal naive should win on MASE; you have {best}. "
-        "Check the model column names line up with the metric call."
+    assert "STL" in str(best), (
+        f"On THIS 24-month window the STL route should win on MASE; you have "
+        f"{best}. Check the model column names line up with the metric call, and "
+        "that MSTL made it into MODELS."
     )
     assert scores["MASE"].max() > 5, (
         "The mean method should score terribly here (MASE ~ 12). Yours does not "
         "- is HistoricAverage included?"
     )
-    _ok("EX 2.4", f"best by MASE: {best} ({scores['MASE'].min():.3f})")
+    _ok("EX 2.4", f"best by MASE on this window: {best} "
+                  f"({scores['MASE'].min():.3f}) - hold that result loosely "
+                  f"until Exercise 2.5")
 
 
 def check_ex_2_5(cv: pd.DataFrame, summary: pd.DataFrame) -> None:
@@ -283,23 +286,32 @@ def check_ex_2_5(cv: pd.DataFrame, summary: pd.DataFrame) -> None:
     )
     n_folds = cv["cutoff"].nunique()
     assert n_folds >= 5, f"Use at least 5 folds; you have {n_folds}."
-    _need_cols(summary, ["model", "mase", "rmsse", "coverage_80"], "summary")
-    assert len(summary) >= 4, "Score all four benchmarks."
+    _need_cols(summary, ["model", "mase", "rmsse", "crps", "coverage_80"], "summary")
+    assert len(summary) >= 5, "Score all four benchmarks plus the STL route."
     assert summary["coverage_80"].between(0, 1).all(), "coverage_80 is a proportion."
+    assert (summary["crps"] > 0).all(), (
+        "Every scaled CRPS should be positive. A column of zeros or NaNs usually "
+        "means the quantile column names did not line up with QUANTILES."
+    )
 
     sn = summary.loc[summary["model"].str.contains("easonal"), "mase"]
     assert len(sn) == 1, "Expected exactly one seasonal-naive row."
     assert sn.iloc[0] == summary["mase"].min(), (
-        "The seasonal naive should have the lowest MASE across folds."
+        "Across folds the seasonal naive should have the lowest MASE - including "
+        "beating the STL route that won the single window in Exercise 2.4. If "
+        "something else wins here, check each fold is scored against its OWN "
+        "training data."
     )
     _ok("EX 2.5", f"{n_folds} folds, {len(summary)} models scored")
 
 
 def check_leaderboard(table: pd.DataFrame) -> None:
     _not_todo(table=table)
-    _need_cols(table, ["model", "mase", "rmsse", "coverage_80"], "the leaderboard")
-    assert len(table) >= 4, (
-        f"Expected at least the four benchmarks on the leaderboard, found {len(table)}."
+    _need_cols(table, ["model", "mase", "rmsse", "crps", "coverage_80"],
+               "the leaderboard")
+    assert len(table) >= 5, (
+        f"Expected the four benchmarks plus the STL route on the leaderboard, "
+        f"found {len(table)}."
     )
     assert table["model"].duplicated().sum() == 0, (
         "A model appears twice. `leaderboard.record()` replaces by model name - "

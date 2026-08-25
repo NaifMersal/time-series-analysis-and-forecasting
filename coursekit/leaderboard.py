@@ -9,7 +9,8 @@ Day 3 must stay a few lines.
 
     from coursekit import leaderboard as lb
 
-    lb.record("SeasonalNaive", mase=1.00, rmsse=1.00, coverage_80=0.71)
+    lb.record("SeasonalNaive", mase=1.00, rmsse=1.00, coverage_80=0.71,
+              crps=0.031)
     lb.show()
 
 Columns beyond the standard ones are allowed and are carried through, so a
@@ -26,11 +27,12 @@ import pandas as pd
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / "labs" / "leaderboard.csv"
 
 #: Columns every row carries. ``day`` keeps the table readable once Day 3 lands.
-CORE_COLUMNS = ["model", "day", "mase", "rmsse", "coverage_80", "notes"]
+CORE_COLUMNS = ["model", "day", "mase", "rmsse", "crps", "coverage_80", "notes"]
 
 
 def record(model: str, *, day: int | None = None, mase: float | None = None,
-           rmsse: float | None = None, coverage_80: float | None = None,
+           rmsse: float | None = None, crps: float | None = None,
+           coverage_80: float | None = None,
            notes: str = "", path: Path | str | None = None,
            **extra) -> pd.DataFrame:
     """Append (or replace) one model's row and return the whole table.
@@ -44,6 +46,7 @@ def record(model: str, *, day: int | None = None, mase: float | None = None,
         "day": day,
         "mase": mase,
         "rmsse": rmsse,
+        "crps": crps,
         "coverage_80": coverage_80,
         "notes": notes,
         **extra,
