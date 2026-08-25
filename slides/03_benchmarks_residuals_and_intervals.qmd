@@ -147,7 +147,7 @@ ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="Observed")
 ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="Actual Holdout")
 for m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):
     ax.plot(fc["ds"], fc[m], lw=1.7, color=c, label=LABELS[m])
-ax.set(title=f"Spine — {H}-Month Benchmark Forecasts")
+ax.set(title=f"Spine: {H}-Month Benchmark Forecasts")
 ax.legend(frameon=False, ncols=3)
 plt.show()
 ```
@@ -162,7 +162,7 @@ ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="Observed")
 ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="Actual Holdout")
 for m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):
     ax.plot(fc["ds"], fc[m], lw=1.7, color=c, label=LABELS[m])
-ax.set(title=f"Spine — {H}-Month Benchmark Forecasts")
+ax.set(title=f"Spine: {H}-Month Benchmark Forecasts")
 ```
 
 :::
@@ -249,7 +249,7 @@ $$e_t = y_t - \hat{y}_{t|t-1}$$
 #| fig-width: 9.5
 resid = fv["y"] - fv["SeasonalNaive"]
 fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
-                                   title="Seasonal Naive — Residual Diagnostics")
+                                   title="Seasonal Naive: Residual Diagnostics")
 plt.show()
 ```
 
@@ -258,7 +258,7 @@ plt.show()
 # Dataset: Victorian retail takeaway turnover in-sample fitted values (fv = train merged with StatsForecast fitted values)
 resid = fv["y"] - fv["SeasonalNaive"]
 fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
-                                   title="Seasonal Naive — Residual Diagnostics")
+                                   title="Seasonal Naive: Residual Diagnostics")
 ```
 
 :::
@@ -443,9 +443,9 @@ sqrt(h) curve would have it 4.9x wider by h = 24; it is only 1.41x wider.
 ## The Gaussian interval rests on three assumptions
 
 ::: {.incremental}
-1. Residuals are **uncorrelated** — otherwise $\hat{\sigma}$ understates the spread
-2. Residuals have **constant variance** — one $\hat{\sigma}$ for the whole series
-3. Residuals are **normally distributed** — otherwise $c = 1.28$ is the wrong multiplier
+1. Residuals are **uncorrelated**: otherwise $\hat{\sigma}$ understates the spread
+2. Residuals have **constant variance**: one $\hat{\sigma}$ for the whole series
+3. Residuals are **normally distributed**: otherwise $c = 1.28$ is the wrong multiplier
 :::
 
 . . .
@@ -503,8 +503,8 @@ np.quantile(r, [0.1, 0.9])                    # the bootstrap's cut points
 :::
 
 ::: {.incremental}
-- The rolling SD wanders between **4 and 35** — never the single 17.6 assumed
-- Excess kurtosis **≈ 5.7** — sharper peak *and* fatter tails than a normal
+- The rolling SD wanders between **4 and 35**: never the single 17.6 assumed
+- Excess kurtosis **≈ 5.7**: sharper peak *and* fatter tails than a normal
 :::
 
 # D. Bootstrapped intervals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
@@ -514,7 +514,7 @@ Ch 5.5 · Dropping the normality assumption
 ## Resample the errors you actually saw
 
 A one-step error is $e_t = y_t - \hat{y}_{t|t-1}$. For the **naive** method
-$\hat{y}_{t|t-1} = y_{t-1}$, so $y_t = y_{t-1} + e_t$ — and a future value can be
+$\hat{y}_{t|t-1} = y_{t-1}$, so $y_t = y_{t-1} + e_t$, and a future value can be
 *simulated* by drawing a past error:
 
 $$y^*_{T+1} = y_T + e^*_{T+1}, \qquad
@@ -536,13 +536,13 @@ value. Run it 5000 times and you have 5000 possible futures.
 ::: {.cardbox .navy}
 The simple residual bootstrap assumes the residuals come from **one common
 distribution $\hat{F}$ whose distributional characteristics do not change over
-time** — i.i.d. draws from the pool of past errors.
+time**: i.i.d. draws from the pool of past errors.
 :::
 
 ::: {.incremental}
 - **Bought:** normality. The interval is now whatever shape the errors are, and need not be symmetric.
 - **Still owed:** independence, and *identical distribution*.
-- On this series the second one is false — the residual SD tripled.
+- On this series the second one is false: the residual SD tripled.
 :::
 
 ## 5000 possible futures
@@ -601,8 +601,8 @@ P.fan_chart(train, boot_fan, levels=(80, 95), actual=test)
 :::
 
 ::: {.incremental}
-- Mean **80%** width: 59.7 Gaussian vs **46.4** bootstrap — a fifth narrower
-- Mean **95%** width: 91.3 vs **90.1** — the gap has closed
+- Mean **80%** width: 59.7 Gaussian vs **46.4** bootstrap, a fifth narrower
+- Mean **95%** width: 91.3 vs **90.1**, the gap has closed
 - Sharp peak, fat tails. That is what excess kurtosis of 5.7 buys you
 :::
 
@@ -616,7 +616,7 @@ $$e_{t+h|t} = y_{t+h} - \hat{y}_{t+h|t}$$
 
 | Symbol | Meaning |
 |---|---|
-| $t$ | the time the forecast was **made** — the forecast origin |
+| $t$ | the time the forecast was **made**: the forecast origin |
 | $h$ | the forecast **horizon** |
 | $t+h$ | the future time being **predicted** |
 | $y_{t+h}$ | what actually happened |
@@ -624,7 +624,7 @@ $$e_{t+h|t} = y_{t+h} - \hat{y}_{t+h|t}$$
 
 ::: {.callout-note}
 At $h = 1$ these are exactly the residuals from segment B. For $h > 1$ they are a
-different, wider set of errors — and they must be *collected*, not fitted.
+different, wider set of errors, and they must be *collected*, not fitted.
 :::
 
 ## A worked example of $e_{t+h|t}$
@@ -638,7 +638,7 @@ You hold $y_1, y_2, \dots, y_{10}$ and want a **3-step-ahead** interval.
 1. Stand at $t = 5$. Pretend $y_6 \dots y_{10}$ do not exist yet.
 2. Forecast three steps out: $\hat{y}_{8|5}$.
 3. Now look up what really happened: $y_8$.
-4. Record $e_{8|5} = y_8 - \hat{y}_{8|5}$ — one 3-step-ahead error.
+4. Record $e_{{8|5}} = y_8 - \hat{{y}}_{{8|5}}$, one 3-step-ahead error.
 :::
 
 . . .
@@ -671,7 +671,7 @@ plt.show()
 ::: {.cardbox .teal}
 The residual bootstrap assumes i.i.d. residuals from an empirical distribution
 $\hat{F}$. **Split conformal prediction replaces i.i.d. with a slightly weaker
-property: exchangeability** — the past $h$-step errors are representative of the
+property: exchangeability**. The past $h$-step errors are representative of the
 future ones, and their *order* carries no information.
 :::
 
@@ -682,8 +682,8 @@ The interval is then an empirical quantile of the collected errors:
 $$\hat{y}_{T+h|T} \pm Q_{1-\alpha}\!\left(\left|e_{t+h|t}\right|\right)$$
 
 ::: {.incremental}
-- One quantile **per horizon $h$** — widening with $h$ is *measured*, not assumed
-- No $\hat{\sigma}$, no $c$, no assumed distribution — hence *distribution-free*
+- One quantile **per horizon $h$**: widening with $h$ is *measured*, not assumed
+- No $\hat{\sigma}$, no $c$, no assumed distribution: hence *distribution-free*
 :::
 
 ## Where the calibration set comes from
@@ -734,7 +734,7 @@ fc_conf = sf_conf.forecast(df=train, h=24, level=[80, 95])
 ```
 
 ::: {.incremental}
-- `n_windows` — how many rolling origins make up the calibration set
+- `n_windows`: how many rolling origins make up the calibration set
 - Needs at least $2h + 1$ observations; more windows, steadier quantiles
 - With 8 windows only 16 scores sit behind each horizon, so the band is **visibly jittery**
 :::
@@ -813,7 +813,7 @@ print(pd.DataFrame(rows).to_string(index=False,
 
 ::: {.callout-important}
 Those coverage numbers come from **24 points**. That is not enough to separate
-them — which is the next slide.
+them, which is the next slide.
 :::
 
 ## Why one test window is misleading

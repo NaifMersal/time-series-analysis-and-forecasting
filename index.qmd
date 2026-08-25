@@ -45,8 +45,8 @@ correlogram · Box-Cox and STL · features across a whole portfolio.
 | Exercises | [`labs/02_day2_toolbox_and_evaluation.ipynb`](labs/02_day2_toolbox_and_evaluation.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/02_day2_toolbox_and_evaluation.ipynb) |
 
 The benchmark floor · fitted values and residuals · Ljung-Box · prediction intervals and
-why they widen · MAE, RMSE, MAPE and why MASE instead · rolling-origin cross-validation ·
-leakage.
+why they widen · Gaussian, bootstrap and conformal intervals and what each one spends ·
+MAE, RMSE, MAPE and why MASE instead · rolling-origin cross-validation · leakage.
 
 Day 2 ends with an **evaluation harness** and the first rows of the course leaderboard.
 

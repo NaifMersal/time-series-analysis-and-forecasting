@@ -54,22 +54,22 @@ coverage = {m: float(((cv["y"] >= cv[f"{m}-lo-80"])
 ## You have 4 forecasts. Which is best?
 
 ::: {.incremental}
-- **Segment 4** — How to score point forecasts fairly
-- **Segment 5** — Why 1 test split is not enough, and how rolling-origin CV fixes it
+- **Segment 4**: How to score point forecasts fairly
+- **Segment 5**: Why 1 test split is not enough, and how rolling-origin CV fixes it
 :::
 
 . . .
 
 ::: {.callout-important}
-## Deliverable
-Build a standardized evaluation harness to benchmark any forecasting model.
+## The deliverable is a reusable evaluation harness
+A standard way to score any forecasting model, built and used today.
 :::
 
 # A. Scoring a point forecast {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
 
 Ch 5.8 · Point forecast metrics
 
-## Error metric summary
+## MASE is the only scale-free error metric
 
 Forecast error: $e_{T+h} = y_{T+h} - \hat{y}_{T+h|T}$
 
@@ -132,16 +132,16 @@ ax.plot(low["ds"], pred_lo, color=P.BLUE, lw=1.4, label="Forecast B (-0.15)")
 :::
 
 ::: {.incremental}
-- Forecast A: MAE = 2.00, MAPE = **184%**
+- Forecast A: MAE = 2.00, MAPE = **304%**
 - Forecast B: MAE = 0.15, MAPE = **23%**
 :::
 
 ## 3 reasons to avoid MAPE for model selection
 
 ::: {.incremental}
-1. **Undefined at zero** — explodes on intermittent / low-volume demand
-2. **Asymmetric** — penalizes over-forecasting far more than under-forecasting
-3. **Fails without a true zero** — invalid for temperature (°C)
+1. **Undefined at zero**: explodes on intermittent / low-volume demand
+2. **Asymmetric**: penalizes over-forecasting far more than under-forecasting
+3. **Fails without a true zero**: invalid for temperature (°C)
 :::
 
 . . .
@@ -248,7 +248,7 @@ P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, ax=ax,
 Each fold trains only on past data. **No fold ever peeks into its future**.
 :::
 
-## Key CV parameters
+## Three knobs control the CV: h, step_size and n_windows
 
 ```python
 # Cross-validation setup with StatsForecast on Victorian takeaway turnover (spine):
@@ -262,9 +262,9 @@ cv = sf.cross_validation(
 ```
 
 ::: {.incremental}
-- **`h`** — match the true operational planning horizon
-- **`step_size`** — frequency of forecast production
-- **`n_windows`** — number of independent test origins
+- **`h`**: match the true operational planning horizon
+- **`step_size`**: frequency of forecast production
+- **`n_windows`**: number of independent test origins
 :::
 
 ## Cross-validation results across 8 folds
@@ -314,7 +314,7 @@ for i, m in enumerate(MODELS):
 :::
 
 ::: {.notes}
-Notice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky/unlucky, but the average is robust.
+Notice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky or unlucky; the 8-fold average is what to trust.
 :::
 
 ## Interval coverage across all 8 folds
@@ -385,10 +385,10 @@ Always fit scalers, imputers, and feature engineering strictly on each fold's tr
 ## Evaluation pitfalls to avoid
 
 ::: {.incremental}
-- **Regime changes** — verify if old folds disagree with recent folds
-- **Underpowered sample** — evaluate over sufficient origins ($>50$ points)
-- **Overlapping folds** — beware overly narrow confidence intervals when `step_size < h`
-- **Data gaps** — verify timestamp continuity across all origins
+- **Regime changes**: verify if old folds disagree with recent folds
+- **Underpowered sample**: evaluate over sufficient origins ($>50$ points)
+- **Overlapping folds**: beware overly narrow confidence intervals when `step_size < h`
+- **Data gaps**: verify timestamp continuity across all origins
 :::
 
 ## $\rightarrow$ Exercise 2.5 {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
@@ -416,6 +416,14 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 . . .
 
+::: {.cardbox .navy}
+What is left on the table: the seasonal naive's residuals are emphatically **not**
+white noise (Ljung-Box p about 1e-240). That is Day 3's opening.
+:::
+
+. . .
+
 ::: {.cardbox .teal}
-You now have a robust evaluation harness. Ready for Day 3 models!
+You now have an evaluation harness and the first rows of the leaderboard. Every
+Day 3 model plugs into this harness and joins this leaderboard.
 :::
