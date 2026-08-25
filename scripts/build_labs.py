@@ -54,6 +54,12 @@ def build(cells, path_student, path_solution, title_note):
 
 
 SETUP = code("""
+import sys
+if "google.colab" in sys.modules:
+    !git clone -q https://github.com/NaifMersal/time-series-analysis-and-forecasting.git /content/ts-course
+    %cd /content/ts-course
+    !pip install -q -e .
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -1142,6 +1148,12 @@ runs offline.
 Then run the cell below.
 """),
     code("""
+import sys
+if "google.colab" in sys.modules:
+    !git clone -q https://github.com/NaifMersal/time-series-analysis-and-forecasting.git /content/ts-course
+    %cd /content/ts-course
+    !pip install -q -e .
+
 from coursekit import datasets as D
 from coursekit import plotting as P
 
