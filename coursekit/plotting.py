@@ -299,6 +299,49 @@ def subseries_plot(df, season_col, y="y", x="ds", title="", ylabel=None,
     return fig, axes
 
 
+def adjusted_plot(df, observed, adjusted, ax=None, title="", ylabel=""):
+    """Observed series in grey with a derived version drawn over it.
+
+    Used for seasonal adjustment, where the point is that the derived line is
+    the same series with one component subtracted, not a different series.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 3.4))
+    ax.plot(df["ds"], observed, color=GREY, lw=0.8, label="Observed")
+    ax.plot(df["ds"], adjusted, color=ORANGE, lw=1.0, label="Seasonally adjusted")
+    ax.set(title=title, ylabel=ylabel)
+    ax.margins(x=0.01)
+    ax.legend(frameon=False)
+    return ax
+
+
+def feature_scatter(feat, x="trend_strength", y="seasonal_strength", ax=None,
+                    title="", marks=(), xlabel=None, ylabel=None):
+    """One point per series in feature space, on the full [0, 1] square.
+
+    Both axes are pinned to the full range on purpose. Autoscaling makes a
+    feature that does not vary across the portfolio look like it separates the
+    portfolio, which is the opposite of what these plots are used to show.
+
+    ``marks`` is a sequence of ``(row, colour, label)``; each is drawn larger and
+    labelled with a leader line into empty space, so no label sits on the cloud.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9.5, 4.3))
+    ax.scatter(feat[x], feat[y], s=26, color=BLUE, alpha=0.55)
+    for off, (row, col, note) in zip(((-160, 26), (-160, -4), (-160, -34)), marks):
+        ax.scatter([row[x]], [row[y]], s=130, color=col, zorder=3)
+        ax.annotate(f"{note}\n{row['unique_id']}", (row[x], row[y]),
+                    textcoords="offset points", xytext=off, size=9, color=col,
+                    ha="left", va="center", zorder=4,
+                    arrowprops=dict(arrowstyle="-", color=col, lw=1.0,
+                                    shrinkA=2, shrinkB=7))
+    ax.set(xlabel=xlabel or "Trend strength ($F_T$)",
+           ylabel=ylabel or "Seasonal strength ($F_S$)",
+           title=title, xlim=(0, 1.05), ylim=(0, 1.05))
+    return ax
+
+
 def lag_plot_grid(y, lags=(1, 2, 3, 4, 6, 12), color_by=None, title="",
                   axes=None, show_corr=True, cmap="twilight", ncol=3):
     """Grid of y_t against y_{t-k}. ``color_by`` colours points by season.

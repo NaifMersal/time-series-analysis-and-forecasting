@@ -213,9 +213,9 @@ yt = boxcox(spine["y"].to_numpy(), lam)
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.8))
 P.plot_series(spine, ax=axes[0], title="Original: expanding swing",
               ylabel="turnover ($M)")
-axes[1].plot(spine["ds"], yt, color=P.ORANGE, lw=0.9)
-axes[1].set_title(rf"Box-Cox ($\lambda = {lam:.2f}$): constant swing")
-axes[1].set_ylabel("transformed turnover")
+P.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,
+              ylabel="transformed turnover",
+              title=rf"Box-Cox ($\lambda = {lam:.2f}$): constant swing")
 P.thin_xticks(axes, n=4)
 plt.show()
 ```
@@ -387,12 +387,10 @@ STL = Seasonal-Trend decomposition using Loess. Key parameters: period (must pro
 ```{python}
 #| fig-width: 9.5
 fig, ax = plt.subplots(figsize=(9.5, 4.0))
-ax.plot(spine["ds"], dcmp["transformed turnover"], color=P.GREY, lw=0.8, label="Observed")
-ax.plot(spine["ds"], dcmp["transformed turnover"] - dcmp["seasonal"], color=P.ORANGE,
-        lw=1.2, label="Seasonally adjusted")
-ax.set(title="Observed vs. seasonally adjusted ($y_t - S_t$)",
-       ylabel="transformed turnover")
-ax.legend(frameon=False)
+P.adjusted_plot(dcmp, dcmp["transformed turnover"],
+                dcmp["transformed turnover"] - dcmp["seasonal"], ax=ax,
+                title="Observed vs. seasonally adjusted ($y_t - S_t$)",
+                ylabel="transformed turnover")
 P.thin_xticks(ax, n=5)
 plt.show()
 ```
@@ -476,26 +474,13 @@ feat = (allr.groupby("unique_id")[["y"]]
              .reset_index())
 
 fig, ax = plt.subplots(figsize=(9.5, 4.3))
-ax.scatter(feat["trend_strength"], feat["seasonal_strength"], s=26,
-           color=P.BLUE, alpha=0.55)
 lo = feat.nsmallest(1, "seasonal_strength").iloc[0]
 hi = feat.nlargest(1, "seasonal_strength").iloc[0]
 mine = feat[feat["unique_id"] == D.SPINE_ID].iloc[0]
-marks = [(lo, P.PINK, "least seasonal", (-160, -34)),
-         (hi, P.ORANGE, "most seasonal", (-160, 26)),
-         (mine, P.BLACK, "the spine", (-160, -4))]
-for row, col, note, off in marks:
-    ax.scatter([row["trend_strength"]], [row["seasonal_strength"]], s=130,
-               color=col, zorder=3)
-    ax.annotate(f"{note}\n{row['unique_id']}",
-                (row["trend_strength"], row["seasonal_strength"]),
-                textcoords="offset points", xytext=off, size=9, color=col,
-                ha="left", va="center", zorder=4,
-                arrowprops=dict(arrowstyle="-", color=col, lw=1.0,
-                                shrinkA=2, shrinkB=7))
-ax.set(xlabel="Trend strength ($F_T$)", ylabel="Seasonal strength ($F_S$)",
-       title="148 Australian retail series, both axes on the full 0 to 1 scale",
-       xlim=(0, 1.05), ylim=(0, 1.05))
+P.feature_scatter(feat, ax=ax, marks=[(hi, P.ORANGE, "most seasonal"),
+                                      (mine, P.BLACK, "the spine"),
+                                      (lo, P.PINK, "least seasonal")],
+                  title="148 Australian retail series, both axes on the full 0 to 1 scale")
 plt.show()
 ```
 
