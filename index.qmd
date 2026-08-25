@@ -50,7 +50,9 @@ intervals and what each one spends · MAE, RMSE, MAPE and why MASE instead · sc
 because coverage cannot rank · rolling-origin cross-validation · leakage.
 
 Day 2 ends with an **evaluation harness** and the first rows of the course leaderboard,
-and with a model that wins on one window and loses over eight.
+and with a model that wins on one window and loses over eight. The floor to beat is a
+seasonal naive at MASE 1.18. Its residuals fail Ljung-Box at p about 1e-240, so there is
+signal in this series that nothing on Day 2 captured, and that is where Day 3 opens.
 
 ## Day 3: Models
 

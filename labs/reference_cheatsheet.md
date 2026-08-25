@@ -225,7 +225,7 @@ P.sim_paths_plot(train, fc["ds"], paths, n_show=8)   # the paths, not the band
 
 `resid_tail=N` draws only from the last `N` residuals. On a series whose error spread
 grows with its level, a shorter and more recent pool is the more honest one: coverage on
-the spine goes 62% (all 405 residuals) → about 87% (last 120), against a nominal 80%.
+the spine goes 61% (all 405 residuals) → about 87% (last 120), against a nominal 80%.
 
 **Conformal.** The calibration set is $h$-step forecast errors, collected by rolling the
 origin:
@@ -249,7 +249,7 @@ sf = StatsForecast(
 Needs $2h+1$ observations minimum. With 8 windows only 16 scores sit behind each horizon,
 so the band comes out visibly jittery.
 
-On the spine, 80% coverage over 8 rolling origins: Gaussian 77%, bootstrap 62%,
+On the spine, 80% coverage over 8 rolling origins: Gaussian 77%, bootstrap 61%,
 conformal 83%. None of the three assumptions actually holds here: pick knowing which one
 you are spending.
 
@@ -269,6 +269,18 @@ you are spending.
 $$\text{MASE}=\frac{\text{mean}(|e_t|)}{Q},\qquad
 Q=\frac{1}{T-m}\sum_{t=m+1}^{T}|y_t-y_{t-m}|$$
 
+**Why scale-free is not a slogan.** Re-measure the series in another unit,
+$y'_t = k y_t$ and $\hat{y}'_t = k \hat{y}_t$ with $k>0$. Then
+$\text{MAE}' = k\,\text{MAE}$, so MAE moves. But $Q' = kQ$ as well, so
+$\text{MASE}' = k\,\text{MAE}/kQ = \text{MASE}$, and the percentage error cancels
+$k$ the same way: $(k y_t - k \hat y_t)/k y_t = (y_t - \hat y_t)/y_t$.
+
+Cancelling $k$ is necessary, not sufficient, and MAPE is the proof: it passes
+that test and still cannot select a model. Add an offset, $y'_t = k y_t + c$,
+which is what °C to °F is. Every term in MASE is a difference so $c$ vanishes,
+while MAPE's denominator keeps it. That is the "needs a true zero" rule,
+derived rather than asserted.
+
 **MASE = 1** means as good as the in-sample seasonal naive. Below 1 is better; above 1 is
 worse, and you should say so.
 
@@ -286,10 +298,14 @@ the quantile (pinball) loss over a ladder of levels, so width and misses are pri
 together in one scale-free number. Lower is better.
 
 ```python
-QCOLS = ['lo-95', 'lo-80', 'lo-60', 'lo-40', 'lo-20',
-         'hi-20', 'hi-40', 'hi-60', 'hi-80', 'hi-95']
-QUANTILES = np.array([.025, .10, .20, .30, .40, .60, .70, .80, .90, .975])
-scaled_crps(cv, models={m: [f'{m}-{c}' for c in QCOLS]}, quantiles=QUANTILES)
+from coursekit import scoring          # QCOLS and QUANTILES, derived from LEVELS
+scaled_crps(cv, models={m: scoring.qcols(m)}, quantiles=scoring.QUANTILES)
+
+# what they are, if you want to see them:
+#   QCOLS     lo-95 lo-80 lo-60 lo-40 lo-20 hi-20 hi-40 hi-60 hi-80 hi-95
+#   QUANTILES .025  .10   .20   .30   .40   .60   .70   .80   .90   .975
+# The two lists MUST stay in step. Out of step, scaled_crps returns a number
+# that is wrong and still positive, and nothing downstream catches it.
 ```
 
 ---
@@ -305,7 +321,20 @@ cv = sf.cross_validation(df=series, h=12, step_size=12, n_windows=8,
 - `step_size`, smaller gives more folds, but they overlap
 - `n_windows`, more folds, less noise, less training data in the first fold
 
-Score each fold against **its own** training data. No fold ever sees its own future.
+Score each fold against **its own** training data. No fold ever sees its own future:
+
+```python
+per_fold = pd.DataFrame([
+    mase(g.drop(columns=['cutoff']), models=MODELS, seasonality=12,
+         train_df=series[series['ds'] <= cut])[MODELS].iloc[0]
+    for cut, g in cv.groupby('cutoff')
+])
+per_fold.mean()          # the number to report
+per_fold.min(), per_fold.max()   # with its spread
+```
+
+`coursekit.scoring.score_cv(cv, model, series)` is that loop packaged, and it
+returns `mase` / `rmsse` / `crps` / `coverage_80` ready for `lb.record(...)`.
 
 Expect the **ranking** to be broadly stable and the **number** not to be: on our spine the
 seasonal naive scored between 0.71 and 1.90 MASE depending on the fold. Report the

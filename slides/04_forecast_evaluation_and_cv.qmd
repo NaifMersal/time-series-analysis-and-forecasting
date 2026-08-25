@@ -98,19 +98,62 @@ The point of the harness is that adding a model to it is a few lines.
 
 Ch 5.8 · Point forecast metrics
 
-## MASE is the only scale-free error metric
+## Only a scaled metric can compare across series
 
 Forecast error: $e_{T+h} = y_{T+h} - \hat{y}_{T+h|T}$
 
 | Metric | Property | Limitation |
 |---|---|---|
-| **MAE** | Easy to interpret | Scale-dependent (cannot compare across series) |
-| **RMSE** | Penalizes large errors | Scale-dependent |
-| **MAPE** | Percentage error | Explodes near zero; asymmetric |
-| **MASE** | **Scale-free** (relative to baseline) | Requires seasonal period |
+| **MAE** | Easy to interpret | Scale-dependent: cannot be pooled across series |
+| **RMSE** | Punishes large errors | Scale-dependent |
+| **MAPE** | Unit-free | Explodes near zero, and asymmetric |
+| **MASE** | **Scaled**: MAE over the benchmark's | Needs the seasonal period |
+| **RMSSE** | **Scaled**: RMSE over the benchmark's | Same, and still punishes outliers |
 
 ::: {.notes}
 MAE and RMSE work well within a single series. To compare across different products or series, use MASE.
+:::
+
+## Rescaling the data moves MAE but not MASE
+
+Same series, new unit, with $k > 0$: $y'_t = k\,y_t$ and $\hat{y}'_t = k\,\hat{y}_t$.
+
+. . .
+
+$$\text{MAE}' = \frac{1}{n}\sum \lvert k y_t - k\hat{y}_t \rvert = k\,\text{MAE}
+\quad\text{(moves with the unit)}$$
+
+. . .
+
+$$PE'_t = \frac{k y_t - k\hat{y}_t}{k y_t} = PE_t
+\qquad
+\text{MASE}' = \frac{k\,\text{MAE}}{k\,Q} = \text{MASE}$$
+
+. . .
+
+Now shift as well as scale, $y'_t = k y_t + c$, which is what °C to °F is.
+Differences kill $c$, so MASE holds. MAPE's denominator keeps it.
+
+::: {.cardbox}
+MAPE cancelled $k$ and is still the worst metric in this deck. Cancelling is necessary, not sufficient.
+:::
+
+::: {.notes}
+Do this one at the board pace, not the slide pace. Ask what happens to each
+metric if the finance team reports the same series in thousands instead of
+dollars. Everyone knows MAE has to move. Then substitute.
+
+MAE picks up the k and moves with the unit. MAPE cancels it, top and bottom.
+MASE cancels it too, and the reason is worth saying out loud: Q is built from
+the same data, so the denominator scales by exactly the same k as the numerator.
+That cancellation is the licence for what Day 1 did when it pooled 148 retail
+series with different turnovers into one ranking.
+
+Then the sting. MAPE passed the test and is still the worst metric in this deck,
+so cancelling k is necessary and not sufficient. Add an offset and the two part
+company: every term in MASE is a difference, so c disappears, but MAPE divides
+by a level and the c rides along. That is the temperature objection, three
+slides early, and now it is a consequence rather than an assertion.
 :::
 
 ## MAPE explodes when the actual is near zero
@@ -164,7 +207,25 @@ not the forecast.
 ::: {.incremental}
 1. **Undefined at zero**: explodes on intermittent / low-volume demand
 2. **Asymmetric**: penalizes over-forecasting far more than under-forecasting
-3. **Fails without a true zero**: invalid for temperature (°C)
+3. **Fails without a true zero**: the offset never cancels, so °C breaks it
+:::
+
+::: {.notes}
+The second one surprises people, so make it concrete. Forecast 100 when the
+actual is 50 and MAPE charges you 100%. Forecast 50 when the actual is 100 and
+it charges you 50%. The same 50-unit error, twice the penalty for being high. A
+team that selects on MAPE learns to under-forecast, and in an inventory setting
+that means stocking out.
+
+The third is the one people argue with, and the rescaling slide already
+answered it. MAPE needs a meaningful zero to divide by, and 0 degrees Celsius is
+not "no temperature", it is a point on a scale somebody chose. Convert to
+Fahrenheit and the offset survives in the denominator, so the same forecast
+scores differently in the two units. MASE, built from differences, does not
+care.
+
+None of this makes MAPE useless. It reports well to a business audience. It just
+cannot be the thing you select a model on.
 :::
 
 . . .
@@ -177,7 +238,10 @@ Report MAPE to executives if required, but **never optimize models using MAPE**.
 
 Error divided by the in-sample Seasonal Naive error ($Q$):
 
-$$\text{MASE} = \frac{\text{MAE}}{Q}$$
+$$\text{MASE} = \frac{\text{MAE}}{Q},
+\qquad Q = \frac{1}{T-m}\sum_{t=m+1}^{T} \lvert y_t - y_{t-m} \rvert$$
+
+$Q$ is measured in the units of the data, which is what cancelled the $k$.
 
 . . .
 
@@ -214,13 +278,17 @@ print(scores.round(2).to_string())
 
 ::: {.cardbox .coral}
 On **this window** the STL route wins on every metric ($\text{MASE} = 0.70$), with the
-seasonal naive second at $1.11$. Hold that thought for two slides.
+seasonal naive second at $1.11$. Hold that thought until part B.
 :::
 
 ::: {.notes}
 Resist declaring a winner here. The seasonal naive's MASE > 1.0 because forecasting
-24 months ahead is harder than in-sample 1-step naive errors. The STL route's 0.70
-is the number that gets a model promoted on one lucky year - segment 5 takes it back.
+24 months ahead is harder than the in-sample one-step naive errors in the
+denominator. The STL route's 0.70 is the number that gets a model promoted on one
+lucky year, and part B of this deck takes it back.
+
+RMSSE is the same idea as MASE with squared errors, which is why the two columns
+agree on the ranking here and why both end up on the leaderboard.
 :::
 
 # B. One split is not evidence {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
@@ -256,17 +324,17 @@ objection, same fix: more origins.
 
 ### Plot
 ```{python}
-#| fig-width: 10
-P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, figsize=(10, 4.4),
-               title="Expanding training window across origins")
+#| fig-width: 9
+P.cv_staircase(n_obs=144, initial=48, horizon=12, step=12, figsize=(9, 3.9),
+               title="Eight origins, one year forecast each")
 plt.show()
 ```
 
 ### Code
 ```python
-# Diagram: rolling-origin cross-validation splits (expanding window)
-# 96 total periods, initial train size 48, horizon 12, step size 12
-P.cv_staircase(n_obs=96, initial=48, horizon=12, step=12)
+# Diagram: the eight folds this deck scores on, drawn to scale.
+# 144 periods, initial train 48, horizon 12, step 12 -> 8 origins.
+P.cv_staircase(n_obs=144, initial=48, horizon=12, step=12)
 ```
 
 :::
@@ -287,7 +355,7 @@ training set, which is leakage, and the last slide of this deck comes back to it
 ## Three knobs control the CV: h, step_size and n_windows
 
 ```python
-# Cross-validation setup with StatsForecast on Victorian takeaway turnover (spine):
+# Rolling-origin CV on the spine:
 cv = sf.cross_validation(
     df=spine,
     h=12,          # Forecast horizon matched to business need
@@ -319,8 +387,10 @@ shorter first training set. Eight is what this series affords.
 ```{python}
 #| fig-width: 10
 single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
-P.single_vs_cv_plot(single, per_window[MODELS], labels=LABELS, ylim=(0, 15),
-                    figsize=(10, 3.5), ylabel="MASE",
+SHOWN = ["Naive", "SeasonalNaive", "RWD", "MSTL"]
+P.single_vs_cv_plot(single, per_window[SHOWN], labels=LABELS, ylim=(0, 4.2),
+                    figsize=(10, 3.4), ylabel="MASE",
+                    note="the mean model is off the top of this axis at 12.25",
                     titles=("Stable ranking, except at the top",
                             "Score distribution across folds"))
 plt.show()
@@ -328,10 +398,15 @@ plt.show()
 
 ### Code
 ```python
-# Dataset: Victorian takeaway food turnover (cv = sf.cross_validation(spine, n_windows=8))
-# per_window: one row per fold, one column per model.
-single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
+# Score EVERY fold separately, each against its own training history: a fold's
+# MASE denominator must come from data that fold was allowed to see.
+per_window = pd.DataFrame([
+    mase(g.drop(columns=["cutoff"]), models=MODELS, seasonality=12,
+         train_df=spine[spine["ds"] <= cut])[MODELS].iloc[0]
+    for cut, g in cv.groupby("cutoff")
+])
 
+single = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]
 P.single_vs_cv_plot(single, per_window[MODELS], labels=LABELS)
 ```
 
@@ -462,13 +537,13 @@ right, and CRPS is what prices that trade in one number.
 digraph G {
     bgcolor="transparent";
     rankdir=LR;
-    node [shape=box style="rounded,filled" fontname="Noto Sans" fontsize=12
+    node [shape=box style="rounded,filled" fontsize=12
           color="#1C355E" penwidth=2 margin="0.16,0.09"];
-    edge [fontname="Noto Sans" fontsize=11 color="#5b6678" penwidth=1.6];
+    edge [fontsize=11 color="#5b6678" penwidth=1.6];
 
-    A [label="Scaling / Normalizing\non the full series" fillcolor="#E96852" fontcolor="white"];
-    B [label="Centered rolling\nwindow features" fillcolor="#E96852" fontcolor="white"];
-    C [label="Tuning hyperparameters\non the test set" fillcolor="#E96852" fontcolor="white"];
+    A [label="Scaling or normalising\non the full series" fillcolor="#FF7A5C" fontcolor="white"];
+    B [label="Centred rolling\nwindow features" fillcolor="#FF7A5C" fontcolor="white"];
+    C [label="Tuning hyperparameters\non the test set" fillcolor="#FF7A5C" fontcolor="white"];
     L [label="Data Leakage\nOver-optimistic CV,\npoor production" fillcolor="#1C355E" fontcolor="white"];
 
     A -> L; B -> L; C -> L;
@@ -486,8 +561,8 @@ test score improved. The next slide runs that one.
 
 ```{python}
 #| echo: true
-honest = per_window["SeasonalNaive"].mean()        # one rule, fixed in advance
-oracle = per_window[MODELS].min(axis=1).mean()     # best model per fold
+honest = per_window["SeasonalNaive"].mean()      # rule fixed in advance
+oracle = per_window[MODELS].min(axis=1).mean()   # best model per fold
 
 print(f"seasonal naive, every fold  : MASE {honest:.2f}")
 print(f"best model, chosen per fold : MASE {oracle:.2f}")
@@ -536,39 +611,33 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 | | | |
 |---|---|---|
-| **2.4** | Metrics and the MAPE trap | 12 min |
-| **2.5** | Cross-validate, and build the leaderboard | 17 min |
+| **2.4** | Scoring, and the metric that lies | 10 min |
+| **2.5** | The harness | 19 min |
 
 . . .
 
 *29 minutes. The notebook carries the instructions; work down it in order.*
 
 ::: {.cardbox .teal}
-Same notebook as Lab C. Pick up at Exercise 2.4.
+Same notebook as Lab C, pick up at Exercise 2.4. **2.5 writes
+`labs/leaderboard.csv`**, which every Day 3 model plugs into. Do not skip it.
 :::
 
 ## Day 2 Summary {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
 
 ::: {.incremental}
-- Always start with the **4 baseline models**, then the **decomposition route**
-- Diagnose **residuals** (uncorrelated, zero-mean)
-- Report **prediction intervals**, and know which assumption each one spends
-- Evaluate with **MASE**, **scaled CRPS** and **Rolling-Origin CV**
+- Start with the **four benchmarks**, then the **decomposition route**
+- Diagnose **residuals**: uncorrelated, zero mean
+- Report **intervals**, and know which assumption each one spends
+- Score with **MASE**, **scaled CRPS**, over **rolling origins**
 - One window picks winners it cannot defend
 :::
 
 . . .
 
 ::: {.cardbox .navy}
-What is left on the table: the seasonal naive's residuals are emphatically **not**
-white noise (Ljung-Box p about 1e-240). That is Day 3's opening.
-:::
-
-. . .
-
-::: {.cardbox .teal}
-You now have an evaluation harness and the first rows of the leaderboard. Every
-Day 3 model plugs into this harness and joins this leaderboard.
+**Seasonal naive, MASE 1.18, scaled CRPS 0.031.** That is the number to beat.
+And its residuals are not white noise, so it is beatable. Day 3 starts there.
 :::
 
 ::: {.notes}

@@ -695,7 +695,7 @@ Runs after the third deck. Exercises 2.1 to 2.3, 46 minutes.
 ---
 # Exercise 2.1 - The benchmark floor
 
-*13 minutes.*
+*15 minutes.*
 
 Fit all four benchmarks and look at them. Everything for the rest of the course
 is measured against these.
@@ -731,14 +731,8 @@ fc.head()
 # TODO: plot the last 6 years of training data, the four forecasts, and the
 #       held-out actuals on one chart.
 """, """
-fig, ax = plt.subplots(figsize=(10, 4.6))
-hist = train.tail(72)
-ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="observed")
-ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.4, ls="--", label="actual")
-for m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):
-    ax.plot(fc["ds"], fc[m], lw=1.7, color=c, label=LABELS[m])
-ax.set(title="Four benchmarks, 24 months ahead")
-ax.legend(frameon=False, ncols=3)
+P.forecast_overlay(train, fc, MODELS, labels=LABELS, actual=test,
+                   history_tail=72, title="Four benchmarks, 24 months ahead")
 plt.show()
 """),
     md("""
@@ -793,14 +787,11 @@ print(f"{len(MODELS)} models: {', '.join(LABELS[m] for m in MODELS)}")
 # TODO: plot the STL route against the seasonal naive - the model it has to beat
 #       - over the holdout.
 """, """
-fig, ax = plt.subplots(figsize=(10, 4.6))
-hist = train.tail(60)
-ax.plot(hist["ds"], hist["y"], color=P.BLACK, lw=1.1, label="observed")
-ax.plot(test["ds"], test["y"], color=P.GREY, lw=1.6, ls="--", label="actual")
-ax.plot(fc["ds"], fc["SeasonalNaive"], color=P.ORANGE, lw=1.7, label="seasonal naive")
-ax.plot(fc["ds"], fc["MSTL"], color=P.BLUE, lw=1.7, label="STL + drift")
-ax.set(title="The decomposition route vs. the floor")
-ax.legend(frameon=False, ncols=4)
+P.forecast_overlay(train, fc, ["SeasonalNaive", "MSTL"],
+                   labels={"SeasonalNaive": "seasonal naive",
+                           "MSTL": "STL + drift"},
+                   colors=[P.ORANGE, P.BLUE], actual=test, history_tail=60,
+                   ncols=4, title="The decomposition route vs. the floor")
 plt.show()
 """),
     md("""
@@ -860,7 +851,7 @@ print("Back-transforming a forecast gives the MEDIAN of the forecast "
 ---
 # Exercise 2.2 - Are the residuals white noise?
 
-*13 minutes.*
+*10 minutes.*
 
 If a model's residuals still carry structure, the model has not finished.
 """),
@@ -937,7 +928,7 @@ shape has changed", the variance says "transform first".
 ---
 # Exercise 2.3 - Intervals, and how much to believe them
 
-*20 minutes.*
+*21 minutes.*
 
 Three ways to draw an interval around the same point forecast, each spending a
 different assumption: **Gaussian** (part a), **bootstrap** (part b) and
@@ -1266,7 +1257,7 @@ Runs after the fourth deck. Exercises 2.4 and 2.5, 29 minutes.
 ---
 # Exercise 2.4 - Scoring, and the metric that lies
 
-*12 minutes.*
+*10 minutes.*
 """),
     code("""
 # TODO: build a table of MAE, RMSE, MAPE, MASE and RMSSE for all five models
@@ -1344,7 +1335,7 @@ is the exact move Exercise 2.5 is about to take apart.
 ---
 # Exercise 2.5 - The harness
 
-*17 minutes.*
+*19 minutes.*
 
 This is the exercise the rest of the course rests on. You are building the
 evaluation harness that every Day 3 model gets plugged into.
@@ -1427,6 +1418,11 @@ window the STL route beat the seasonal naive on MASE, 0.70 to 1.11. What does
 the table above say, and which of the two numbers would you put in front of a
 stakeholder?
 
+**And go back to Exercise 2.3.** You measured the seasonal naive's 80% coverage
+on a single 24-month window there. Read that number off your own output, put it
+next to the `coverage_80` you just computed over 96 points, and account for the
+gap.
+
 <!--STUDENT-->
 *Your answer:*
 
@@ -1440,6 +1436,14 @@ distribution wide enough to contain both answers.
 The number to report is the eight-fold one, with its spread. The single-window
 0.70 is exactly the kind of result that gets a model promoted into production on
 the strength of a lucky year.
+
+*Coverage.* On the single window you measured about **96%** (23 of 24 points
+inside). Over 96 points it is **77%**. Nothing about the interval changed
+between those two numbers - the same model, the same formula. What changed is
+how many points the rate was measured on. With n = 24 the standard error of a
+coverage estimate is about 8 points, so a genuine 77% band can easily read 96%
+on one window, which is exactly what happened. A rate needs a denominator big
+enough to be a rate.
 
 Note also that the STL route earns its worse CRPS with *narrower* intervals
 (about 40 units wide against the seasonal naive's 49) and worse coverage
@@ -1491,12 +1495,51 @@ print(f"best {sn.min():.2f}, worst {sn.max():.2f} - a {sn.max() / sn.min():.1f}x
 print("\\nThe RANKING was identical in every fold. The NUMBER was not. Report "
       "the ranking with confidence and the number with a spread.")
 """),
+    md("""
+### Stretch - price the leakage yourself
+
+You have `per_fold`. Score two policies on it. The honest one picks the seasonal
+naive once, in advance, and lives with it in every fold. The leaky one picks
+whichever model happened to win *that* fold, which is a choice nobody could have
+made before seeing the answer.
+"""),
+    code("""
+# Stretch - your code here. What is the gap worth, as a percentage?
+""", """
+honest = per_fold["SeasonalNaive"].mean()
+oracle = per_fold.min(axis=1).mean()
+
+print(f"one rule, fixed in advance : MASE {honest:.2f}")
+print(f"best model chosen per fold : MASE {oracle:.2f}")
+print(f"discount bought by peeking : {1 - oracle / honest:.0%}")
+print("\\nwinner per fold:", "  ".join(per_fold.idxmin(axis=1)))
+print("\\nThere is no rule you could have written in advance that makes those "
+      "swaps. That is the definition of leakage: a number produced by a "
+      "decision that was not available at forecast time.")
+"""),
 
     md("""
 Adding a model to this harness is meant to be a few lines, and it is: build the
 `StatsForecast` object, call `cross_validation` with the same `h`, `step_size`,
 `n_windows` and `LEVELS`, score it the way the cell above scores the others, and
 call `lb.record(...)`. Nothing else in the notebook changes.
+
+You just wrote that scoring loop by hand, which is the point of the exercise.
+The same thing lives packaged in `coursekit.scoring`, so Day 3 does not have to
+rebuild it:
+
+```python
+from coursekit import scoring, leaderboard as lb
+
+cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                         level=scoring.LEVELS)
+lb.record("AutoETS", day=3, **scoring.score_cv(cv, "AutoETS", spine))
+```
+
+`scoring.QCOLS` and `scoring.QUANTILES` live there too, and they are derived
+from `LEVELS` rather than typed out. That matters more than it looks: get the
+two out of step and `scaled_crps` returns a number that is wrong and still
+positive, which nothing downstream would catch.
 
 One wrinkle worth knowing before Day 3. Not every model produces prediction
 intervals on its own - `WindowAverage` raises *"You must pass

@@ -118,9 +118,10 @@ def as_fan(model, frame=fc):
 Day 1 found the spine's signal is seasonality. Day 2 builds the floor a model must beat, and the way to prove a forecast is real.
 
 ::: {.incremental}
-- **Four baseline models**: the minimum floor any model must beat
-- **Residual diagnostics**: testing whether the model captured all signal
-- **Prediction intervals**: quantifying real forecast uncertainty
+- **Four baseline models**, plus the decomposition route: the floor to beat
+- **Residual diagnostics**: has the model taken all the signal?
+- **Prediction intervals**: the Gaussian formula, and why it fails here
+- **Two repairs**: resample the errors, then stop assuming a distribution
 :::
 
 . . .
@@ -240,14 +241,14 @@ comparable across series.
 Ch 5.7 · You already built this on Day 1
 
 ```{dot}
-//| fig-width: 11
+//| fig-width: 9
 digraph G {
     bgcolor="transparent";
     rankdir=LR;
     ranksep=0.5; nodesep=0.25;
-    node [shape=box style="rounded,filled" fontname="Noto Sans" fontsize=13
+    node [shape=box style="rounded,filled" fontsize=13
           color="#1C355E" penwidth=2 margin="0.18,0.10"];
-    edge [fontname="Noto Sans" fontsize=11 color="#5b6678" penwidth=1.6];
+    edge [fontsize=11 color="#5b6678" penwidth=1.6];
 
     Y  [label="y_t" fillcolor="#1C355E" fontcolor="white"];
     S  [label="STL" fillcolor="#1C355E" fontcolor="white"];
@@ -290,7 +291,7 @@ P.forecast_overlay(
     train, both, ["SeasonalNaive", "MSTL"], colors=[P.ORANGE, P.BLUE],
     labels={"SeasonalNaive": f"Seasonal naive  (MASE {SN_MASE:.2f})",
             "MSTL": f"STL + drift  (MASE {STL_MASE:.2f})"},
-    actual=test, history_tail=60, ncols=2, figsize=(10, 3.9),
+    actual=test, history_tail=48, ncols=2, figsize=(10, 3.5),
     title="Spine: the floor, and the decomposition route")
 plt.show()
 ```
@@ -315,9 +316,9 @@ The seasonal naive repeats last year's **level**; STL lets drift carry the growt
 :::
 
 ::: {.notes}
-Do not let this land as "STL wins". It wins on THIS window. Segment 5 scores it
-over eight origins and the ordering flips. Flag that now, so the reversal reads
-as the lesson rather than as a contradiction.
+Do not let this land as "STL wins". It wins on THIS window. Lecture 2 scores it
+over eight rolling origins and the ordering flips. Flag that now, so the
+reversal reads as the lesson rather than as a contradiction.
 :::
 
 # B. Residuals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
@@ -388,26 +389,34 @@ column.
 
 ### Plot
 ```{python}
-#| fig-width: 9.5
+#| fig-width: 8.6
 resid = fv["y"] - fv["SeasonalNaive"]
-fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
-                                   title="Seasonal Naive: Residual Diagnostics")
+P.residual_diagnostics(resid, ds=fv["ds"], figsize=(8.6, 3.5),
+                       title="Seasonal naive: residual diagnostics")
 plt.show()
 ```
 
 ### Code
 ```python
-# Dataset: Victorian retail takeaway turnover in-sample fitted values (fv = train merged with StatsForecast fitted values)
+# fv = train merged with StatsForecast fitted values (sf.forecast(..., fitted=True))
 resid = fv["y"] - fv["SeasonalNaive"]
-fig, axes = P.residual_diagnostics(resid, ds=fv["ds"],
-                                   title="Seasonal Naive: Residual Diagnostics")
+P.residual_diagnostics(resid, ds=fv["ds"])
 ```
 
 :::
 
+```{python}
+#| echo: false
+r = resid.dropna()
+print(f"mean residual {r.mean():+.2f}   "
+      f"SD, first 10 years {r.head(120).std():.1f}   "
+      f"SD, last 10 years {r.tail(120).std():.1f}")
+```
+
 ::: {.incremental}
-- Residuals show expanding variance over time
-- Autocorrelation spikes remain outside bounds $\rightarrow$ Signal left uncaptured
+- **Zero mean** fails: the forecast is biased high by about 8 units
+- **Constant variance** fails: the spread grows with the level
+- **Uncorrelated** fails: ACF spikes stay outside the bounds, so signal is left
 :::
 
 ::: {.notes}
@@ -432,6 +441,13 @@ $$Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}$$
 - **Large $p$-value ($p \ge 0.05$)** $\rightarrow$ Residuals are indistinguishable from white noise
 :::
 
+```{python}
+#| echo: true
+r = resid.dropna()                      # no fitted value for the first m months
+lb_p = acorr_ljungbox(r, lags=[24], return_df=True)["lb_pvalue"].iloc[0]
+print(f"Seasonal naive residuals, {len(r)} obs, lag 24:  p = {lb_p:.1e}")
+```
+
 ::: {.notes}
 Rule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data.
 :::
@@ -440,25 +456,27 @@ Rule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data.
 
 Ch 5.5 · Quantifying uncertainty
 
-## Point forecasts vs. Range forecasts
+## A range is what a decision can act on
 
 :::: {.columns}
 ::: {.column width="50%"}
 ::: {.cardbox}
-[Point Forecast]{.card-title}
+[Point forecast]{.card-title}
 
 *"Demand will be 340 units."*
+
 - Guaranteed to be wrong
-- Hides operational risk
+- Hides the operational risk
 :::
 :::
 ::: {.column width="50%"}
 ::: {.cardbox .teal}
-[Interval Forecast]{.card-title}
+[Interval forecast]{.card-title}
 
-*"Demand: [300, 380] with 80% confidence."*
-- Actionable for safety stock
-- Slices uncertainty honestly
+*"Demand: [300, 380], 80% of the time."*
+
+- Sizes the safety stock
+- States the risk out loud
 :::
 :::
 ::::
@@ -558,6 +576,8 @@ P.interval_width_plot(fc, model="SeasonalNaive",
                       season_length=12, level=80, figsize=(9.5, 3.7),
                       titles=("Seasonal naive: a staircase, not a curve",
                               "Width growth by benchmark"))
+# Colours match every other figure in the deck: the seasonal naive is orange in
+# both panels, and the two reference curves are annotations, so they are neutral.
 plt.show()
 ```
 
@@ -600,7 +620,7 @@ normality. Conformal buys back the distribution entirely. Nothing in this course
 buys back independence.
 :::
 
-## Two of the three fail on this series
+## The spread grew eightfold and the tails are fat
 
 ::: {.panel-tabset}
 
@@ -636,9 +656,10 @@ np.quantile(r, [0.1, 0.9])                    # the bootstrap's cut points
 :::
 
 ::: {.notes}
-Left panel: the rolling standard deviation climbs from about 8 to about 25, and
-the dashed line is the single pooled sigma-hat that the closed-form interval
-uses for the whole series. One number for a spread that tripled.
+Left panel: a 36-month rolling standard deviation runs from about 4 in the
+mid-1980s to about 34 at its peak, and the dashed line is the single pooled
+sigma-hat of 17.6 that the closed-form interval uses for the whole series. One
+number, for a spread that moved by a factor of eight.
 
 Right panel: the blue lines are the empirical central 80%, the dashed orange are
 where the normal assumption puts them. The normal cuts sit further out, which is
@@ -649,6 +670,12 @@ for a shape the data does not have.
 # D. Bootstrapped intervals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
 
 Ch 5.5 · Dropping the normality assumption
+
+::: {.notes}
+Roughly 55 minutes in, and the real break is still 40 minutes away at the deck
+boundary. Take two minutes here and let the room stand up. Segments D and E are
+the densest stretch of Day 2, and they land better on a room that has moved.
+:::
 
 ## Resample the errors you actually saw
 
@@ -703,7 +730,7 @@ moves coverage from about 62% to about 87%.
 ```{python}
 #| fig-width: 10
 P.sim_paths_plot(train, fc["ds"], boot_paths, n_show=8, history_tail=60,
-                 actual=test, figsize=(10, 3.8),
+                 actual=test, figsize=(10, 3.4),
                  title="Eight of the 5000 simulated sample paths")
 plt.show()
 ```
@@ -778,7 +805,8 @@ tighter, and the fat tails put the 95% back where the normal had it.
 
 # E. Conformal prediction {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
 
-Ch 5.5 · Distribution-free intervals
+Ch 5.5 · Distribution-free intervals, and the only method that
+works on a model with no formula
 
 ## Name the error first: $e_{t+h|t}$
 
@@ -856,10 +884,8 @@ values.
 ## Exchangeability, not i.i.d.
 
 ::: {.cardbox .teal}
-The residual bootstrap assumes i.i.d. residuals from an empirical distribution
-$\hat{F}$. **Split conformal prediction replaces i.i.d. with a slightly weaker
-property: exchangeability**. The past $h$-step errors are representative of the
-future ones, and their *order* carries no information.
+Conformal prediction replaces i.i.d. with **exchangeability**: the past
+$h$-step errors carry no information in their *order*.
 :::
 
 . . .
@@ -871,6 +897,22 @@ $$\hat{y}_{T+h|T} \pm Q_{1-\alpha}\!\left(\left|e_{t+h|t}\right|\right)$$
 ::: {.incremental}
 - One quantile **per horizon $h$**: widening with $h$ is *measured*, not assumed
 - No $\hat{\sigma}$, no $c$, no assumed distribution: hence *distribution-free*
+:::
+
+::: {.notes}
+This is the slide that earns the segment, so do not rush it.
+
+Exchangeability is weaker than i.i.d., and the difference is worth spelling out.
+I.i.d. says every error is an independent draw from one fixed distribution.
+Exchangeability says only this: if you shuffled the order of the errors you
+collected, you would not be able to tell. That permits dependence i.i.d.
+forbids, which matters here, because the bootstrap's i.i.d. assumption is the
+one this series breaks.
+
+Then the payoff. Because the interval is an empirical quantile of errors the
+model actually made, there is no sigma-hat to estimate and no c to look up, and
+nothing anywhere assumes a shape. That is why this method works on a model whose
+interval has no formula, which is most of what Day 3 covers.
 :::
 
 ## Where the calibration set comes from
@@ -971,17 +1013,6 @@ P.interval_bounds_plot(train, fc["ds"], BANDS, actual=test)
 
 :::
 
-::: {.notes}
-One point forecast, three bands. Left panel says they are not the same object;
-right panel says how they differ in shape. Gaussian is the staircase, bootstrap
-is narrow, conformal is jittery.
-
-Resist ranking them from this figure. That is the next slide, and the answer is
-that 24 points cannot rank them.
-:::
-
-## Each method buys back a different assumption
-
 ```{python}
 #| echo: false
 rows = []
@@ -998,6 +1029,18 @@ print(pd.DataFrame(rows).to_string(index=False,
                   "coverage (24 pts)": "{:.0%}".format}))
 ```
 
+::: {.notes}
+One point forecast, three bands. Left panel says they are not the same object;
+right panel says how they differ in shape. Gaussian is the staircase, bootstrap
+is narrow, conformal is jittery.
+
+The printed numbers are the trap, so read them out and then say plainly where
+they came from: 24 points. The next slide is the arithmetic on why that cannot
+separate three methods.
+:::
+
+## Each method buys back a different assumption
+
 | Method | Assumes | Buys you |
 |---|---|---|
 | Gaussian | uncorrelated · constant variance · **normal** | a closed form, one line of code |
@@ -1005,17 +1048,17 @@ print(pd.DataFrame(rows).to_string(index=False,
 | Conformal | **exchangeable** $h$-step errors | no assumed distribution at all |
 
 ::: {.callout-important}
-Those coverage numbers come from **24 points**. That is not enough to separate
-them, which is the next slide.
+Pick by which assumption you can defend, not by the widths on the last slide.
 :::
 
 ::: {.notes}
-The table is the takeaway; the printed numbers above it are the trap. Read the
-coverage column out loud and then say plainly that those numbers came from 24
-points and cannot separate three methods.
+The table is the takeaway. Each row is a trade, and the honest question when
+choosing is not "which is most accurate" but "which of these three assumptions
+am I willing to make about this series".
 
 If the room wants a default: conformal, because it assumes least, and because it
-is the one that generalises to models that have no formula.
+is the one that generalises to models that have no formula. That is also why it
+is the one Day 3 will lean on.
 :::
 
 ## Why one test window is misleading
@@ -1042,7 +1085,7 @@ print("80% coverage over 96 scored points:   "
 ```
 
 ::: {.notes}
-The bootstrap's 62% is the identically-distributed assumption being punished:
+The bootstrap's 61% is the identically-distributed assumption being punished:
 pooling 1980s residuals (SD about 8) with 2010s residuals (SD 25) makes the draw pool
 far too tight for a forecast issued in 2016. Restricting the pool to the last
 120 residuals takes it to about 87%; the last 60 push it to 91%. The assumption is the knob, and the lab turns it.
@@ -1054,16 +1097,17 @@ Open `labs/02_day2_toolbox_and_evaluation.ipynb`
 
 | | | |
 |---|---|---|
-| **2.1** | The benchmark floor | 13 min |
-| **2.2** | Are the residuals white noise? | 13 min |
-| **2.3** | Intervals, and how much to believe them | 20 min |
+| **2.1** | The benchmark floor | 15 min |
+| **2.2** | Are the residuals white noise? | 10 min |
+| **2.3** | Intervals, and how much to believe them | 21 min |
 
 . . .
 
 *46 minutes. The notebook carries the instructions; work down it in order.*
 
 ::: {.cardbox .teal}
-2.3 is the long one. Get to it with time to spare.
+2.3 is the long one and it has three parts. If time runs short, part c is the
+one to leave for later.
 :::
 
 ## Part 1 Recap {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}

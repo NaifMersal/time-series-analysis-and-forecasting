@@ -516,6 +516,14 @@ $callout-color-success: $sdaia-green;
   h1, h2, h3, h4, p, li, span, strong {
     color: #ffffff !important;
   }
+
+  /* The .teal / .purple / .navy modifiers have to be restated here: the rule
+     above sets border-left-color with !important, so on a dark slide every
+     cardbox came out coral no matter which modifier it carried. Navy is
+     invisible against a navy gradient, so it borrows the light rule instead. */
+  &.teal   { border-left-color: var(--sdaia-teal-on-dark) !important; }
+  &.purple { border-left-color: var(--sdaia-purple-on-dark) !important; }
+  &.navy   { border-left-color: rgba(255, 255, 255, 0.55) !important; }
 }
 
 .reveal .slides section.sdaia-dark:not(:has(> section)) .callout,

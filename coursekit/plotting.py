@@ -463,10 +463,11 @@ def acf_plot(y, nlags=24, ax=None, title="", highlight_every=None,
     return ax
 
 
-def residual_diagnostics(resid, ds=None, nlags=24, title="", bins=25):
+def residual_diagnostics(resid, ds=None, nlags=24, title="", bins=25,
+                         figsize=(9, 5)):
     """The standard three-panel residual check: series, ACF, histogram."""
     resid = pd.Series(resid).dropna()
-    fig = plt.figure(figsize=(9, 5))
+    fig = plt.figure(figsize=figsize)
     gs = fig.add_gridspec(2, 2)
     ax_top = fig.add_subplot(gs[0, :])
     ax_acf = fig.add_subplot(gs[1, 0])
@@ -688,7 +689,7 @@ def metric_bars(scores, ax=None, title="", highlight_best=True,
     names = list(scores)
     vals = [scores[n] for n in names]
     best = (min if lower_is_better else max)(vals)
-    colors = [ORANGE if (highlight_best and v == best) else BLUE for v in vals]
+    colors = [ORANGE if (highlight_best and v == best) else GREY for v in vals]
     ax.barh(names, vals, color=colors, height=0.62)
     for i, v in enumerate(vals):
         ax.text(v, i, " " + fmt.format(v), va="center", size=9)
@@ -743,7 +744,7 @@ def forecast_overlay(history, forecast, models, labels=None, colors=None,
 
 def interval_width_plot(forecast, model="SeasonalNaive", models=(), labels=None,
                         season_length=12, level=80, colors=None,
-                        figsize=(9.5, 3.7), titles=None):
+                        model_color=ORANGE, figsize=(9.5, 3.7), titles=None):
     r"""Interval width against horizon, against both candidate growth laws.
 
     Left: one model's width with the :math:`\sqrt{k+1}` staircase it should
@@ -759,16 +760,17 @@ def interval_width_plot(forecast, model="SeasonalNaive", models=(), labels=None,
     t = tuple(titles) if titles else (
         f"{model}: a staircase, not a curve", "Width growth by benchmark")
 
-    axes[0].plot(h, width, color=BLUE, lw=4.5, alpha=0.55, label="actual width")
-    axes[0].plot(h, width[0] * np.sqrt(k + 1), color=GREEN, lw=2.0,
+    axes[0].plot(h, width, color=model_color, lw=4.5, alpha=0.55,
+                 label="actual width")
+    axes[0].plot(h, width[0] * np.sqrt(k + 1), color=BLACK, lw=2.0,
                  dashes=(6, 4), label=r"$\sqrt{k+1}$ (correct)")
-    axes[0].plot(h, width[0] * np.sqrt(h), color=ORANGE, lw=1.4, ls=":",
+    axes[0].plot(h, width[0] * np.sqrt(h), color=GREY, lw=1.6, ls=":",
                  label=r"$\sqrt{h}$ (wrong method)")
     axes[0].set(xlabel="horizon h", ylabel=f"{level}% interval width", title=t[0])
     axes[0].legend(frameon=False)
 
     labels = dict(labels or {})
-    palette = list(colors) if colors is not None else [GREEN, BLUE, PINK, ORANGE]
+    palette = list(colors) if colors is not None else MODEL_COLORS[1:]
     for i, m in enumerate(models):
         w = forecast[f"{m}-hi-{level}"] - forecast[f"{m}-lo-{level}"]
         axes[1].plot(h, w, color=palette[i % len(palette)], lw=1.8,
@@ -868,7 +870,7 @@ def interval_bounds_plot(history, forecast_ds, bands, actual=None,
         f"{level}% bounds, same point forecast",
         "Staircase, narrow, and jittery")
     axes[0].set(title=t[0])
-    axes[0].legend(frameon=False, ncols=2, fontsize=8)
+    axes[0].legend(frameon=False, ncols=2, fontsize=9)
     year_xticks([axes[0]], step=year_step)
     axes[1].set(xlabel="horizon h", ylabel=f"{level}% width", title=t[1])
     axes[1].legend(frameon=False)
@@ -877,12 +879,18 @@ def interval_bounds_plot(history, forecast_ds, bands, actual=None,
 
 
 def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
-                      ylabel="MASE", ylim=None, titles=None, log_right=True):
+                      ylabel="MASE", ylim=None, titles=None, log_right=True,
+                      note=None):
     """One holdout's scores against the mean of many folds, and the spread.
 
     ``single`` maps model -> score on one window; ``folds`` is a frame with one
     column per model and one row per fold. The left panel is the ranking
     question, the right is why one window could not have answered it.
+
+    Pass only the models you want compared. One model an order of magnitude
+    worse than the rest flattens the whole left panel against a shared axis, and
+    the point of the panel is usually a difference of a few hundredths at the
+    top; ``note`` prints a line under the panel saying what was left out.
     """
     models = list(folds.columns)
     labels = dict(labels or {})
@@ -907,6 +915,10 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
         axes[0].text(xi + 0.2, b + span * 0.02, f"{b:.2f}", ha="center", size=8,
                      color=BLUE)
 
+    if note:
+        axes[0].annotate(note, xy=(0.5, -0.34), xycoords="axes fraction",
+                         ha="center", size=8, color=GREY)
+
     for i, m in enumerate(models):
         axes[1].scatter(np.full(len(folds), i), folds[m], s=40, color=ORANGE,
                         alpha=0.75, zorder=3)
@@ -922,16 +934,17 @@ def coverage_bars(coverage, nominal=0.8, labels=None, ax=None, figsize=(9, 3.4),
                   title="", tolerance=0.1):
     """Measured coverage per model against the nominal rate it claims.
 
-    Bars within ``tolerance`` of ``nominal`` are blue, the rest orange: the
-    slide's claim is honest-or-not, so the colour carries it and the reader does
-    not have to compare bar ends to a dashed line by eye.
+    Bars within ``tolerance`` of ``nominal`` are orange, the rest grey, which is
+    the same convention ``metric_bars`` uses: orange is the bar the slide is
+    about. The claim is honest-or-not, so the colour carries it and the reader
+    does not have to compare bar ends to a dashed line by eye.
     """
     if ax is None:
         _, ax = plt.subplots(figsize=figsize)
     labels = dict(labels or {})
     names = [labels.get(m, m) for m in coverage]
     vals = [float(v) for v in coverage.values()]
-    colors = [BLUE if abs(v - nominal) < tolerance else ORANGE for v in vals]
+    colors = [ORANGE if abs(v - nominal) < tolerance else GREY for v in vals]
     ax.barh(names, vals, color=colors, height=0.6)
     ax.axvline(nominal, color=BLACK, ls="--", lw=1.4)
     ax.text(nominal, -0.75, f" nominal {nominal:.0%}", size=10)
@@ -964,12 +977,14 @@ def width_vs_crps_plot(width, crps, coverage=None, labels=None,
         for i, m in enumerate(models):
             axes[0].text(widths[i], i, f"  {coverage[m]:.0%} cov", va="center",
                          size=9)
-    axes[0].set(title=t[0], xlim=(0, max(widths) * 1.35))
+    axes[0].set(title=t[0], xlim=(0, max(widths) * 1.35),
+                xlabel="interval width (turnover, $M)")
     axes[0].invert_yaxis()
     axes[0].grid(axis="y", visible=False)
 
     metric_bars({n: float(crps[m]) for n, m in zip(names, models)}, ax=axes[1],
                 title=t[1])
+    axes[1].set(xlabel="scaled CRPS")
     axes[1].set(xlim=(0, max(float(crps[m]) for m in models) * 1.35))
     fig.tight_layout()
     return fig, axes

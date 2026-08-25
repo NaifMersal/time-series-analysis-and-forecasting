@@ -410,6 +410,13 @@ $callout-color-success: $sdaia-green;
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.18);
   border-left-color: var(--sdaia-coral-on-dark);
+
+  /* The .teal / .purple / .navy modifiers have to be restated here, or a dark
+     slide renders every cardbox coral whichever modifier it carries. Navy is
+     invisible against a navy gradient, so it borrows a light neutral. */
+  &.teal   { border-left-color: var(--sdaia-teal-on-dark); }
+  &.purple { border-left-color: var(--sdaia-purple-on-dark); }
+  &.navy   { border-left-color: rgba(255, 255, 255, 0.55); }
 }
 
 .reveal .slides section.sdaia-dark .callout {

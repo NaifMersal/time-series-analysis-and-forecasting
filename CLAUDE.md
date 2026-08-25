@@ -163,24 +163,54 @@ because their prose claimed something the rendered figure did not show.
 - `STL` needs `period=` explicitly on a plain array, and returns numpy arrays (not Series)
   when fed one.
 
-## Day 3 — open decision
+## Day 3 — settled: ETS, then AutoGluon
 
-Which of ETS (Ch 8), ARIMA (Ch 9), dynamic regression (Ch 7 + 10), and neural / foundation
-models (Ch 14, 15) get class time, and at what depth. Three hours holds roughly two
-decks and their two lab blocks — about five exercises' worth of practice — which is not
-enough for all four taught properly.
+Day 3 is taught on **Google Colab** (torch preinstalled, network always available).
+The arc is *transparent → orchestrated → the map*, ~70/30 basics-to-black-box:
+when students build with a black-box tool, the mental model they bring is the one
+this course built. Two decks, two lab blocks, ~5 exercises — fits three hours.
 
-Constraints to carry into that decision:
+**Deck 3 — ETS (Ch 8), the deep one.** State-space intuition, Box-Cox (spine
+λ ≈ 0.074), framed as the Day 2 STL+drift route with the weights learned instead of
+pinned. statsforecast ETS emits native quantiles, so it lands on the Day 2
+CRPS/coverage leaderboard with no extra plumbing. Lab: fit, 8 rolling folds,
+CRPS/coverage, add to the leaderboard.
 
-- fpppy has **no** chapter on lag-feature ML (LightGBM / `mlforecast`); Ch 14 is neural
-  networks only.
-- Ch 15's examples need a **TimeGPT API key** or a **HuggingFace weights download**
-  (Moirai). Never run either live on a room full of laptops — pre-compute forecasts to CSV
-  and demo from the instructor machine.
-- `neuralforecast` pulls ~2.5 GB of torch, which is why no `[neural]` / `[foundation]`
-  extras exist in `pyproject.toml` yet.
-- Ch 10 *is* Ch 7 + Ch 9, so if dynamic regression is in, Ch 7 travels with it.
+**AutoARIMA** (optional exercise, ~3 lines in statsforecast) closes the Day 2
+white-noise hook (seasonal naive residuals, Ljung-Box p ≈ 1e-240).
 
-Whatever is chosen plugs into the Day 2 harness and appends to `labs/leaderboard.csv` via
-`coursekit.leaderboard.record(...)` — `mase`, `rmsse`, `crps`, `coverage_80`. Adding a
-model should stay a few lines.
+**Deck 4 — AutoGluon TimeSeries, hands-on.** `autogluon[timeseries]` goes into
+`labs/00_pre_work.ipynb` (light install on Colab; warn students a runtime reset
+wipes installs — re-run setup). Pin it to the local zoo only (Naive / SeasonalNaive
+/ Drift / ETS / AutoARIMA / Theta) with `time_limit` ≈ 120 s, and set its
+`leaderboard()` next to the course's. Punchline: "You've now seen every line this
+library runs — in industry you hand this step to a framework."
+
+**Capstone.** A student adds a model of their choosing to the leaderboard — a few
+lines, the same path as every other model. This is the "you can now build" beat.
+
+**The rest of the field is listed, not taught** — one line each on a closing slide:
+Theta (simple, strong, already in AutoGluon's zoo); dynamic regression (Ch 7+10,
+for when exogenous data exists); lag-feature ML (LightGBM / `mlforecast`, tabular
+framing — fpppy has no chapter for it); neural nets (DeepAR / Transformer, global,
+data-hungry); foundation models (Chronos / Moirai / TimeGPT, zero-shot — on Colab
+use the small models, Chronos-Bolt-small / Moirai-small, on CPU; TimeGPT needs an
+API key, Moirai needs HF weights); ensembles (AutoGluon's WeightedEnsemble is the
+example).
+
+Constraints that survive this decision:
+
+- Whatever is chosen plugs into the Day 2 harness and appends to
+  `labs/leaderboard.csv` via `coursekit.leaderboard.record(...)` — `mase`, `rmsse`,
+  `crps`, `coverage_80`. Adding a model should stay a few lines.
+- Ch 10 *is* Ch 7 + Ch 9, so if dynamic regression gets class time, Ch 7 travels
+  with it.
+- The pin-drift rule stands: no Day 3 model may leak into Day 2 content.
+- `coursekit/data/` stays committed (offline insurance) even though Colab has
+  network.
+
+Why AutoGluon is not the centerpiece: it is a parallel API universe (own data
+format, own fit loop, own leaderboard with sign-flipped metrics) whose local-model
+zoo is a subset of what statsforecast already teaches. On a laptop it also costs a
+~2.5 GB torch install — on Colab that cost is sunk, which is what lets it earn the
+"orchestrated layer" slot after ETS without replacing the harness.
