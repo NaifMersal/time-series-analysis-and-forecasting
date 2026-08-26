@@ -316,3 +316,200 @@ def check_leaderboard(table: pd.DataFrame) -> None:
     assert table["mase"].notna().all(), "Every row needs a MASE."
     _ok("leaderboard", f"{len(table)} models recorded; "
                        f"best = {table.loc[table['mase'].idxmin(), 'model']}")
+
+
+# ---------------------------------------------------------------- Day 3
+
+def check_ex_3_1(ets) -> None:
+    """The fitted AutoETS object, read for what the search actually chose.
+
+    The lesson is in the middle letter: on this series the likelihood prefers a
+    model with NO trend state, having spent Day 1 establishing that the spine
+    trends. Level plus season, updated every month, is enough.
+    """
+    _not_todo(ets=ets)
+    assert isinstance(ets, dict) and "components" in ets, (
+        "Pass the fitted model itself: `sf.fitted_[0, 0].model_`, after "
+        "`sf.fit(df=spine)`. That is a dict, with 'method', 'components', "
+        f"'par' and 'states' in it. You passed a {type(ets).__name__}."
+    )
+    err, trend, season = (ets["components"][0], ets["components"][1],
+                          ets["components"][2])
+
+    assert season != "N", (
+        f"AutoETS should keep a seasonal state on the spine; yours picked "
+        f"{ets['method']}. Check `season_length=12` reached the model - "
+        "without it the search cannot see a December."
+    )
+    assert trend == "N", (
+        f"On the full spine the AICc search picks a model with NO trend state, "
+        f"but yours is {ets['method']}. If you fitted on `train` rather than "
+        "the whole `spine`, or pinned `model=` by hand, you will get a "
+        "different answer - refit on all 441 months and let the search choose."
+    )
+    assert err == "M", (
+        f"Expected a multiplicative error term; yours is {ets['method']}. That "
+        "letter is what lets an additive seasonal state cope with seasonal "
+        "swings that grow with the level."
+    )
+
+    par = np.asarray(ets["par"], dtype=float)
+    alpha, gamma = float(par[0]), float(par[2])
+    assert 0 < alpha < 1, f"alpha should be a weight in (0, 1); got {alpha:.3f}."
+    assert 0 < gamma < 1, f"gamma should be a weight in (0, 1); got {gamma:.3f}."
+    _ok("EX 3.1", f"AutoETS chose {ets['method']} - alpha={alpha:.3f}, "
+                  f"gamma={gamma:.3f}, and no trend state")
+
+
+def check_ex_3_2(cv: pd.DataFrame, scores: pd.DataFrame) -> None:
+    """Eight folds, two models, and the reveal: ETS wins points, loses range.
+
+    Every assertion here is a fact about the spine measured over these eight
+    folds, not a preference. If one fails, the harness was wired differently,
+    not the model.
+    """
+    _not_todo(cv=cv, scores=scores)
+    assert "cutoff" in cv.columns, (
+        "A cross_validation result has a `cutoff` column - one row per fold "
+        "per horizon step. Yours does not; did you call `forecast` instead?"
+    )
+    n_folds = cv["cutoff"].nunique()
+    assert n_folds == 8, (
+        f"Use the same eight folds Day 2 used, so the numbers stay comparable: "
+        f"h=12, step_size=12, n_windows=8. You have {n_folds}."
+    )
+
+    _need_cols(scores, ["mase", "crps", "coverage_80"], "scores")
+    idx = {str(i).lower().replace(" ", ""): i for i in scores.index}
+
+    def _find(*needles):
+        for key, original in idx.items():
+            if any(n in key for n in needles):
+                return original
+        return None
+
+    ets_key, sn_key = _find("ets"), _find("seasonalnaive", "seasonal")
+    assert ets_key is not None, (
+        f"Expected an ETS row in `scores`, found {list(scores.index)}."
+    )
+    assert sn_key is not None, (
+        f"Expected a seasonal-naive row in `scores`, found "
+        f"{list(scores.index)}. Score BOTH models - the comparison is the "
+        "exercise, not the ETS number on its own."
+    )
+    ets_row, sn_row = scores.loc[ets_key], scores.loc[sn_key]
+
+    assert ets_row["mase"] < sn_row["mase"], (
+        f"Over eight folds ETS should just edge the seasonal naive on MASE "
+        f"(1.176 against 1.183 when measured). You have "
+        f"{ets_row['mase']:.3f} against {sn_row['mase']:.3f}. If ETS is far "
+        "behind, check each fold is scored against its OWN training history - "
+        "which is what `scoring.score_cv` does for you."
+    )
+    assert ets_row["crps"] > sn_row["crps"], (
+        f"The reveal of this exercise is that ETS LOSES on scaled CRPS "
+        f"({ets_row['crps']:.4f} against {sn_row['crps']:.4f}) despite winning "
+        "on MASE. Yours does not, which usually means the quantile columns did "
+        "not line up - use `scoring.score_cv`, which derives them from LEVELS."
+    )
+    assert ets_row["coverage_80"] > 0.80, (
+        f"ETS should OVER-cover here - a band claiming 80% that catches 87.5%. "
+        f"Yours reads {ets_row['coverage_80']:.1%}. Check you passed "
+        "`level=scoring.LEVELS` to cross_validation."
+    )
+    _ok("EX 3.2",
+        f"ETS {ets_row['mase']:.3f} MASE against {sn_row['mase']:.3f}, a tie "
+        f"on points; CRPS {ets_row['crps']:.4f} against {sn_row['crps']:.4f} "
+        f"and {ets_row['coverage_80']:.1%} coverage on an 80% band, a loss on "
+        "range")
+
+
+def check_ex_3_3(fc: pd.DataFrame, undamped: str = "AAN",
+                 damped: str = "AAdN") -> None:
+    """Optional: damping flattens a trend the further out you go."""
+    _not_todo(fc=fc)
+    for col in (undamped, damped):
+        assert col in fc.columns, (
+            f"Expected a column `{col}` in the forecast; got "
+            f"{[c for c in fc.columns if c not in ('unique_id', 'ds')]}. Give "
+            "each AutoETS an `alias=` so the two can be told apart."
+        )
+    assert len(fc) >= 36, (
+        f"Forecast far enough out for damping to show - the slide used h=60. "
+        f"You have {len(fc)} rows."
+    )
+    gap_early = float(fc[undamped].iloc[0] - fc[damped].iloc[0])
+    gap_late = float(fc[undamped].iloc[-1] - fc[damped].iloc[-1])
+    assert gap_late > gap_early, (
+        "The damped forecast should fall further behind the undamped one the "
+        f"further out you go; here the gap goes {gap_early:.1f} to "
+        f"{gap_late:.1f}. Check `damped=True` reached the second model."
+    )
+    _ok("EX 3.3", f"over {len(fc)} months the damped trend gives up "
+                  f"{gap_late:.1f} units against the straight line")
+
+
+def check_ex_3_4(ag_board: pd.DataFrame, ours: pd.DataFrame) -> None:
+    """AutoGluon's leaderboard, set next to the course's.
+
+    Skip-guarded in the notebook: without autogluon installed the cell says so
+    and moves on, which is how both check-labs targets stay honest on a machine
+    that has neither torch nor 2.5 GB to spare.
+    """
+    _not_todo(ag_board=ag_board, ours=ours)
+    assert "model" in ag_board.columns, (
+        f"An AutoGluon leaderboard has a `model` column; got "
+        f"{list(ag_board.columns)}."
+    )
+    assert len(ag_board) >= 3, (
+        f"Expected AutoGluon to fit several models, found {len(ag_board)}. "
+        "Pass the local zoo through `hyperparameters=` and give it a "
+        "`time_limit` long enough to get through them."
+    )
+    assert any("score" in str(c).lower() for c in ag_board.columns), (
+        f"Expected a score column on the AutoGluon leaderboard; got "
+        f"{list(ag_board.columns)}."
+    )
+    names = " ".join(str(m) for m in ag_board["model"])
+    assert "Naive" in names, (
+        "The local zoo should include the benchmarks this course built on, "
+        f"SeasonalNaive above all. AutoGluon fitted: {names}"
+    )
+    assert len(ours) >= 5, (
+        "Pass the course leaderboard as `ours` so the two tables can be read "
+        f"side by side; yours has {len(ours)} row(s)."
+    )
+    _ok("EX 3.4", f"AutoGluon fitted {len(ag_board)} models - note its scores "
+                  "are NEGATED, so higher is better there and lower is better "
+                  "on ours")
+
+
+def check_ex_3_5(table: pd.DataFrame, model: str) -> None:
+    """The capstone: one more model, the same few lines, the same leaderboard."""
+    _not_todo(table=table, model=model)
+    _need_cols(table, ["model", "day", "mase", "crps", "coverage_80"],
+               "the leaderboard")
+    assert model in set(table["model"]), (
+        f"'{model}' is not on the leaderboard. `lb.record(name, day=3, "
+        "**scoring.score_cv(cv, name, spine))` - and the name you record has "
+        f"to be the name you pass here. On the board: {sorted(table['model'])}"
+    )
+    row = table.loc[table["model"] == model].iloc[0]
+    assert int(row["day"]) == 3, (
+        f"Record your capstone model with `day=3`; it went in as day "
+        f"{row['day']}."
+    )
+    assert pd.notna(row["crps"]) and row["crps"] > 0, (
+        "Your model needs a scaled CRPS, which means cross-validating with "
+        "`level=scoring.LEVELS`. A model with no closed-form interval raises "
+        "'You must pass prediction_intervals' the moment you ask for a level - "
+        "give it `prediction_intervals=ConformalIntervals(n_windows=..., "
+        "h=...)`, from Day 2's segment E."
+    )
+    day3 = table[table["day"] == 3]
+    assert len(day3) >= 2, (
+        f"Day 3 should have added ETS in Exercise 3.2 and your model here; the "
+        f"table carries {len(day3)} day-3 row(s)."
+    )
+    best = table.loc[table["crps"].idxmin(), "model"]
+    _ok("EX 3.5", f"{len(table)} models on the board; best scaled CRPS = {best}")

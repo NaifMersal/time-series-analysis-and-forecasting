@@ -1,0 +1,693 @@
+---
+title: "Orchestration & the Field"
+subtitle: "Day 3 · Lecture 2 · fpppy Ch 9, and the map beyond it"
+date: today
+format: revealjs
+---
+
+```{python}
+#| include: false
+import json
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from statsforecast import StatsForecast
+from statsforecast.models import (MSTL, AutoETS, AutoTheta, HistoricAverage,
+                                  Naive, RandomWalkWithDrift, SeasonalNaive)
+from statsmodels.stats.diagnostic import acorr_ljungbox
+
+import coursekit
+from coursekit import datasets as D
+from coursekit import plotting as P
+from coursekit import scoring
+
+P.use_course_style()
+
+spine = D.spine()
+
+# The whole board, measured here rather than read off labs/leaderboard.csv, so
+# this deck renders the same whether or not anyone has run the labs yet.
+BOARD = [("HistoricAverage", "Mean", 2), ("Naive", "Naive", 2),
+         ("SeasonalNaive", "Seasonal naive", 2), ("RWD", "Drift", 2),
+         ("MSTL", "STL + drift", 2), ("AutoETS", "ETS", 3),
+         ("AutoARIMA", "ARIMA", 3), ("AutoTheta", "Theta", 3)]
+LABELS = {col: label for col, label, _ in BOARD}
+
+# Everything except AutoARIMA is cheap enough to fit while the deck renders.
+sf = StatsForecast(
+    models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
+            RandomWalkWithDrift(),
+            MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift()),
+            AutoETS(season_length=12), AutoTheta(season_length=12)],
+    freq=D.FREQ, n_jobs=1)
+cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                         level=scoring.LEVELS)
+score = {col: scoring.score_cv(cv, col, spine)
+         for col, _, _ in BOARD if col != "AutoARIMA"}
+
+# AutoARIMA is the exception: an order search plus eight folds is about 100
+# seconds, which is too slow to repeat on every render of this deck. It is
+# measured once by scripts/measure_arima.py and committed, so these numbers are
+# measured rather than typed. Re-run that script if the spine, the fold layout
+# or scoring.LEVELS ever changes.
+arima = json.loads(
+    (Path(coursekit.__file__).parent / "data" / "day3_arima.json")
+    .read_text(encoding="utf-8"))
+ARIMA_SPEC = arima["spec"]
+score["AutoARIMA"] = {k: arima[k] for k in
+                      ("mase", "rmsse", "crps", "coverage_80",
+                       "mase_min", "mase_max")}
+
+board = (pd.DataFrame([{"model": label, "day": day, **score[col]}
+                       for col, label, day in BOARD])
+         .sort_values("crps").reset_index(drop=True))
+
+# --- the Day 2 hook this deck closes: seasonal naive residuals -------------
+sn = StatsForecast(models=[SeasonalNaive(season_length=12)], freq=D.FREQ,
+                   n_jobs=1)
+sn.forecast(df=spine, h=1, fitted=True)
+fv = sn.forecast_fitted_values()
+sn_resid = (fv["y"] - fv["SeasonalNaive"]).dropna()
+LB_P = float(acorr_ljungbox(sn_resid, lags=[24],
+                            return_df=True)["lb_pvalue"].iloc[0])
+
+THREE = ["SeasonalNaive", "AutoETS", "AutoARIMA"]
+cover = {m: score[m]["coverage_80"] for m in score}
+crps = {m: score[m]["crps"] for m in score}
+mase = {m: score[m]["mase"] for m in score}
+```
+
+## Yesterday's floor is still standing
+
+::: {.incremental}
+- **Part A**: the other classical family, and the hook Day 2 left open
+- **Part B**: the same job handed to a framework, and how to read what it returns
+- **Part C**: the map of everything this course did not teach
+:::
+
+. . .
+
+::: {.callout-note}
+## This morning's result
+ETS matched the floor on MASE and lost on the distribution. The seasonal naive
+is still the best-calibrated model in the room.
+:::
+
+::: {.notes}
+Take thirty seconds to put the morning back up. They fitted ETS, read its
+components, scored it over the same eight folds, and found a tie on the point
+forecast and a loss on scaled CRPS with an 80 percent band that covered 87.5.
+
+This afternoon has three parts and only the middle one is hands-on. Part A is a
+single slide of ARIMA, which exists to close a promise made yesterday. Part B is
+AutoGluon, which is the lab. Part C is a map, read aloud, so they leave knowing
+what the names mean when they meet them.
+
+Say the shape of the day out loud once more, because it is the argument of the
+whole course: transparent first, orchestrated second. By the time a framework
+prints a leaderboard this afternoon, every model on it is one they have met.
+:::
+
+# A. The other classical family {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
+
+Ch 9 · One slide, one call, and one promise kept
+
+## Your residuals said there was structure left
+
+```{python}
+#| fig-width: 9
+P.acf_plot(sn_resid, nlags=24,
+           title="Seasonal naive residuals, and they are not white noise")
+plt.show()
+```
+
+::: {.cardbox .coral}
+Ljung-Box on 24 lags: $p \approx$ `{python} f"{LB_P:.0e}"`. Yesterday this was
+the reason to keep going. Nothing since has picked that structure up.
+:::
+
+::: {.notes}
+This is the slide that pays off a debt. On Day 2 they ran Ljung-Box on the
+seasonal naive's residuals, got a p-value with 245 zeros in front of it, and
+were told that the structure it proves is the opening for Day 3.
+
+Then this morning ETS did not take it. ETS tied the floor. So the honest state
+of play, right now, is that the promise is still outstanding.
+
+Point at the bars that cross the bound. Those are the autocorrelations a model
+of this series ought to be using and the seasonal naive throws away: last
+month's error tells you something about this month's, and nothing in the
+benchmark family has any machinery for saying so.
+
+The family that does have that machinery is ARIMA, and specifically its MA
+half, which forecasts the next value partly from the last few errors.
+:::
+
+## ARIMA models the errors the benchmarks discard
+
+:::: {.columns}
+::: {.column width="50%"}
+**AR** · the next value from the last few **values**
+
+**MA** · the next value from the last few **errors**
+:::
+::: {.column width="50%"}
+**I** · difference the series until it is stationary
+
+**Seasonal orders** · the same three, one year apart
+:::
+::::
+
+. . .
+
+`AutoARIMA` searches that space the way `AutoETS` searched its own, and on the
+spine it picks `{python} ARIMA_SPEC`.
+
+::: {.notes}
+Four ideas, one slide, and deliberately no derivation. This is the only slide
+of ARIMA in the course and the goal is that the vocabulary is not foreign when
+they meet it, not that they can select orders by hand.
+
+Read the selected model aloud and unpack the notation once, because it is worth
+being able to read: the first bracket is the non-seasonal part, the second is
+the seasonal part, and the 12 is the season length. The D of 1 is a seasonal
+difference, which is the model saying what Day 1 said with a seasonal plot.
+
+Note the MA term in both brackets. That is the piece that consumes the
+autocorrelation on the previous slide, and it is exactly what the benchmark
+family lacks.
+
+If someone asks what differencing is: subtract the previous value, or the value
+twelve months back, until the series stops trending. Stationarity is the
+assumption underneath the whole family. That is as far as this course goes.
+:::
+
+## One call, sixty seconds, and the promise kept
+
+```python
+from statsforecast.models import AutoARIMA
+
+sf = StatsForecast(models=[AutoARIMA(season_length=12)], freq="MS")
+cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                         level=scoring.LEVELS)
+lb.record("ARIMA", day=3, **scoring.score_cv(cv, "AutoARIMA", spine))
+```
+
+. . .
+
+| | Seasonal naive | ETS | ARIMA |
+|---|---|---|---|
+| MASE | `{python} f"{mase['SeasonalNaive']:.3f}"` | `{python} f"{mase['AutoETS']:.3f}"` | **`{python} f"{mase['AutoARIMA']:.3f}"`** |
+| Scaled CRPS | **`{python} f"{crps['SeasonalNaive']:.4f}"`** | `{python} f"{crps['AutoETS']:.4f}"` | `{python} f"{crps['AutoARIMA']:.4f}"` |
+
+::: {.notes}
+Same six lines as this morning, one word changed. That is the third time today
+the harness has taken a new model without modification, and it is worth naming
+again because Part B is about what you give up when a framework owns that step.
+
+The cross-validation takes about a minute. Say so before you run it, and use
+the pause: this is the first model in the course whose fitting time is
+noticeable, and eight folds of order search is where it goes.
+
+The result is the best MASE of the three. ARIMA did find structure that the
+seasonal naive and ETS both missed, which is the promise from yesterday kept.
+
+And it still loses on CRPS. Hold that; the next slide is about why.
+:::
+
+## Two models, two opposite ways to be wrong
+
+```{python}
+#| fig-width: 9
+P.coverage_bars({LABELS[m]: cover[m] for m in THREE}, nominal=0.8,
+                tolerance=0.05, figsize=(8.6, 2.9),
+                title="Measured 80% coverage over 8 folds")
+plt.show()
+```
+
+::: {.cardbox .navy}
+ETS covers `{python} f"{cover['AutoETS']:.1%}"` with a band claiming 80%.
+ARIMA covers `{python} f"{cover['AutoARIMA']:.1%}"`. One is too wide, the
+other too narrow, and both lose to the benchmark on CRPS.
+:::
+
+::: {.notes}
+This is the Day 2 lesson confirmed from both sides at once, and it is the most
+useful slide of the afternoon.
+
+ETS over-covers, which reads as caution and costs money in hedging. ARIMA
+under-covers, which is the failure that actually hurts: a band that claims 80
+percent and delivers 62 will surprise you roughly twice as often as your
+planning assumed, and every one of those surprises is a stockout or an overrun.
+
+Ask which failure they would rather explain to a stakeholder. Neither answer is
+wrong; the point is that they are different failures with different costs, and
+coverage is the only thing that tells them apart.
+
+Then close the loop: the seasonal naive is not on top here because it is
+clever. Its band is roughly the right size and roughly in the right place, and
+nothing in the last two days has managed to be both.
+:::
+
+## Why ARIMA gets one slide and not a segment
+
+::: {.incremental}
+- Differencing and stationarity, before the model can be written down
+- AR against MA, and what each one assumes about the process
+- **PACF** for order selection, and Day 1 taught ACF only
+- Seasonal orders on top of all of it
+:::
+
+. . .
+
+::: {.cardbox .teal}
+Three hours buys a rushed half-version of that, or `AutoARIMA(...)` as a black
+box. The black-box beat is already taken, so ARIMA gets its result and its
+vocabulary, and the chapter stays on the map.
+:::
+
+::: {.notes}
+Be straight with the room about this, because someone will have noticed that
+the best MASE of the day just went past in a single slide.
+
+The list is what a proper ARIMA segment costs. Every line of it is a genuine
+prerequisite, and PACF in particular is a diagnostic they have never seen,
+which means teaching it from scratch inside a ninety-minute block.
+
+The trade this course made: ETS costs almost no new vocabulary, because level,
+trend and season are the components they pulled out with STL on Day 1. So ETS
+is the model taught properly, and ARIMA is a name, a result and a call.
+
+If anyone wants to go further, Ch 9 of fpppy is the reference and it is
+written to be read on its own. Say that; it turns a gap into a next step.
+:::
+
+# B. Handing the fitting step over {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
+
+AutoGluon TimeSeries · the orchestrated layer
+
+## A framework is a parallel API universe
+
+::: {.flowrow}
+[[Your frame]{.flowtitle}[`unique_id` · `ds` · `y`]{.flownote}]{.flownode .navy}
+[[Their frame]{.flowtitle}[`TimeSeriesDataFrame`]{.flownote}]{.flownode .coral}
+[[Their fit loop]{.flowtitle}[a zoo, a budget, an ensemble]{.flownote}]{.flownode .coral}
+[[Their leaderboard]{.flowtitle}[scores with the sign flipped]{.flownote}]{.flownode .purple}
+:::
+
+. . .
+
+Every stage is a model you have built. None of the plumbing is.
+
+::: {.notes}
+Set the expectation for the lab before any code appears. AutoGluon is not a
+model, it is an orchestration layer, and it brings its own everything: its own
+frame type, its own column names, its own fit loop, its own leaderboard with
+its own sign convention.
+
+That is the thing to notice this afternoon. The forecasting content of the tool
+is a subset of what they already have. The cost of adopting it is entirely in
+the second row of that flow, the plumbing, and the benefit is entirely in the
+third.
+
+Tell them the data conversion stays visible in the notebook on purpose. A
+coursekit helper could hide it in one line, and hiding it would delete the only
+lesson this exercise has.
+:::
+
+## The conversion is two renames and a constructor
+
+| | this course | AutoGluon |
+|---|---|---|
+| series id | `unique_id` | `item_id` |
+| timestamp | `ds` | `timestamp` |
+| value | `y` | `target`, nameable |
+| container | `pd.DataFrame` | `TimeSeriesDataFrame` |
+
+```python
+ag_long = spine.rename(columns={"unique_id": "item_id", "ds": "timestamp"})
+tsdf = TimeSeriesDataFrame.from_data_frame(
+    ag_long, id_column="item_id", timestamp_column="timestamp")
+```
+
+::: {.notes}
+Two renames and a constructor. That is the entire conceptual content of the
+conversion, and it is worth showing precisely because it is so thin: the long
+format this course has used since the first hour is the format every serious
+forecasting library expects, under different column names.
+
+Say the general lesson, since it outlives this library. When you meet a new
+forecasting tool, the first question is what it calls the three columns and
+whether it wants one frame or many. If the answer is long format, which it
+almost always is, you already know how to feed it.
+
+The `slice_by_timestep` call in the notebook is how AutoGluon cuts a holdout.
+It is their `train_test`, with a different name.
+:::
+
+## The zoo is models you have already met
+
+```python
+ZOO = {"Naive": {}, "SeasonalNaive": {}, "AutoETS": {},
+       "AutoARIMA": {}, "Theta": {}}
+
+predictor = TimeSeriesPredictor(prediction_length=12, target="y",
+                                eval_metric="MASE", freq="MS")
+predictor.fit(ag_train, hyperparameters=ZOO, time_limit=120)
+```
+
+. . .
+
+::: {.cardbox .teal}
+Five models, all of them yours: two benchmarks from Day 2, ETS and ARIMA from
+today, and Theta, which is on the map in twenty minutes.
+:::
+
+::: {.notes}
+Read the zoo aloud, one name at a time, and let the room notice. Naive and
+SeasonalNaive are Day 2's benchmarks. AutoETS is this morning. AutoARIMA was
+forty minutes ago. Theta is coming in Part C and is the capstone plant.
+
+That is the punchline of the whole deck and it is better if they get there
+first, so pause before saying it.
+
+Two practical notes for the lab. The zoo is pinned to local models on purpose,
+so nothing neural downloads and nothing needs a GPU; leave the default
+`hyperparameters` off and AutoGluon will reach for deep models and the two
+minute budget will not cover it. And `time_limit` is a budget, not a target,
+so the run stops when it stops.
+
+Warn them again about the runtime reset wiping the install.
+:::
+
+## Its leaderboard is not ours
+
+::: {.callout-important}
+## Every AutoGluon score is negated
+Higher is better there. Lower is better on our board. A `score_val` of
+$-1.18$ is a MASE of `{python} f"{mase['SeasonalNaive']:.2f}"`.
+:::
+
+. . .
+
+| | course leaderboard | AutoGluon leaderboard |
+|---|---|---|
+| sign | lower is better | **higher** is better |
+| windows | 8 rolling folds | one internal validation split |
+| distribution | scaled CRPS | its own weighted quantile loss |
+
+::: {.notes}
+This slide exists because the sign flip catches everybody, including people who
+have used the library for months. When a framework's ranking disagrees with
+yours, check the sign before you check anything else.
+
+The second and third rows matter more for the exercise. AutoGluon scored one
+internal validation window; the course board averages eight rolling folds and
+scores the whole distribution. So the two tables can legitimately disagree
+about the ranking without either being wrong.
+
+That is Exercise 2.5 pointed at a tool instead of a model, and it is why the
+course table is the one to trust for a production decision. A framework's
+default validation is a convenience, not an evaluation protocol.
+
+They will also see a `WeightedEnsemble` row that beats its members. That is
+Part C's last line arriving early.
+:::
+
+## What the framework buys, and what it does not
+
+:::: {.columns}
+::: {.column width="50%"}
+**Buys**
+
+Five models fitted, tuned and ensembled inside one call and a fixed budget.
+Scale to many series without new code.
+:::
+::: {.column width="50%"}
+**Does not buy**
+
+An evaluation protocol you trust. A reason to prefer the winner. Any way to
+know a band is too wide.
+:::
+::::
+
+. . .
+
+::: {.cardbox .navy}
+You have now seen every line this library runs. In industry you hand this step
+to a framework, and you still own the judgement.
+:::
+
+::: {.notes}
+This is the thesis of the day, so land it slowly.
+
+The left column is real and should not be undersold. Orchestration is genuinely
+valuable, and on 148 series rather than one it is not optional. Nobody should
+leave thinking the course disapproves of AutoGluon.
+
+The right column is what the last three days were for. The framework will
+always return a winner. It will not tell you whether the winner is better than
+a seasonal naive, whether its intervals are honest, or whether the margin
+survives a second window. Those are the questions, and they are yours.
+
+The card is the line to close on. Say it, then hand over to the map.
+:::
+
+# C. The field, and where to go next {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+Listed, not taught · one line each
+
+## Four more classical families, by name
+
+::: {.incremental}
+- **Theta** · simple, fast, strong. In AutoGluon's zoo, and best on this series
+- **ARIMA** · Ch 9, one slide ago. The other classical family
+- **Dynamic regression** · Ch 7 and 10, for when you have price or promotions
+- **Hierarchical** · Ch 11, when state totals must equal the national total
+:::
+
+::: {.notes}
+Four names, one line each, and no apology for the brevity. The purpose of the
+map is recognition: when one of these turns up in a paper or a job spec, they
+should know roughly what it is and where to read about it.
+
+Theta first, because it is the one they will meet in the capstone in twenty
+minutes and because it makes an honest point about complexity. It is a very
+simple method and it is about to win the whole board.
+
+Dynamic regression is the one most likely to matter in their actual work.
+Everything this course did used only the series' own past. The moment you have
+a price, a promotion calendar or a holiday flag, that is the chapter. Note that
+Ch 10 is really Ch 7 plus Ch 9, so regression travels with it.
+
+Hierarchical is worth naming for anyone forecasting a business with regions or
+product lines, which is most of them.
+:::
+
+## Where machine learning enters the field
+
+::: {.incremental}
+- **Lag-feature ML** · LightGBM with `mlforecast`; a tabular framing, no fpppy chapter
+- **Neural** · DeepAR, Transformers. Global models, and they want many series
+- **Foundation models** · Chronos, Moirai, TimeGPT. Zero-shot, no fitting
+- **Ensembles** · combine forecasts; AutoGluon's `WeightedEnsemble` is one
+:::
+
+. . .
+
+::: {.cardbox .purple}
+Every one of these still gets scored by the harness you built. That is the part
+that transfers.
+:::
+
+::: {.notes}
+The second half of the map, and the half with the most hype attached, so keep
+the tone level.
+
+Lag features are how most working data scientists actually do this: build a
+tabular frame of lags and rolling statistics, then fit a gradient booster.
+fpppy has no chapter on it. Warn them once about the trap Day 2 covered, which
+is computing a feature over data the fold was not allowed to see.
+
+Neural models are global: one model across many series, learning shared
+structure. On one series with 441 points they are the wrong tool, which is
+worth saying plainly because the instinct runs the other way.
+
+Foundation models are the genuinely new thing. Pretrained, and they forecast a
+series they have never seen with no fitting at all. On Colab, Chronos-Bolt-small
+or Moirai-small run on CPU; TimeGPT needs an API key and Moirai needs weights
+from Hugging Face.
+
+Ensembles last, because it is the cheapest reliable win in forecasting and the
+least glamorous.
+:::
+
+## Choosing, in practice
+
+:::: {.flowconv}
+::: {.flowcauses}
+[[One series]{.flowtitle}[benchmarks, then ETS]{.flownote}]{.flownode .teal}
+[[Many, related]{.flowtitle}[global ML or neural]{.flownote}]{.flownode .coral}
+[[Drivers to use]{.flowtitle}[dynamic regression]{.flownote}]{.flownode .purple}
+:::
+[[Score them the same way]{.flowtitle}[rolling folds, a proper score]{.flownote}]{.flownode .navy}
+::::
+
+. . .
+
+The first move on any new series is still the benchmark floor.
+
+::: {.notes}
+If the room remembers one slide of Part C, this is the one to make it.
+
+The three inputs at the top are the questions that actually decide the family:
+how many series, how related they are, and whether you have anything to
+regress on. Everything else is detail.
+
+The bottom node is the part that does not change with the family, and it is
+what the course was really about. A neural model and a seasonal naive get
+scored by the same harness, over the same folds, on the same proper score, or
+you cannot compare them at all.
+
+Then the closing line, which should sound almost too simple by now: fit the
+benchmarks first. The next slide is why.
+:::
+
+## The board after a full day of real models
+
+```{python}
+#| fig-width: 9
+# The five contenders only. On one axis with the mean method at 0.348 the whole
+# story -- five models inside 0.006 of each other -- is squashed into a band
+# too narrow to read from the back of a room. The also-rans are in the card.
+P.metric_bars({r["model"]: r["crps"] for _, r in board.iterrows()
+               if r["crps"] < 0.05},
+              title="Scaled CRPS over 8 rolling folds (lower is better)",
+              figsize=(9, 3.0), fmt="{:.4f}")
+plt.show()
+```
+
+::: {.cardbox .navy}
+Off this chart: naive `{python} f"{crps['Naive']:.3f}"`, drift
+`{python} f"{crps['RWD']:.3f}"`, mean `{python} f"{crps['HistoricAverage']:.3f}"`.
+Those three were never in contention.
+:::
+
+::: {.notes}
+Eight models, three days, one series, one metric that scores the whole forecast
+distribution. Give them a moment to read it before you say anything.
+
+Say what the chart leaves out and why: the naive, the drift and the mean were
+never in contention, and on the same axis their bars would squash these five
+into something unreadable. The card carries their numbers.
+
+The shape to point at is how *close* the five are. They sit inside 0.006 of
+each other, which is a much smaller spread than the fold-to-fold variation
+inside any one of them.
+
+ETS, which got a ninety-minute deck, is behind the seasonal naive. ARIMA, which
+took sixty seconds a fold, is behind it too. The decomposition route from
+yesterday is behind it.
+
+One model is in front, and it is the one nobody lectured about.
+:::
+
+## The floor held, and one thing beat it
+
+::: {.callout-tip}
+## The closing result
+Theta wins on MASE and on scaled CRPS, in three lines and with no lecture.
+Nothing else beat the seasonal naive on the distribution.
+:::
+
+. . .
+
+::: {.incremental}
+- A one-line benchmark survived a full day of fitted models
+- Complexity did not order the board; honest uncertainty did
+- You cannot know which is which without a harness
+:::
+
+::: {.notes}
+Two things to land, and they pull in opposite directions on purpose.
+
+First, the floor held. Across ETS, ARIMA and the decomposition route, only
+Theta beat a model that takes one line and no fitting time. This is why the
+benchmark floor is the first thing you build on a new series. Not as a
+formality. As the thing that most of your candidates will fail to beat.
+
+Second, the winner is the simple one. Theta is simpler than ETS and beat it.
+ARIMA is more complex than both and lost. If complexity ordered forecast
+accuracy, this board would read the other way around.
+
+What did order it was whether each model's uncertainty was priced honestly, and
+that is not visible from the model, only from the evaluation. Which is the
+third bullet, and the whole point of Day 2.
+
+Then hand to the lab: they are about to reproduce this table themselves, and
+the capstone is where Theta shows up.
+:::
+
+## $\rightarrow$ Lab F · Orchestration, and one of your own {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Back to `labs/03_day3_models_and_orchestration.ipynb`
+
+| | | |
+|---|---|---|
+| **3.4** | AutoGluon on the same spine | 20 min |
+| **3.5** | Capstone: add a model of your own | 15 min |
+
+. . .
+
+*35 minutes. 3.4 needs the install; start it before you read the cell.*
+
+::: {.cardbox .teal}
+**3.5 is the course in four lines.** Pick a model, cross-validate, score,
+record. Any model at all goes on the same board.
+:::
+
+::: {.notes}
+Send them off with the install running. `pip install autogluon.timeseries` takes
+a few minutes on Colab and there is no reason to watch it: start the cell, then
+read the conversion table while it works.
+
+For 3.5, resist naming a model. The exercise lists four candidates and Theta is
+one of them, so the room will find the winner without being handed it, and
+finding it is better than being told.
+
+The one thing to say out loud before they go: a model with no closed-form
+interval will refuse to cross-validate with a level and ask for
+`prediction_intervals`. That is conformal, from Day 2's segment E, and the
+notebook has the line.
+:::
+
+## Lecture summary {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+::: {.incremental}
+- **ARIMA** found the structure Ljung-Box promised, and mispriced the range
+- A framework brings its own frame, its own folds and its own **sign**
+- Its zoo was models you had already built by hand
+- The **map** is a reading list; the harness is what transfers to all of it
+:::
+
+. . .
+
+::: {.cardbox .navy}
+Three days, one series, one leaderboard. You can now put any model on it and
+say honestly whether it is better.
+:::
+
+::: {.notes}
+Close the lecture, not the course; the course closes after the lab.
+
+Walk the four bullets quickly, then stop on the card. That sentence is the
+actual deliverable of three days. Not ETS, not AutoGluon, not the seasonal
+naive. The ability to take a model you have never met, put it on a board next
+to everything else, and defend the ranking.
+
+If you have a minute left, ask the room what they would fit first on a series
+from their own work. The answer you want is the benchmarks, and by now it
+usually is.
+:::

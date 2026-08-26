@@ -54,9 +54,22 @@ and with a model that wins on one window and loses over eight. The floor to beat
 seasonal naive at MASE 1.18. Its residuals fail Ljung-Box at p about 1e-240, so there is
 signal in this series that nothing on Day 2 captured, and that is where Day 3 opens.
 
-## Day 3: Models
+## Day 3: Models & orchestration
 
-*In preparation.* Exponential smoothing (ETS) first, with AutoARIMA closing Day 2's
-white-noise question, then AutoGluon TimeSeries as the orchestrated layer over the same
-model zoo, and a closing map of the rest of the field. Every model gets plugged into the
-harness built on Day 2 and added to the same leaderboard.
+*Real models, scored on Day 2's harness. Taught on Google Colab.*
+
+| | |
+|---|---|
+| Lecture 1 | [Exponential Smoothing & ETS](slides/05_exponential_smoothing_and_ets.html) |
+| Lecture 2 | [Orchestration & the Field](slides/06_orchestration_and_the_field.html) |
+| Labs E–F | [`labs/03_day3_models_and_orchestration.ipynb`](labs/03_day3_models_and_orchestration.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/03_day3_models_and_orchestration.ipynb) |
+
+Simple exponential smoothing as a weighted average · adding a trend state, and damping it ·
+Holt-Winters and the third state · the (E,T,S) family and AICc selection · Box-Cox against a
+multiplicative error · AutoARIMA closing Day 2's white-noise question · AutoGluon TimeSeries
+as the orchestrated layer · a closing map of the field, listed not taught.
+
+Day 3 ends with eight models on one leaderboard. ETS ties the floor on MASE and **loses the
+distribution** by over-covering at 87.5%; ARIMA fails the opposite way at 62.5%. Only Theta,
+three lines and no lecture, beats the seasonal naive on scaled CRPS. The floor Day 2 built
+survives a full day of fitted models, which is the closing argument of the course.

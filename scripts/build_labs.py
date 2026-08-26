@@ -1574,6 +1574,529 @@ to get past it.
 
 
 # =====================================================================
+# LAB 3 - Day 3
+# =====================================================================
+
+LAB3 = [
+    md("""
+## Setup
+
+Day 3 runs on **Colab**, so the first cell clones the course and installs it.
+
+> **If your runtime resets, every install is gone.** Re-run this cell. It is
+> the single most common way to lose ten minutes today.
+"""),
+    code("""
+import sys
+if "google.colab" in sys.modules:
+    !git clone -q https://github.com/NaifMersal/time-series-analysis-and-forecasting.git /content/ts-course
+    %cd /content/ts-course
+    !pip install -q -e .
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from statsforecast import StatsForecast
+from statsforecast.models import AutoETS, AutoTheta, SeasonalNaive
+from statsforecast.utils import ConformalIntervals
+
+from coursekit import checks
+from coursekit import datasets as D
+from coursekit import leaderboard as lb
+from coursekit import plotting as P
+from coursekit import scoring
+
+P.use_course_style()
+
+spine = D.spine()
+MODELS = ["SeasonalNaive", "AutoETS"]
+LABELS = {"SeasonalNaive": "Seasonal naive", "AutoETS": "ETS"}
+
+print(f"spine  : {len(spine)} months, "
+      f"{spine['ds'].min().date()} to {spine['ds'].max().date()}")
+print(f"levels : {scoring.LEVELS}")
+print(f"board  : {len(lb.load())} models carried over from Day 2")
+"""),
+
+    # ================================================================ Lab E
+    md("""
+---
+# Lab E - Fit ETS, then score it honestly
+
+Runs after the fifth deck. Exercises 3.1 to 3.3, 40 minutes.
+
+Everything you built on Day 2 is still here. `labs/leaderboard.csv` already
+holds the benchmark floor, and today's models append to the same file.
+"""),
+
+    # ---------------------------------------------------------------- 3.1
+    md("""
+---
+# Exercise 3.1 - Fit ETS and read what it picked
+
+*12 minutes.*
+
+`AutoETS` fits the candidate family and returns the member with the lowest
+AICc. You are not choosing the model - you are reading the choice it made, and
+one of the three letters should surprise you.
+"""),
+    code("""
+# TODO: fit AutoETS(season_length=12) on the WHOLE spine, then pull out the
+#       fitted model object: `sf.fit(df=...)`, then `sf.fitted_[0, 0].model_`.
+sf = ...
+ets = ...
+
+checks.check_ex_3_1(ets)
+""", """
+sf = StatsForecast(models=[AutoETS(season_length=12)], freq=D.FREQ, n_jobs=1)
+sf.fit(df=spine)
+ets = sf.fitted_[0, 0].model_
+
+checks.check_ex_3_1(ets)
+"""),
+    md("""
+Now read the fit. `par` holds the smoothing weights in the order
+**alpha, beta, gamma, phi**, then the initial states.
+"""),
+    code("""
+par = np.asarray(ets["par"], dtype=float)
+
+print(f"method     : {ets['method']}")
+print(f"components : {ets['components']}   (error, trend, season, damped)")
+print(f"\\nalpha  (level)  = {par[0]:.4f}")
+print(f"gamma  (season) = {par[2]:.4f}")
+print(f"beta   (trend)  = {par[1]}   <- not a number, because there is no trend state")
+print(f"\\nAICc = {ets['aicc']:.1f}   sigma2 = {ets['sigma2']:.5f}   "
+      f"params = {ets['n_params']}")
+"""),
+    md("""
+The states are the same three objects STL handed you on Day 1 - except ETS
+*fitted* them rather than smoothing them out. Draw them in the same panel
+vocabulary and compare.
+"""),
+    code("""
+states = P.ets_states(ets, spine["ds"])
+
+P.decomposition_plot(
+    states, [c for c in ("level", "trend", "season") if c in states.columns],
+    title="The states ETS fitted, month by month",
+    ylabel="turnover ($M)", panel_height=1.7)
+plt.show()
+
+print(states.head(3).round(2).to_string(index=False))
+"""),
+    md("""
+**Day 1 said this series trends, and the search picked a model with no trend
+state.** How is that not a contradiction? Look at the level panel before you
+answer.
+
+<!--STUDENT-->
+*Your answer:*
+
+<!--SOLUTION-->
+*Answer.* The level panel climbs from about 50 to about 336 - the trend is
+there, it is just being carried by the **level** state rather than by a
+separate slope state. With `alpha` at 0.52 the level re-estimates itself
+against every new observation, so it tracks the climb as it happens instead of
+projecting a fixed slope forward.
+
+A trend state buys you something different: a slope that keeps being applied
+*after* the data runs out. AICc charges two extra parameters for that
+(`beta` and the initial slope) and, on this series, decides the forecast is not
+enough better to be worth them. That is a statement about extrapolation, not
+about whether the series trends.
+
+Note also the season panel: an *additive* state whose swings grow from about
+plus or minus 2 in 1982 to plus 55 by 2018. It copes with growth because the
+**error** term is multiplicative - the M in ETS(M,N,A) - which is the same job
+Day 1's log transform did.
+"""),
+
+    # ---------------------------------------------------------------- 3.2
+    md("""
+---
+# Exercise 3.2 - Eight folds, and the coverage surprise
+
+*18 minutes.*
+
+This is Exercise 2.5 again, with one model swapped. `coursekit.scoring` is the
+harness you built by hand yesterday, packaged - so the whole thing is now a few
+lines, which is the point.
+"""),
+    code("""
+# TODO: cross-validate BOTH models over the spine, with the same folds Day 2
+#       used: h=12, step_size=12, n_windows=8, and every level in
+#       scoring.LEVELS so there is a quantile ladder to score.
+cvsf = ...
+cv = ...
+
+print(f"folds : {cv['cutoff'].nunique()}")
+print(f"scored points : {len(cv)}")
+""", """
+cvsf = StatsForecast(
+    models=[SeasonalNaive(season_length=12), AutoETS(season_length=12)],
+    freq=D.FREQ, n_jobs=1)
+cv = cvsf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                           level=scoring.LEVELS)
+
+print(f"folds : {cv['cutoff'].nunique()}")
+print(f"scored points : {len(cv)}")
+"""),
+    code("""
+# TODO: score both models with scoring.score_cv and build a frame INDEXED BY
+#       MODEL NAME, with the columns score_cv returns.
+scores = ...
+
+checks.check_ex_3_2(cv, scores)
+scores.round(4)
+""", """
+scores = pd.DataFrame({m: scoring.score_cv(cv, m, spine) for m in MODELS}).T
+
+checks.check_ex_3_2(cv, scores)
+scores.round(4)
+"""),
+    md("""
+Two charts, both from Day 2. First: is the band honest?
+"""),
+    code("""
+P.coverage_bars({LABELS[m]: scores.loc[m, "coverage_80"] for m in MODELS},
+                nominal=0.8, tolerance=0.05, figsize=(8.6, 2.6),
+                title="Measured 80% coverage over 8 folds")
+plt.show()
+"""),
+    md("""
+Second: how wide was the band it bought that coverage with, and what does a
+proper score make of the whole distribution?
+"""),
+    code("""
+width80 = {LABELS[m]: float((cv[f"{m}-hi-80"] - cv[f"{m}-lo-80"]).mean())
+           for m in MODELS}
+
+P.width_vs_crps_plot(
+    width80,
+    {LABELS[m]: scores.loc[m, "crps"] for m in MODELS},
+    coverage={LABELS[m]: scores.loc[m, "coverage_80"] for m in MODELS},
+    figsize=(10, 3.0))
+plt.show()
+"""),
+    md("""
+**A fitted, likelihood-based model just matched a one-line benchmark on the
+point forecast and covered 87.5% with a band that claims 80%.** Most people
+read over-coverage as caution. Say why it is not, and say which model you would
+put in front of a stakeholder.
+
+<!--STUDENT-->
+*Your answer:*
+
+<!--SOLUTION-->
+*Answer.* A band that claims 80% and delivers 87.5% is not conservative, it is
+**wrong by 7.5 points**, and wrong in the expensive direction: it is too wide,
+so every decision sized off it - safety stock, staffing, budget - is hedged
+more than the evidence justifies. Uncertainty you invent costs real money.
+
+That is exactly what scaled CRPS charges for, which is why ETS loses on CRPS
+(about 0.033 against 0.031) despite winning on MASE. Its 80% band averages
+about 67 units against the seasonal naive's 49. Coverage told you the band was
+dishonest; only the proper score told you it was *worse*.
+
+Note this is yesterday's STL comparison run in reverse. The decomposition route
+had the **narrowest** bands and the **worst** coverage and lost on CRPS; ETS
+has the widest bands and the most coverage and also loses. Neither sharpness
+nor coverage ranks a forecast on its own.
+
+What to report: a tie on the point forecast, a loss on the distribution. Report
+it that way. A team tracking only MASE would ship ETS today and write in the
+summary that the new model beat the benchmark.
+"""),
+    md("""
+Put it on the board. **Same file Day 2 wrote** - this is what a harness is for.
+"""),
+    code("""
+lb.record("ETS", day=3,
+          **scoring.score_cv(cv, "AutoETS", spine),
+          notes="Day 3, AutoETS(M,N,A), 8-fold rolling origin")
+
+lb.show().round(4)
+"""),
+
+    # ---------------------------------------------------------------- 3.3
+    md("""
+---
+# Exercise 3.3 - Damped against undamped (optional)
+
+*10 minutes. Skip this if you are behind - 3.4 does not depend on it.*
+
+The search dropped the trend state entirely. Pin one back on, and see why a
+straight line extrapolated far enough stops being credible.
+"""),
+    code("""
+# TODO: two AutoETS models, both pinned to model="AAN" (additive error,
+#       additive trend, no season), one with damped=True. Give each an alias
+#       so the columns can be told apart, and forecast 60 months out.
+damp = ...
+fc_damp = ...
+
+checks.check_ex_3_3(fc_damp)
+""", """
+damp = StatsForecast(
+    models=[AutoETS(season_length=12, model="AAN", alias="AAN"),
+            AutoETS(season_length=12, model="AAN", damped=True, alias="AAdN")],
+    freq=D.FREQ, n_jobs=1)
+fc_damp = damp.forecast(df=spine, h=60)
+
+checks.check_ex_3_3(fc_damp)
+"""),
+    code("""
+P.forecast_overlay(
+    spine, fc_damp, ["AAN", "AAdN"],
+    labels={"AAN": "trend, undamped", "AAdN": "trend, damped"},
+    history_tail=96, figsize=(10, 4.0), ylabel="turnover ($M)",
+    title="Five years out, with and without damping")
+plt.show()
+
+print(f"month 1  : {fc_damp['AAN'].iloc[0]:.1f} vs {fc_damp['AAdN'].iloc[0]:.1f}")
+print(f"month 60 : {fc_damp['AAN'].iloc[-1]:.1f} vs {fc_damp['AAdN'].iloc[-1]:.1f}")
+"""),
+    md("""
+**Damping is a parameter, not a decision.** `phi` is fitted like any other
+weight. What does the chart say about a trend model asked for a 60-month
+forecast, and why does that matter more than the 12-month one?
+
+<!--STUDENT-->
+*Your answer:*
+
+<!--SOLUTION-->
+*Answer.* The two forecasts are nearly indistinguishable in the first year and
+diverge steadily after it - by month 60 the undamped line is tens of units
+higher, because it applies the same slope sixty times running. Damping
+multiplies the slope by `phi` at each step, so the increments shrink and the
+forecast flattens toward a level.
+
+Why it matters at 60 and not at 12: the error of a straight-line extrapolation
+grows with the horizon, so the assumption "this slope persists" is cheap over a
+year and reckless over five. Nothing in the data says the 2010s growth rate
+continues to 2023.
+
+And note what the AICc search did unprompted in Exercise 3.1: it declined the
+trend state altogether on this series. Damping is the softer version of the
+same judgement.
+"""),
+
+    # ================================================================ Lab F
+    md("""
+---
+# Lab F - Orchestration, and one model of your own
+
+Runs after the sixth deck. Exercises 3.4 and 3.5, 35 minutes.
+"""),
+
+    # ---------------------------------------------------------------- 3.4
+    md("""
+---
+# Exercise 3.4 - The same job, handed to a framework
+
+*20 minutes.*
+
+AutoGluon fits a zoo of models behind one call. Every model in the zoo below is
+one you have now met. The install is large, so this runs on Colab.
+
+> Every cell in this exercise is **skip-guarded**: without `autogluon`
+> installed it prints why and moves on, so the rest of the notebook still runs.
+"""),
+    code("""
+import importlib.util
+
+HAS_AG = importlib.util.find_spec("autogluon") is not None
+if not HAS_AG:
+    print("autogluon is not installed. On Colab, run this and re-run the cell:")
+    print("    !pip install -q 'autogluon.timeseries'")
+    print("\\n(Takes a few minutes. A runtime reset wipes it.)")
+else:
+    print("autogluon is available")
+"""),
+    md("""
+**The data conversion stays visible.** AutoGluon has its own frame, its own
+column names, its own fit loop and its own leaderboard. Writing it out by hand
+once is the point of this exercise - the gap between two APIs doing the same
+job is the thing to notice.
+
+| | this course | AutoGluon |
+|---|---|---|
+| id column | `unique_id` | `item_id` |
+| time column | `ds` | `timestamp` |
+| value column | `y` | `target` (nameable) |
+| frame | `pd.DataFrame` | `TimeSeriesDataFrame` |
+"""),
+    code("""
+if HAS_AG:
+    from autogluon.timeseries import TimeSeriesDataFrame, TimeSeriesPredictor
+
+    # Long format to AutoGluon's long format: the same three columns, renamed.
+    ag_long = spine.rename(columns={"unique_id": "item_id", "ds": "timestamp"})
+    tsdf = TimeSeriesDataFrame.from_data_frame(
+        ag_long, id_column="item_id", timestamp_column="timestamp")
+
+    # One 12-month holdout, cut the way AutoGluon expects.
+    ag_train = tsdf.slice_by_timestep(None, -12)
+
+    print(tsdf.head(3))
+    print(f"\\nfull: {len(tsdf)} rows   train: {len(ag_train)} rows")
+"""),
+    code("""
+if HAS_AG:
+    # Local models only - the same zoo this course taught, nothing neural.
+    ZOO = {"Naive": {}, "SeasonalNaive": {}, "AutoETS": {},
+           "AutoARIMA": {}, "Theta": {}}
+
+    predictor = TimeSeriesPredictor(
+        prediction_length=12, target="y", eval_metric="MASE",
+        freq=D.FREQ, verbosity=1)
+    predictor.fit(ag_train, hyperparameters=ZOO, time_limit=120)
+"""),
+    code("""
+if HAS_AG:
+    ag_board = predictor.leaderboard(tsdf)
+    ours = lb.show()
+
+    checks.check_ex_3_4(ag_board, ours)
+    display(ag_board)
+    display(ours.round(4))
+"""),
+    md("""
+**Two leaderboards, one series.** Read them against each other and account for
+three differences: the *sign* of the scores, the *models* that appear, and the
+*ranking*. Which one would you trust to pick a model for production, and what
+does the other one buy you?
+
+<!--STUDENT-->
+*Your answer:*
+
+<!--SOLUTION-->
+*Answer.* **Sign.** AutoGluon reports every metric negated, so higher is
+better there and lower is better on ours. A `score_val` of -1.18 is a MASE of
+1.18. This trips people up constantly, and it is the first thing to check
+whenever a framework's leaderboard disagrees with your own.
+
+**Models.** The zoo is a subset of what you already have - Naive, SeasonalNaive,
+ETS, AutoARIMA, Theta - plus a `WeightedEnsemble` it builds from them. Nothing
+in it is a model this course did not name. That is the punchline of the
+lecture: you have now seen every line this library runs.
+
+**Ranking.** They will not agree exactly, and the reason is methodological, not
+a bug. AutoGluon scored one internal validation window; the course leaderboard
+averages eight rolling folds and scores the full distribution with CRPS. That
+is the Exercise 2.5 lesson pointed at a tool instead of a model - and it is why
+the course table is the one to trust for a production decision.
+
+What the framework buys is speed and coverage: five models fitted, tuned and
+ensembled inside a two-minute budget with one call. In industry you hand this
+step to a framework. You just need to be able to read what it hands back.
+"""),
+
+    # ---------------------------------------------------------------- 3.5
+    md("""
+---
+# Exercise 3.5 - Capstone: add a model of your own
+
+*15 minutes.*
+
+One model, your choice, onto the same leaderboard. This is the whole course in
+a few lines: pick a model, cross-validate it over the same eight folds, score
+it with the same harness, record it under a name.
+
+Some to try - all in `statsforecast.models`:
+
+| model | why |
+|---|---|
+| `AutoTheta(season_length=12)` | simple, fast, and strong on this series |
+| `AutoCES(season_length=12)` | complex exponential smoothing |
+| `AutoARIMA(season_length=12)` | the other classical family; **slow (~60s)** |
+| `WindowAverage(window_size=12)` | needs `prediction_intervals=` - see below |
+
+> A model with no closed-form interval raises *"You must pass
+> `prediction_intervals`"* the moment you ask for a level. Give it
+> `prediction_intervals=ConformalIntervals(n_windows=4, h=12)` - Day 2,
+> segment E.
+"""),
+    code("""
+# TODO: pick a model. Cross-validate it over the SAME folds (h=12,
+#       step_size=12, n_windows=8, level=scoring.LEVELS), score it with
+#       scoring.score_cv, and record it with day=3.
+#
+#       MY_MODEL is the statsforecast column name; MY_NAME is what goes on the
+#       leaderboard.
+MY_MODEL = ...
+MY_NAME = ...
+
+mysf = ...
+mycv = ...
+
+checks.check_ex_3_5(lb.show(), MY_NAME)
+lb.show().round(4)
+""", """
+MY_MODEL = "AutoTheta"
+MY_NAME = "Theta"
+
+mysf = StatsForecast(models=[AutoTheta(season_length=12)],
+                     freq=D.FREQ, n_jobs=1)
+mycv = mysf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                             level=scoring.LEVELS)
+
+lb.record(MY_NAME, day=3,
+          **scoring.score_cv(mycv, MY_MODEL, spine),
+          notes="Day 3 capstone, 8-fold rolling origin")
+
+checks.check_ex_3_5(lb.show(), MY_NAME)
+lb.show().round(4)
+"""),
+    md("""
+**Read the final board.** Which model has the best scaled CRPS, and how much
+lecture time did it get? What does that say about the seasonal naive you fitted
+on Day 2 in one line?
+
+<!--STUDENT-->
+*Your answer:*
+
+<!--SOLUTION-->
+*Answer.* Theta wins on both MASE (about 1.02) and scaled CRPS (about 0.029),
+and it got three lines and no lecture. ETS got a ninety-minute deck and tied
+the benchmark. AutoARIMA, if you ran it, scores about 1.15 MASE for sixty
+seconds of fitting and *under*-covers at about 62% - the opposite failure to
+ETS's over-coverage, and the same lesson from the other side.
+
+Two things to take away.
+
+**The floor held.** Across a full day of real, fitted models, only one beat the
+seasonal naive on the metric that scores the whole distribution. A model that
+took one line and no fitting time is still better calibrated than most of what
+came after it. That is why the first thing you do on a new series is fit the
+benchmarks - not as a formality, as the thing you have to beat.
+
+**Model complexity is not the axis you think it is.** Theta is simpler than
+ETS and beat it. ARIMA is more complex than both and lost. What actually
+decided the ranking was whether a model's uncertainty was priced honestly, and
+you cannot know that without a harness. You now have one, and every model
+today plugged into it in the same four lines.
+"""),
+    md("""
+---
+## End of the course
+
+`labs/leaderboard.csv` is the record: three days, one series, every model
+scored the same way.
+
+You can now take a series you have never seen, plot it, decompose it, fit the
+benchmark floor, check the residuals, put honest intervals on a forecast,
+cross-validate over rolling origins, and rank candidates on a proper score -
+and you can hand the fitting step to a framework without losing track of what
+it did.
+
+The map slide at the end of deck 6 is where to go next. `notes/` and
+`labs/reference_cheatsheet.md` carry the syntax.
+"""),
+]
+
+# =====================================================================
 # PRE-WORK - sent before Day 1
 # =====================================================================
 
@@ -1797,3 +2320,7 @@ if __name__ == "__main__":
           LABS / "02_day2_toolbox_and_evaluation.ipynb",
           SOLS / "02_day2_toolbox_and_evaluation.ipynb",
           note("Day 2 - Toolbox & Evaluation"))
+    build(LAB3,
+          LABS / "03_day3_models_and_orchestration.ipynb",
+          SOLS / "03_day3_models_and_orchestration.ipynb",
+          note("Day 3 - Models & Orchestration"))

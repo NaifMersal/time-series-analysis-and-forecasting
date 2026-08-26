@@ -1,0 +1,1000 @@
+---
+title: "Exponential Smoothing & ETS"
+subtitle: "Day 3 · Lecture 1 · fpppy Ch 8"
+date: today
+format: revealjs
+---
+
+```{python}
+#| include: false
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from statsforecast import StatsForecast
+from statsforecast.models import (AutoETS, Holt, HoltWinters, SeasonalNaive,
+                                  SimpleExponentialSmoothingOptimized)
+from utilsforecast.losses import mase as mase_loss
+
+from coursekit import datasets as D
+from coursekit import plotting as P
+from coursekit import scoring
+
+P.use_course_style()
+
+spine = D.spine()
+H = 24
+train, test = D.train_test(spine, h=H)
+
+# --- the three teaching steps, on the same 24-month holdout Day 2 used -----
+steps = StatsForecast(
+    models=[SimpleExponentialSmoothingOptimized(alias="SES"),
+            Holt(season_length=12, alias="Holt"),
+            HoltWinters(season_length=12, alias="HoltWinters")],
+    freq=D.FREQ, n_jobs=1)
+fc_steps = steps.forecast(df=train, h=H)
+
+# The three steps are not course models -- they never reach the leaderboard,
+# they are one story told in three slides -- so they carry their own colours
+# rather than borrowing from MODEL_PALETTE.
+STEP_COLORS = [P.BLUE, P.GREEN, P.AMBER]
+
+# --- what AutoETS picks on the full spine, and the states it learned -------
+auto = StatsForecast(models=[AutoETS(season_length=12)], freq=D.FREQ, n_jobs=1)
+auto.fit(df=spine)
+ets = auto.fitted_[0, 0].model_
+par = np.asarray(ets["par"])
+ALPHA, GAMMA = float(par[0]), float(par[2])
+METHOD = ets["method"]
+states = P.ets_states(ets, spine["ds"])
+
+# --- the AICc search, six candidates, as a distance from the winner -------
+CANDIDATES = [("ANN", False), ("AAN", False), ("ANA", False),
+              ("AAA", False), ("MNA", False), ("MAA", False)]
+aicc = {}
+for spec, damped in CANDIDATES:
+    f = StatsForecast(
+        models=[AutoETS(season_length=12, model=spec, damped=damped)],
+        freq=D.FREQ, n_jobs=1)
+    f.fit(df=spine)
+    tag = f"ETS({spec[0]},{spec[1]}{'d' if damped else ''},{spec[2]})"
+    aicc[tag] = float(f.fitted_[0, 0].model_["aicc"])
+best_aicc = min(aicc.values())
+d_aicc = {k: v - best_aicc for k, v in
+          sorted(aicc.items(), key=lambda kv: kv[1])}
+
+# --- damped against undamped, five years out ------------------------------
+damp = StatsForecast(
+    models=[AutoETS(season_length=12, model="AAN", alias="AAN"),
+            AutoETS(season_length=12, model="AAN", damped=True, alias="AAdN")],
+    freq=D.FREQ, n_jobs=1)
+fc_damp = damp.forecast(df=spine, h=60)
+
+# --- and then the Day 2 harness, unchanged --------------------------------
+DAY3 = ["SeasonalNaive", "AutoETS"]
+LABELS = {"SeasonalNaive": "Seasonal naive", "AutoETS": "ETS"}
+cvsf = StatsForecast(
+    models=[SeasonalNaive(season_length=12), AutoETS(season_length=12)],
+    freq=D.FREQ, n_jobs=1)
+cv = cvsf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                           level=scoring.LEVELS)
+score = {m: scoring.score_cv(cv, m, spine) for m in DAY3}
+
+# The same two models on the single 24-month window Day 2 used, and fold by
+# fold, so slide 28 can show the gap against the spread it sits inside.
+fc24 = cvsf.forecast(df=train, h=H, level=scoring.LEVELS)
+merged24 = test.merge(fc24, on=["unique_id", "ds"])
+single_mase = mase_loss(merged24, models=DAY3, seasonality=12,
+                        train_df=train)[DAY3].iloc[0].to_dict()
+per_window = pd.DataFrame([
+    mase_loss(g.drop(columns=["cutoff"]), models=DAY3, seasonality=12,
+              train_df=spine[spine["ds"] <= cut])[DAY3].iloc[0]
+    for cut, g in cv.groupby("cutoff")
+]).reset_index(drop=True)
+width80 = {m: float((cv[f"{m}-hi-80"] - cv[f"{m}-lo-80"]).mean()) for m in DAY3}
+cover80 = {m: score[m]["coverage_80"] for m in DAY3}
+crps = {m: score[m]["crps"] for m in DAY3}
+mase = {m: score[m]["mase"] for m in DAY3}
+```
+
+## Day 2 ended with a floor. Today we go after it
+
+::: {.incremental}
+- **Parts A to C**: one model, built in three steps, on states you already know
+- **Part D**: the family those three steps belong to, and how it picks a member
+- **Part E**: the same harness, two new rows on the same leaderboard
+:::
+
+. . .
+
+::: {.callout-important}
+## The floor to beat
+Seasonal naive, **MASE 1.18**, **scaled CRPS 0.031**, over eight rolling folds.
+Its residuals fail Ljung-Box at $p \approx 10^{-240}$, so it is beatable.
+:::
+
+::: {.notes}
+Open by putting yesterday's last slide back up in words. They left with a
+leaderboard file on disk, five rows in it, and a seasonal naive on top at MASE
+1.18 and scaled CRPS 0.031. And they left with the reason to keep going: those
+residuals are nowhere near white noise, so there is structure in this series
+that none of the five benchmarks captured.
+
+Today is one model, taught properly, and then one framework that runs a dozen
+of them for you. The order matters: by the time the framework appears this
+afternoon, every model inside it is one they have either built or watched get
+built.
+
+Set the expectation about the result honestly, because it is coming in Part E
+and it is not a landslide. ETS will beat the floor on the point forecast by
+about half a percent and lose to it on the distribution. That is a normal
+result in this field, and diagnosing it is the whole exercise.
+:::
+
+# A. A forecast is a weighted average {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
+
+Ch 8.1 · Simple exponential smoothing
+
+## Your benchmarks are two ends of one dial
+
+::: {.flowrow}
+[[Naive]{.flowtitle}[all the weight on $y_T$]{.flownote}]{.flownode .coral}
+[[somewhere in between]{.flowtitle}[recent counts more, old still counts]{.flownote}]{.flownode .teal}
+[[Mean]{.flowtitle}[equal weight on every $y_t$]{.flownote}]{.flownode .purple}
+:::
+
+. . .
+
+The naive forecast says the last observation is all that matters. The mean says
+a point from 1982 matters exactly as much as last month. Neither is what you
+believe about a real series.
+
+::: {.notes}
+This is the slide that makes exponential smoothing feel inevitable rather than
+invented. Both of yesterday's simplest benchmarks are weighted averages of the
+history. They just sit at opposite extremes of the same dial.
+
+Ask the room which one is closer to right for the takeaway food series. Most
+will say the naive, and they are right, which is exactly why the seasonal naive
+is on top of the leaderboard. But nobody actually believes that only December
+2018 carries information about December 2019.
+
+The obvious repair is a weighted average where recent observations count more
+and the weight fades as you go back. That is the whole idea, and it has a name.
+:::
+
+## Simple exponential smoothing is the dial between them
+
+$$\hat{y}_{T+1|T} = \alpha y_T + \alpha(1-\alpha) y_{T-1} + \alpha(1-\alpha)^2 y_{T-2} + \cdots$$
+
+Every past observation gets a weight. The weights shrink geometrically as you
+go back, and they sum to 1.
+
+. . .
+
+:::: {.columns}
+::: {.column width="50%"}
+**$\alpha$ near 1**
+
+Fast to react. Almost the naive forecast.
+:::
+::: {.column width="50%"}
+**$\alpha$ near 0**
+
+Slow and smooth. Approaches the mean.
+:::
+::::
+
+::: {.notes}
+One parameter, alpha, between 0 and 1. It is the smoothing parameter, and it
+sets how fast the weight decays as you walk backwards through the history.
+
+Point at the two columns and connect them to the previous slide: alpha equal to
+1 puts a weight of exactly 1 on the last observation and zero on everything
+else, which is the naive forecast. Push alpha towards 0 and the weights flatten
+out towards the mean.
+
+The word "exponential" in the name is the geometric decay, nothing more
+exotic. If anyone asks why the weights sum to 1, that is the geometric series
+alpha times the sum of (1 minus alpha) to the j, which is exactly 1.
+:::
+
+## Every past observation keeps a weight that fades
+
+```{python}
+#| fig-width: 10
+P.smoothing_weights_plot(
+    alphas=(0.2, 0.5, 0.8), n_lags=16,
+    title="Weight on each past observation, for three values of $\\alpha$")
+plt.show()
+```
+
+::: {.notes}
+This is the picture worth remembering from Part A. Three dials, three decay
+curves. The annotated number on each curve is the weight the forecast puts on
+the most recent observation, which is alpha itself.
+
+Walk one curve. At alpha 0.8 the last observation gets 0.8, the one before it
+0.16, and by four months back the weight is under one percent: this forecast
+has essentially forgotten last year. At alpha 0.2 the weight is still 0.05 at
+lag seven, so a year-old observation is still pulling on today's forecast.
+
+The point to land: nothing is ever discarded. Exponential smoothing has no
+window and no cutoff. Every observation the series ever had is still in the
+forecast, with a weight that has faded.
+:::
+
+## The same model, written as a state you update
+
+Two lines, and the second one is the whole model:
+
+$$\hat{y}_{t+h|t} = \ell_t \qquad\text{(forecast)}$$
+$$\ell_t = \alpha y_t + (1-\alpha)\ell_{t-1} \qquad\text{(level)}$$
+
+. . .
+
+::: {.cardbox .teal}
+$\ell_t$ is the **state**: what the model believes the series is worth right
+now. Each new observation nudges it. The forecast is just the state, held flat.
+:::
+
+::: {.notes}
+Same model, different algebra. Instead of an infinite sum, one number that gets
+updated. Substitute the level equation into itself a few times and the infinite
+weighted sum comes back out, so these are the same object.
+
+This form is the one that scales. The level equation says: take a step from
+where you were towards what you just saw, and alpha is the size of that step.
+Every model for the rest of the day is this pattern with more states.
+
+The word state is worth saying out loud here, because the family this belongs
+to is called state space models, and by Part D that name should feel earned
+rather than imposed.
+:::
+
+## $\alpha$ is fitted, not chosen by hand
+
+Pick the $\alpha$ and the starting level $\ell_0$ that minimize the sum of
+squared one-step errors on the training data:
+
+$$\text{SSE} = \sum_{t=1}^{T}\left(y_t - \hat{y}_{t|t-1}\right)^2$$
+
+. . .
+
+```python
+from statsforecast.models import SimpleExponentialSmoothingOptimized
+StatsForecast(models=[SimpleExponentialSmoothingOptimized()], freq="MS")
+```
+
+On the spine the optimizer lands on $\alpha \approx `{python} f"{ALPHA:.2f}"`$.
+
+::: {.notes}
+Nobody tunes alpha by hand. It is estimated the same way a regression
+coefficient is: write down the one-step errors on the training data, square
+them, add them up, and let an optimizer find the alpha and the starting level
+that make the total smallest.
+
+Two things get estimated, not one. The initial level l-zero has to come from
+somewhere, and the honest answer is that it is a parameter too.
+
+This matters for a reason that shows up in Part D: because there is a fitting
+criterion, models can be compared. Hold that thought.
+:::
+
+## SES on its own gives you a flat line
+
+```{python}
+#| fig-width: 10
+P.forecast_overlay(
+    train, fc_steps, ["SES"], labels={"SES": "SES"}, colors=[STEP_COLORS[0]],
+    actual=test, history_tail=60, ncols=3, figsize=(10, 3.4),
+    title="Simple exponential smoothing, 24 months out",
+    ylabel="turnover ($M)")
+plt.show()
+```
+
+::: {.cardbox .coral}
+One state, and it is a level. There is nothing in this model that knows the
+series is growing, and nothing that knows about December.
+:::
+
+::: {.notes}
+Here is the result, and it is deliberately disappointing. A flat line just
+above 355, against a holdout that climbs and swings.
+
+Do not treat this as a failure of the method. It is a correct forecast from a
+model with exactly one state. A level, updated month by month, extrapolates as
+a horizontal line, because a level has no direction.
+
+That is the honest motivation for the next two segments. The series has a trend
+and it has a season. Give the model a state for each and watch the line pick up
+the shape. Two more states, two more slides.
+:::
+
+# B. Trend: a second state {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
+
+Ch 8.2 · Holt's linear trend, and damping it
+
+## A second state gives the forecast a slope
+
+$$\hat{y}_{t+h|t} = \ell_t + h b_t$$
+$$\ell_t = \alpha y_t + (1-\alpha)(\ell_{t-1} + b_{t-1})$$
+$$b_t = \beta^*(\ell_t - \ell_{t-1}) + (1-\beta^*) b_{t-1}$$
+
+. . .
+
+The level equation is the same as before, with the slope folded into what it
+expects. The new line is the same update pattern applied to the slope itself.
+
+::: {.notes}
+Read the three lines in order and point at what changed. The forecast is no
+longer flat: it is the level plus h steps of slope. The level update now starts
+from where the trend said it would be, not from where it was. And the third
+line is the level equation's twin, applied to the slope.
+
+Beta-star is a second smoothing parameter with the same meaning as alpha: how
+fast does the model revise its belief about the slope when the data disagrees.
+It is fitted alongside alpha and the two initial states.
+
+The pattern is the thing to notice. Every state in this family is updated by
+the same move: a weighted step from what you believed towards what you just
+saw.
+:::
+
+## Holt adds a slope but not a December
+
+```{python}
+#| fig-width: 10
+P.forecast_overlay(
+    train, fc_steps, ["SES", "Holt"], labels={"SES": "SES", "Holt": "Holt"},
+    colors=STEP_COLORS[:2], actual=test, history_tail=60, ncols=3,
+    figsize=(10, 3.4),
+    title="Adding a trend state tilts the forecast", ylabel="turnover ($M)")
+plt.show()
+```
+
+::: {.cardbox .coral}
+Better, and still wrong in an obvious way. Two states cannot represent twelve
+months that behave differently from each other.
+:::
+
+::: {.notes}
+The line now rises, which is progress you can see. Over 24 months it climbs
+from about 356 to about 373, which is roughly the right slope for this series.
+
+And it is still a straight line through a series that visibly swings by 30
+percent between February and December. The residuals from this model would fail
+every diagnostic in yesterday's lecture, for a reason the picture already gives
+away.
+
+Two states means two things remembered. Nothing here knows what month it is.
+:::
+
+## Extrapolate a straight line far enough and it lies
+
+```{python}
+#| fig-width: 10
+P.forecast_overlay(
+    spine, fc_damp, ["AAN", "AAdN"],
+    labels={"AAN": "linear trend", "AAdN": "damped trend"},
+    colors=[P.BLUE, P.AMBER], history_tail=96, ncols=3, figsize=(10, 3.4),
+    title="Five years out, the damped forecast flattens",
+    ylabel="turnover ($M)")
+plt.show()
+```
+
+At $h = 60$ the two disagree by about
+`{python} f"{float(fc_damp['AAN'].iloc[-1] - fc_damp['AAdN'].iloc[-1]):.0f}"`
+units, on a series whose last observation was
+`{python} f"{float(spine['y'].iloc[-1]):.0f}"`.
+
+::: {.notes}
+Empirically, forecasts that extrapolate a constant slope forever are too
+optimistic at long horizons. Hyndman's damped trend is the standard repair and
+it is one extra parameter.
+
+The damping parameter phi sits between 0 and 1 and multiplies the slope at
+every step out, so the contributions form a geometric series that converges.
+The forecast approaches a horizontal asymptote instead of running off the top
+of the chart.
+
+Point at the gap at the right edge. Five years out, the undamped line has added
+38 units that the damped one has not. Neither is verified here, and that is the
+point: nothing in the training data can tell you which is right five years out,
+so the conservative one is the better default.
+:::
+
+## Damping is a parameter, not a decision
+
+::: {.incremental}
+- $\phi = 1$ recovers the plain linear trend, so damping costs nothing to allow
+- $\phi$ is fitted with everything else, usually between 0.8 and 0.98
+- Below about 0.8 the damping is so strong the trend barely survives one year
+- In the notation coming in Part D, this model is written **ETS(A,Ad,N)**
+:::
+
+. . .
+
+::: {.callout-note}
+## On this series, damping loses
+Damping the trend makes the fit *worse* on the spine by the criterion in Part D.
+The room where it wins is long horizons on noisy trends, which is most of them.
+:::
+
+::: {.notes}
+The reason to allow damping rather than argue about it is that phi equal to 1
+is the undamped model, so a fitted phi can always fall back to it. Letting the
+data choose costs one parameter.
+
+Be straight about the callout. On this series the automatic search will reject
+damping, and it will reject the trend state altogether, which is Part D's
+surprise. Damping is still worth teaching, because the room will forecast
+series that are noisier and horizons that are longer than this one, and it is
+the standard fix in that setting.
+
+The little d in the middle letter is worth flagging now so the notation lands
+softly in twenty minutes.
+:::
+
+# C. Seasonality: the third state {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+Ch 8.3 · Holt-Winters
+
+## The third state holds one value per month
+
+$$\hat{y}_{t+h|t} = \ell_t + h b_t + s_{t+h-m(k+1)}$$
+$$s_t = \gamma(y_t - \ell_{t-1} - b_{t-1}) + (1-\gamma)s_{t-m}$$
+
+$m = 12$ here, and the seasonal state is a set of $m$ values that each get
+updated once a year, when their month comes round again.
+
+. . .
+
+::: {.cardbox .purple}
+Three states, three smoothing parameters: $\alpha$ for the level, $\beta^*$ for
+the slope, $\gamma$ for the season. All fitted together.
+:::
+
+::: {.notes}
+The seasonal state is different in kind from the other two, and it is worth
+being explicit. There are twelve of them. Each January updates the January
+state, each February the February state, and each one is refreshed once per
+year rather than once per month.
+
+The subscript arithmetic in the forecast equation is doing exactly that
+bookkeeping: it reaches back to the most recent estimate for the month you are
+forecasting. Do not spend more than a sentence on the k in that expression; it
+just counts complete years.
+
+Gamma is the third smoothing parameter and it answers a question worth asking
+out loud: how much should one unusual December change what we believe about
+Decembers?
+:::
+
+## Additive or multiplicative is a real choice
+
+:::: {.columns}
+::: {.column width="50%"}
+**Additive season**
+
+$y_t = \ell_t + s_t$
+
+December adds a fixed number of units, whatever the level is.
+:::
+::: {.column width="50%"}
+**Multiplicative season**
+
+$y_t = \ell_t \times s_t$
+
+December is a fixed *percentage* above the level.
+:::
+::::
+
+. . .
+
+::: {.callout-important}
+## Which one the spine wants
+Its swings grew from about $\pm 2$ units in 1982 to about $\pm 55$ in 2018,
+while the level grew by the same kind of factor. That is multiplicative
+behaviour, and Part D shows the two ways to handle it.
+:::
+
+::: {.notes}
+This is the choice Day 1 already made them look at, in different clothes. When
+they log-transformed this series in lecture 2, the reason was that the seasonal
+swings grow with the level. Same observation, now a model decision.
+
+The numbers in the callout are read off the fitted seasonal state, which is on
+screen two slides from now, so this is a promise the deck keeps.
+
+There are two ways out and the course teaches both: model the seasonality as
+multiplicative, or transform the data until the seasonality is additive. Part D
+does that pair properly. For now, the point is only that assuming additive
+without looking is a decision, and usually a wrong one on retail data.
+:::
+
+## Holt-Winters finally has the right shape
+
+```{python}
+#| fig-width: 10
+P.forecast_overlay(
+    train, fc_steps, ["SES", "Holt", "HoltWinters"],
+    labels={"SES": "SES", "Holt": "Holt", "HoltWinters": "Holt-Winters"},
+    colors=STEP_COLORS, actual=test, history_tail=60, ncols=3,
+    figsize=(10, 3.9),
+    title="Three states: level, slope, season", ylabel="turnover ($M)")
+plt.show()
+```
+
+::: {.notes}
+Three slides, three models, one series. Flat, then tilted, then the right
+shape. This is the arc of Part A to C in one picture, and it is worth pausing
+on before the family notation arrives.
+
+Compare the Holt-Winters line against the dashed holdout. It has the December
+peaks and the February troughs in the right places and roughly the right size.
+It is not perfect and it does not need to be.
+
+If someone asks whether this beats the seasonal naive: good question, hold it
+for Part E, because answering it properly needs eight folds and not this
+chart.
+:::
+
+## You already built this by hand on Day 2
+
+::: {.flowrow}
+[[STL + drift]{.flowtitle}[yesterday]{.flownote}]{.flownode .navy}
+[[Split the season off]{.flowtitle}[STL decides]{.flownote}]{.flownode .coral}
+[[Pin drift]{.flowtitle}[your choice]{.flownote}]{.flownode .coral}
+[[Pin seasonal naive]{.flowtitle}[your choice]{.flownote}]{.flownode .coral}
+:::
+
+::: {.flowrow}
+[[ETS]{.flowtitle}[today]{.flownote}]{.flownode .navy}
+[[Level, slope, season]{.flowtitle}[same three parts]{.flownote}]{.flownode .teal}
+[[$\alpha, \beta^*, \gamma$ fitted]{.flowtitle}[the data chooses]{.flownote}]{.flownode .teal}
+:::
+
+::: {.notes}
+This is the most important slide in the lecture and it costs nothing to
+deliver, because they did the work yesterday.
+
+Yesterday's fifth model decomposed the series, forecast the seasonally adjusted
+part with drift, forecast the seasonal part with a seasonal naive, and added
+them back. Every one of those choices was made by a human, in advance, and
+pinned.
+
+ETS keeps the same three parts and replaces the pinning with estimation. Alpha,
+beta-star and gamma are what "the data chooses" means concretely: how fast each
+part is allowed to change.
+
+That framing is what makes today's model feel like a step rather than a new
+subject. It also sets up the honest expectation for Part E: learning the
+weights is not guaranteed to beat pinning them well.
+:::
+
+# D. The ETS family {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
+
+Ch 8.4 to 8.6 · The taxonomy, and the search over it
+
+## Three letters name the model
+
+| | Error | Trend | Season |
+|---|---|---|---|
+| **N** = none | | no trend | no season |
+| **A** = additive | additive | linear trend | additive |
+| **Ad** = damped | | damped trend | |
+| **M** = multiplicative | multiplicative | | multiplicative |
+
+. . .
+
+**ETS(A,N,N)** is simple exponential smoothing. **ETS(A,A,N)** is Holt.
+**ETS(A,A,A)** is additive Holt-Winters. That is Parts A, B and C, renamed.
+
+::: {.notes}
+Do not teach this table row by row. Put it up, say what the three letters are,
+and immediately spend the time on the line underneath, which is the payoff: the
+three models they just watched get built all have names in this scheme.
+
+Two error types, five trend types counting none and damped, three season types.
+That is thirty combinations, of which a handful are unstable and get excluded.
+
+The one thing worth saying about the error letter, because it is the least
+intuitive: additive error means the noise is a fixed number of units, and
+multiplicative error means it is a fixed percentage. On a series that grew by a
+factor of eight, that distinction is not cosmetic.
+:::
+
+## The error term is what buys the intervals
+
+Holt-Winters is a recipe for a point forecast. ETS wraps the same recipe in a
+statistical model by saying where the randomness enters.
+
+::: {.incremental}
+- A model with an error term has a **likelihood**, so its fit has a number
+- A number means models can be **compared**, which is the next slide
+- It also means the model can generate **futures**, not just a line
+- Those futures are the prediction intervals, computed rather than assumed
+:::
+
+. . .
+
+::: {.cardbox .teal}
+Yesterday intervals cost an assumption you had to defend. Here they fall out of
+the model, and it emits quantiles directly.
+:::
+
+::: {.notes}
+This is the answer to "why not just use Holt-Winters and stop". The point
+forecasts are identical. What the state space form adds is the error term, and
+the error term is what turns a recipe into a model.
+
+Connect it to yesterday explicitly, because it is the same argument from the
+other side. Yesterday, to get an interval out of a seasonal naive, they had to
+supply an assumption: Gaussian errors, or bootstrapped residuals, or conformal
+calibration. Each one spent something.
+
+ETS carries its own error distribution, so the interval is part of the model
+rather than an add-on. That is exactly why Part E can score it on scaled CRPS
+without a line of new plumbing.
+:::
+
+## AutoETS fits the candidates and picks with AICc
+
+```{python}
+#| fig-width: 9
+# The winner is 0 by construction, so its bar has no length; the label says
+# what the missing bar means rather than leaving it to read as a glitch.
+selected_tag = next(iter(d_aicc))
+P.metric_bars(
+    {(f"{k}  selected" if k == selected_tag else k): v
+     for k, v in d_aicc.items()},
+    fmt="{:.0f}", figsize=(8.6, 3.4),
+    title="AICc distance from the best model (0 = the winner)")
+plt.show()
+```
+
+AICc is the fit penalized for the number of parameters. `AutoETS` fits the
+candidates, computes this for each, and returns the smallest.
+
+::: {.notes}
+Every bar here is a real fit on the spine, and the axis is the distance from
+the winner rather than the raw AICc, because the raw numbers are all near 4500
+and the differences are what matter.
+
+Read the shape of the chart, not the individual values. The gap between the
+models with a seasonal letter and the models without one is enormous, which is
+the same conclusion Day 1 reached from the ACF: on retail data, seasonality is
+what discriminates. Trend barely moves the number at all.
+
+Say what AICc is in one sentence and move on: it rewards fit and charges for
+parameters, so a model has to earn its complexity. The correction term is for
+small samples and is irrelevant at 441 observations.
+:::
+
+## What it picked has no trend term
+
+```{python}
+#| echo: false
+print(f"selected      : {METHOD}")
+print(f"alpha (level) : {ALPHA:.3f}")
+print(f"gamma (season): {GAMMA:.3f}")
+```
+
+::: {.cardbox .coral}
+Multiplicative error, **no trend state**, additive season. On a series that
+grew by a factor of eight.
+:::
+
+::: {.notes}
+This is the slide that earns the segment, so give it room and let the room
+react before explaining it.
+
+The explanation is in the level equation from Part A. With alpha at 0.52, the
+level takes a half-step towards every new observation, so it climbs perfectly
+well on its own. A trend state would let the model extrapolate that climb, and
+that is the part AICc rejected: two more parameters, and a slope that has to be
+right twelve months out, for a fit improvement that did not pay for them.
+
+Connect it to Part B's callout. This is what "damping loses on this series"
+looked like from the other end: the search did not merely damp the trend, it
+removed it.
+
+The lesson worth naming: an automatic search optimizes the criterion you gave
+it, not the story you had in your head. It is not a substitute for looking.
+:::
+
+## The states it learned, read like a decomposition
+
+```{python}
+#| fig-width: 10
+P.decomposition_plot(
+    states, ["level", "season"],
+    title="The two states ETS fitted, month by month",
+    ylabel="turnover ($M)", panel_height=1.7)
+plt.show()
+```
+
+::: {.notes}
+Deliberately the same picture Day 1 drew with STL, in the same panel
+vocabulary, because the point is that these are the same kind of object.
+
+The level panel is the trend, arrived at without a trend state. The season
+panel is the answer to the promise made two slides back: the seasonal state
+starts at plus or minus a couple of units in 1982 and reaches plus 55 by 2018.
+
+That growth is the multiplicative behaviour, showing up inside an additive
+seasonal state. The model is coping with it through the multiplicative error
+term, which is the next slide's subject.
+
+If anyone asks why the season panel is so much noisier late in the series: the
+swings are bigger in absolute terms, so a fixed percentage of noise is a bigger
+number. Same reason.
+:::
+
+## Box-Cox does the same job as a multiplicative error
+
+$$w_t = \begin{cases} \log(y_t) & \lambda = 0 \\ (y_t^{\lambda}-1)/\lambda & \lambda \neq 0\end{cases}$$
+
+On the spine $\lambda \approx 0.074$, which is close enough to zero that it is
+nearly the log transform Day 1 used.
+
+. . .
+
+:::: {.columns}
+::: {.column width="50%"}
+**Transform the data**
+
+Forecast on the stable scale, then transform back. Additive model, honest
+intervals after back-transformation.
+:::
+::: {.column width="50%"}
+**Or let the model do it**
+
+A multiplicative error is already working on a relative scale. This is what
+`AutoETS` chose here.
+:::
+::::
+
+::: {.notes}
+Box-Cox is one knob that spans the transforms they already know: lambda of 1 is
+no transform, lambda of 0 is the log, and values in between interpolate. The
+lambda that stabilizes the spine's variance is 0.074, which is why Day 1's log
+transform worked as well as it did.
+
+The columns are the honest summary of the choice. Both routes handle variance
+that grows with the level. Transforming is more explicit and leaves you owning
+the back-transformation. Letting the error term be multiplicative is one letter
+in the model name.
+
+Do not present either as correct. Present them as the same idea entering the
+model at two different points, and note that this course took the second route
+by accident, because it let the search choose.
+:::
+
+# E. Scoring it on the Day 2 harness {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
+
+Ch 8.7 · Two new rows on the same leaderboard
+
+## The harness takes it unchanged
+
+```python
+# The only new line is the model on line 3. Everything else is Exercise 2.5.
+from coursekit import scoring, leaderboard as lb
+
+sf = StatsForecast(models=[AutoETS(season_length=12)], freq="MS")
+cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                         level=scoring.LEVELS)
+lb.record("AutoETS", day=3, **scoring.score_cv(cv, "AutoETS", spine))
+```
+
+. . .
+
+Nothing here is new except line 3. Same folds, same metrics, same file.
+
+::: {.notes}
+Six lines, and five of them are yesterday's. Make that visible by walking the
+highlight: line 4 is the cross-validation call they wrote in Exercise 2.5, with
+the same h, the same step size, the same eight windows. Line 6 is the recording
+call from the same exercise.
+
+The only new thing is the model on line 3. That is what a harness is for, and
+it is worth naming, because this afternoon a framework will do the same job
+with a different API and they should be able to see what it is buying.
+
+Say what happens if a model has no closed-form interval, since they will hit it
+in the capstone: cross-validation refuses to score levels and asks for
+prediction intervals. Conformal, from yesterday's segment E. ETS does not need
+it.
+:::
+
+## One window flattered ETS. Eight folds do not
+
+```{python}
+#| fig-width: 10
+P.single_vs_cv_plot(
+    single_mase, per_window[DAY3], labels=LABELS,
+    figsize=(10, 3.4), log_right=False,
+    titles=("One window against eight", "MASE, fold by fold"))
+plt.show()
+```
+
+::: {.cardbox .navy}
+On one window ETS scored `{python} f"{single_mase['AutoETS']:.2f}"` against
+`{python} f"{single_mase['SeasonalNaive']:.2f}"`. Over eight folds the gap
+closes to `{python} f"{mase['AutoETS']:.3f}"` against
+`{python} f"{mase['SeasonalNaive']:.3f}"`, inside a fold spread of
+`{python} f"{score['AutoETS']['mase_min']:.2f}"` to
+`{python} f"{score['AutoETS']['mase_max']:.2f}"`.
+:::
+
+::: {.notes}
+This is Exercise 2.4 and 2.5 happening again, to a different model, and it is
+worth saying so out loud before explaining the chart.
+
+Left panel. On the single 24-month window ETS scores 0.97 against the seasonal
+naive's 1.11, which is a 13 percent improvement and the kind of number that
+gets a model shipped. Over eight folds both lines land on 1.18 and the win
+evaporates. Yesterday the decomposition route did exactly this, in exactly this
+direction, on this same series.
+
+Right panel is why. The fold-to-fold spread runs from about 0.72 to about 2.02
+for both models, so a 0.007 difference in the means is a small fraction of the
+difference between a good year and a bad one.
+
+If someone asks whether the win is real, the honest answer is that eight folds
+cannot settle a gap this size, and the next move is more folds or more series,
+not a louder claim. That is why the leaderboard carries mase_min and mase_max.
+:::
+
+## And it loses the distribution
+
+```{python}
+#| fig-width: 9
+# Five points, not the default ten: at ten, 87.5% would colour as honest and
+# the chart would contradict the slide.
+P.coverage_bars({LABELS[m]: cover80[m] for m in DAY3}, nominal=0.8,
+                tolerance=0.05, figsize=(8.6, 2.8),
+                title="Measured 80% coverage over 8 folds")
+plt.show()
+```
+
+::: {.cardbox .coral}
+ETS covers `{python} f"{cover80['AutoETS']:.0%}"` of the holdout points with a
+band that claims 80%. The seasonal naive covers
+`{python} f"{cover80['SeasonalNaive']:.0%}"`.
+:::
+
+::: {.notes}
+Both bars miss, in opposite directions, and the ETS miss is the interesting
+one because it looks like good news. The chart calls a band honest within five
+points of nominal, which the seasonal naive clears and ETS does not.
+
+Ask the room which model they would rather ship, before explaining. Most rooms
+pick the 87.5 percent, because more coverage sounds safer. That instinct is
+what the next slide takes apart.
+
+A band that claims 80 and delivers 87.5 is not conservative, it is wrong by 7.5
+points, and it is wrong in the direction that costs money: it is too wide, so
+every decision made from it is hedged more than the evidence requires.
+
+Recall yesterday's rule while it is on screen: coverage checks a band, it
+cannot rank two bands. To rank them you need a proper score.
+:::
+
+## Too wide is a cost, not safety
+
+```{python}
+#| fig-width: 10
+P.width_vs_crps_plot(
+    {LABELS[m]: width80[m] for m in DAY3},
+    {LABELS[m]: crps[m] for m in DAY3},
+    coverage={LABELS[m]: cover80[m] for m in DAY3},
+    figsize=(10, 3.0))
+plt.show()
+```
+
+::: {.notes}
+Left panel, the sharpness: ETS is carrying the wider band. Right panel, the
+proper score: it loses on scaled CRPS. Those two facts are the same fact.
+
+This is exactly yesterday's STL comparison run in reverse, and it is worth
+saying so. Yesterday the decomposition route had the narrowest bands and the
+worst coverage and still lost on CRPS. Today ETS has the widest bands and the
+most coverage and still loses on CRPS. Neither sharpness nor coverage ranks a
+forecast on its own. CRPS does, because it scores the whole distribution
+against what actually happened.
+
+The seasonal naive is not on top here because it is clever. It is on top
+because its band is roughly the right size and roughly in the right place.
+:::
+
+## The verdict: a tie on points, a loss on range
+
+| | Seasonal naive | ETS |
+|---|---|---|
+| MASE | `{python} f"{mase['SeasonalNaive']:.3f}"` | **`{python} f"{mase['AutoETS']:.3f}"`** |
+| Scaled CRPS | **`{python} f"{crps['SeasonalNaive']:.4f}"`** | `{python} f"{crps['AutoETS']:.4f}"` |
+| 80% coverage | `{python} f"{cover80['SeasonalNaive']:.0%}"` | `{python} f"{cover80['AutoETS']:.0%}"` |
+
+. . .
+
+::: {.callout-important}
+## What to report
+A fitted, selected, likelihood-based model matched a seasonal naive on the point
+forecast and priced its uncertainty worse. That is the result. Report it.
+:::
+
+::: {.notes}
+This is where a lot of forecasting projects quietly go wrong, so make the point
+directly. A team that only tracked MASE would ship ETS today and write in the
+summary that the new model beat the benchmark.
+
+They would be reporting a 0.6 percent point-forecast improvement while shipping
+intervals that are seven points too wide, and every downstream decision sized
+off those intervals would be more conservative than the data justifies.
+
+The floor holding is not a failure of the day. It is the strongest evidence
+this course can offer that benchmarks are not a formality. A seasonal naive
+took one line, took no fitting time, and is still the best-calibrated model in
+the room.
+
+Then hand over to the lab, where they do the whole thing themselves.
+:::
+
+## $\rightarrow$ Lab E · Fit ETS, then score it honestly {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}
+
+Open `labs/03_day3_models_and_orchestration.ipynb`
+
+| | | |
+|---|---|---|
+| **3.1** | Fit ETS and read what it picked | 12 min |
+| **3.2** | Eight folds, and the coverage surprise | 18 min |
+| **3.3** | Damped against undamped (optional) | 10 min |
+
+. . .
+
+*40 minutes. The notebook carries the instructions; work down it in order.*
+
+::: {.cardbox .teal}
+**3.2 appends to `labs/leaderboard.csv`**, the file Day 2 built. Do not skip it.
+:::
+
+::: {.notes}
+Same file all day: Lab F picks it up at Exercise 3.4 after the second lecture.
+
+Warn them about the Colab runtime before they start. If the runtime resets,
+every install is gone and the setup cell has to run again. That is the single
+most common way to lose ten minutes today.
+
+3.3 is genuinely optional and the notebook says so. 3.1 and 3.2 are not, and
+3.2 is the one that writes to the leaderboard.
+:::
+
+## Lecture summary {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
+
+::: {.incremental}
+- One update rule, applied to **level**, then **slope**, then **season**
+- The **error term** turns a recipe into a model, with a likelihood and intervals
+- **AICc** picks a member of the family; it picked one with no trend state
+- The Day 2 harness scored it unchanged, and the floor held on CRPS
+:::
+
+. . .
+
+::: {.cardbox .navy}
+Every parameter today was fitted from the data, and you can still name all of
+them. This afternoon a framework fits a dozen models for you. Same leaderboard.
+:::
+
+::: {.notes}
+Close on the transition, because it is the shape of the whole day. This morning
+was one model with every moving part visible and named. This afternoon is a
+tool that runs ten of them behind one call.
+
+The reason that order is not arbitrary: when AutoGluon prints a leaderboard
+after lunch, ETS and the seasonal naive will both be on it, and they will know
+exactly what those rows mean.
+
+If time is short, cut the summary and go straight to the lab. The card is the
+only thing here that is not already on an earlier slide.
+:::

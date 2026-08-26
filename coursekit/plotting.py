@@ -1240,3 +1240,74 @@ def pinball_loss_plot(alphas=(0.1, 0.5, 0.9), error_range=(-4, 4), ax=None,
     ax.legend(frameon=False, loc="upper center")
     return ax
 
+
+
+# --------------------------------------------------------------------------
+# Day 3: exponential smoothing and ETS
+#
+# Deck 5 teaches one model properly, in three steps -- SES, then Holt, then
+# Holt-Winters -- so the helpers here are about *what the model is doing*
+# (which weights, which states) rather than about scoring it. Scoring reuses
+# the Day 2 harness untouched: metric_bars, coverage_bars, width_vs_crps_plot
+# and fan_chart all take a Day 3 model without a change.
+# --------------------------------------------------------------------------
+
+
+def smoothing_weights_plot(alphas=(0.2, 0.5, 0.8), n_lags=16, ax=None,
+                           figsize=(9, 3.6), title="",
+                           colors=None, annotate=True):
+    r"""The weight SES puts on each past observation, for several $\alpha$.
+
+    SES forecasts with :math:`\hat{y}_{T+1|T} = \sum_j \alpha(1-\alpha)^j
+    y_{T-j}`: every observation counts, and the weights decay geometrically.
+    The slide this draws is the one that makes the naive and the mean legible
+    as the two ends of a single dial -- ``alpha = 1`` puts everything on the
+    last point, ``alpha -> 0`` spreads the weight out flat.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=figsize)
+    palette = list(colors or [BLUE, ORANGE, GREEN, PINK])
+    lags = np.arange(n_lags)
+    for i, a in enumerate(alphas):
+        w = a * (1 - a) ** lags
+        c = palette[i % len(palette)]
+        ax.plot(lags, w, marker="o", ms=4.5, lw=1.6, color=c,
+                label=rf"$\alpha = {a}$")
+        if annotate:
+            ax.annotate(f"{w[0]:.2f}", (lags[0], w[0]), color=ink(c),
+                        xytext=(4, 4), textcoords="offset points", size=9)
+    ax.set(title=title, xlabel="observations back from the forecast origin",
+           ylabel="weight")
+    ax.set_xticks(lags[::2])
+    ax.margins(x=0.02)
+    ax.legend(frameon=False)
+    return ax
+
+
+def ets_states(model_, ds, season_length=12):
+    """The fitted ETS states as a frame the decomposition plot can draw.
+
+    ``model_`` is what ``StatsForecast.fitted_[i, j].model_`` returns for an
+    ``AutoETS``: a dict whose ``states`` array is one row per time step, level
+    in column 0, then the trend (if the selected model has one) and then the
+    seasonal states, newest first.
+
+    Returns ``ds`` plus ``level``, ``season`` and, when the selected model
+    carries one, ``trend`` -- the same panel vocabulary Day 1 read off STL, so
+    the two charts can be put side by side and compared honestly.
+    """
+    states = np.asarray(model_["states"])
+    components = model_["components"]
+    has_trend = components[1] != "N"
+    has_season = components[2] != "N"
+    # The states array carries one extra leading row: the initial state, before
+    # the first observation is seen. Drop it so the frame lines up with ds.
+    states = states[-len(ds):]
+    out = {"ds": np.asarray(ds), "level": states[:, 0]}
+    col = 1
+    if has_trend:
+        out["trend"] = states[:, col]
+        col += 1
+    if has_season:
+        out["season"] = states[:, col]
+    return pd.DataFrame(out)

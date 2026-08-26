@@ -33,10 +33,19 @@ dev = [
     "nbconvert>=7.16",
 ]
 
-# Day 3 extras are intentionally not declared yet — the Day 3 content decision
-# (ETS/ARIMA vs dynamic regression vs neural/foundation models) is still open,
-# and `neuralforecast` pulls ~2.5 GB of torch. Add [neural] / [foundation] here
-# once that is settled.
+# Day 3's models — ETS, AutoARIMA and Theta — all live in statsforecast, which
+# is already a core dependency, so Day 3 needs nothing extra to run the lecture
+# decks or Lab E.
+#
+# AutoGluon (Lab F, Exercise 3.4) is the exception and is deliberately NOT a
+# core dependency: it pulls torch, ~2.5 GB, for a zoo whose local models are a
+# subset of what statsforecast already provides. Day 3 is taught on Colab,
+# where that cost is sunk. Every AutoGluon cell in the lab is skip-guarded on
+# `importlib.util.find_spec("autogluon")`, so both check-labs targets stay
+# honest on a machine that does not have it.
+day3 = [
+    "autogluon.timeseries>=1.1",
+]
 
 [build-system]
 requires = ["hatchling"]
