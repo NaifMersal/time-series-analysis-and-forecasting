@@ -33,6 +33,7 @@ BLUE = "#0072B2"
 GREEN = "#009E73"
 PINK = "#CC79A7"
 SKY = "#56B4E9"
+SLATE = "#5b6678"   # dark neutral for reference marks that are not models
 GREY = "#9aa3ad"
 
 #: Cycle used when several series share one pair of axes.
@@ -640,7 +641,7 @@ def h_step_error_diagram(history, errors, ax=None, title="", history_tail=None,
             ax.annotate(f"{row['y'] - row['yhat']:+.0f}",
                         (row["ds"], max(row["y"], row["yhat"])),
                         textcoords="offset points", xytext=(4, 4),
-                        size=9, color=ORANGE)
+                        size=12, color=ORANGE)
     if xticks is not None:
         ax.set_xticks(list(xticks))
     ax.set(title=title, ylabel=ylabel)
@@ -731,6 +732,24 @@ MODEL_PALETTE = {
 }
 
 
+def ink(color, min_contrast=3.0):
+    """A darkened variant of ``color`` when the colour is too pale to read.
+
+    A 3px line in sky blue is perfectly visible; the same hue as 9pt text is
+    not, and a label that names a series has to be as readable as the series
+    is visible. Anything already dark enough comes back unchanged, so most
+    labels keep exactly the colour of the mark they name.
+    """
+    r, g, b = (int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    lin = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+           for c in (r, g, b)]
+    lum = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+    if (1.05 / (lum + 0.05)) >= min_contrast:
+        return color
+    scale = 0.62
+    return "#" + "".join(f"{int(round(c * 255 * scale)):02x}" for c in (r, g, b))
+
+
 def model_colors(models, colors=None):
     """One colour per model, pinned by name where the course has pinned one.
 
@@ -801,7 +820,7 @@ def interval_width_plot(forecast, model="SeasonalNaive", models=(), labels=None,
                  dashes=(6, 4), label=r"$\sqrt{k+1}$ (correct)")
     # The curve the slide argues against has to be as visible as the one it
     # argues for, or a projector quietly wins the argument.
-    axes[0].plot(h, width[0] * np.sqrt(h), color=PINK, lw=2.4, dashes=(2, 2.5),
+    axes[0].plot(h, width[0] * np.sqrt(h), color=SLATE, lw=2.4, dashes=(2, 2.5),
                  label=r"$\sqrt{h}$ (wrong method)")
     axes[0].set(xlabel="horizon h", ylabel=f"{level}% interval width", title=t[0])
     axes[0].legend(frameon=False)
@@ -896,7 +915,7 @@ def interval_bounds_plot(history, forecast_ds, bands, actual=None,
     which is where a staircase, a narrow band and a jittery one separate.
     """
     fig, axes = plt.subplots(1, 2, figsize=figsize)
-    palette = list(colors) if colors is not None else [ORANGE, GREEN, BLUE, PINK]
+    palette = list(colors) if colors is not None else [BLACK, SLATE, GREY, "#3a4a63"]
     hist = history.tail(history_tail) if history_tail else history
     axes[0].plot(hist["ds"], hist["y"], color=BLACK, lw=1.2, label="observed")
     if actual is not None:
@@ -976,12 +995,13 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
         color = palette[i % len(palette)]
         axes[0].plot([0, 1], [one[i], many[i]], color=color, lw=2.2,
                      marker="o", ms=7, zorder=3)
+        label_ink = ink(color)
         axes[0].annotate(f"{one[i]:.2f}", (0, left_y[i]), xytext=(-9, 0),
                          textcoords="offset points", ha="right", va="center",
-                         size=9, color=color)
+                         size=9, color=label_ink)
         axes[0].annotate(f"{name}  {many[i]:.2f}", (1, right_y[i]), xytext=(9, 0),
                          textcoords="offset points", ha="left", va="center",
-                         size=9, color=color)
+                         size=9, color=label_ink)
     axes[0].set_xticks([0, 1], ["one 24-month\nwindow",
                                 f"mean of {len(folds)}\nrolling folds"])
     axes[0].set(ylabel=ylabel, title=t[0], xlim=(-0.55, 1.85),
@@ -992,9 +1012,12 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
         axes[0].annotate(note, xy=(0.5, -0.34), xycoords="axes fraction",
                          ha="center", size=10, color=BLACK)
 
+    # Same colour per model as the left panel: the two panels are one figure,
+    # and a reader who has just learned a colour should not have to relearn it
+    # halfway across.
     for i, m in enumerate(models):
-        axes[1].scatter(np.full(len(folds), i), folds[m], s=40, color=ORANGE,
-                        alpha=0.75, zorder=3)
+        axes[1].scatter(np.full(len(folds), i), folds[m], s=40,
+                        color=palette[i % len(palette)], alpha=0.8, zorder=3)
     axes[1].set_xticks(range(len(models)), names, rotation=20, ha="right")
     axes[1].set(ylabel=ylabel, title=t[1])
     if log_right:
@@ -1050,8 +1073,12 @@ def width_vs_crps_plot(width, crps, coverage=None, labels=None,
     t = tuple(titles) if titles else (
         f"Mean {level}% interval width", "Scaled CRPS (lower is better)")
 
+    # Both panels highlight the same model -- the one that wins on CRPS -- so
+    # "it is not the narrowest" is something the eye carries across the gap.
+    best = min(models, key=lambda m: float(crps[m]))
     widths = [float(width[m]) for m in models]
-    axes[0].barh(names, widths, color=GREY, height=0.6)
+    axes[0].barh(names, widths, height=0.6,
+                 color=[ORANGE if m == best else GREY for m in models])
     if coverage is not None:
         for i, m in enumerate(models):
             axes[0].text(widths[i], i, f"  {coverage[m]:.0%} cov", va="center",
