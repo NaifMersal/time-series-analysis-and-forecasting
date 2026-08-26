@@ -32,6 +32,7 @@ ORANGE = "#D55E00"
 BLUE = "#0072B2"
 GREEN = "#009E73"
 PINK = "#CC79A7"
+SKY = "#56B4E9"
 GREY = "#9aa3ad"
 
 #: Cycle used when several series share one pair of axes.
@@ -715,7 +716,38 @@ NORMAL_Z = {50: 0.6745, 80: 1.2816, 90: 1.6449, 95: 1.9600, 99: 2.5758}
 
 #: Colour order when several *models* share one pair of axes. Distinct from
 #: SERIES_COLORS: black is reserved for the observed series underneath.
-MODEL_COLORS = [PINK, GREEN, ORANGE, BLUE]
+MODEL_COLORS = [PINK, GREEN, ORANGE, BLUE, SKY]
+
+#: A model keeps one colour across both Day 2 decks and the lab. A positional
+#: palette drifts the moment one figure drops a model another one keeps, which
+#: is how the seasonal naive came out orange before the break and green after
+#: it. Anything not named here falls back to MODEL_COLORS.
+MODEL_PALETTE = {
+    "HistoricAverage": PINK,
+    "Naive": GREEN,
+    "SeasonalNaive": ORANGE,
+    "RWD": BLUE,
+    "MSTL": SKY,
+}
+
+
+def model_colors(models, colors=None):
+    """One colour per model, pinned by name where the course has pinned one.
+
+    ``colors``, when given, wins outright: a figure comparing two things that
+    are not course models (forecast A against forecast B) still picks its own.
+    """
+    if colors is not None:
+        pal = list(colors)
+        return [pal[i % len(pal)] for i in range(len(models))]
+    out = []
+    for m in models:
+        c = MODEL_PALETTE.get(m)
+        if c is None:
+            c = next((x for x in MODEL_COLORS if x not in out),
+                     MODEL_COLORS[len(out) % len(MODEL_COLORS)])
+        out.append(c)
+    return out
 
 
 def forecast_overlay(history, forecast, models, labels=None, colors=None,
@@ -731,7 +763,7 @@ def forecast_overlay(history, forecast, models, labels=None, colors=None,
     if ax is None:
         _, ax = plt.subplots(figsize=figsize)
     labels = dict(labels or {})
-    palette = list(colors) if colors is not None else MODEL_COLORS
+    palette = model_colors(models, colors)
     hist = history.tail(history_tail) if history_tail else history
     ax.plot(hist["ds"], hist["y"], color=BLACK, lw=1.1, label=history_label)
     if actual is not None:
@@ -775,7 +807,7 @@ def interval_width_plot(forecast, model="SeasonalNaive", models=(), labels=None,
     axes[0].legend(frameon=False)
 
     labels = dict(labels or {})
-    palette = list(colors) if colors is not None else MODEL_COLORS[1:]
+    palette = model_colors(models, colors)
     # Two benchmarks can share a width curve almost exactly, and one solid
     # line then hides the other completely; alternating the dash pattern lets
     # the one underneath show through.
@@ -932,7 +964,7 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
 
     one = np.array([float(single[m]) for m in models])
     many = np.array([float(folds[m].mean()) for m in models])
-    palette = MODEL_COLORS
+    palette = model_colors(models)
     # The gap has to be measured against the axis, not the data: with an
     # explicit ylim the drawn range is wider than the values, so a gap sized
     # from the values alone comes out smaller on screen than the text is tall.

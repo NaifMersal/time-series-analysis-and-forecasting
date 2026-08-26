@@ -128,11 +128,6 @@ $$PE'_t = \frac{k y_t - k\hat{y}_t}{k y_t} = PE_t
 \qquad
 \text{MASE}' = \frac{k\,\text{MAE}}{k\,Q} = \text{MASE}$$
 
-$Q$ is MASE's denominator: the in-sample seasonal naive's own average error.
-It is measured in the same units as the data, so it scales with $k$ too.
-
-. . .
-
 Now shift as well as scale, $y'_t = k y_t + c$, which is what °C to °F is.
 Differences kill $c$, so MASE holds. MAPE's denominator keeps it.
 

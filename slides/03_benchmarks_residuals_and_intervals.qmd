@@ -277,7 +277,7 @@ Day 2 comparison.
 #| fig-width: 10
 both = fc[["ds", "SeasonalNaive"]].merge(fc_stl[["ds", "MSTL"]], on="ds")
 P.forecast_overlay(
-    train, both, ["SeasonalNaive", "MSTL"], colors=[P.ORANGE, P.BLUE],
+    train, both, ["SeasonalNaive", "MSTL"],
     labels={"SeasonalNaive": f"Seasonal naive  (MASE {SN_MASE:.2f})",
             "MSTL": f"STL + drift  (MASE {STL_MASE:.2f})"},
     actual=test, history_tail=48, ncols=2, figsize=(10, 3.5),
@@ -562,8 +562,9 @@ P.interval_width_plot(fc, model="SeasonalNaive",
                       season_length=12, level=80, figsize=(9.5, 3.7),
                       titles=("Seasonal naive: a staircase, not a curve",
                               "Width growth by benchmark"))
-# Colours match every other figure in the deck: the seasonal naive is orange in
-# both panels, and the two reference curves are annotations, so they are neutral.
+# Colours come from P.MODEL_PALETTE, so a model keeps the same colour in both
+# Day 2 decks and in the lab; the two reference curves are annotations and stay
+# neutral.
 plt.show()
 ```
 
