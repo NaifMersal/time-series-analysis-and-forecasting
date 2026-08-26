@@ -520,3 +520,155 @@ html[dir="rtl"] .reveal pre code,
     opacity: 1;
   }
 }
+/* ---------------------------------------------------------------------------
+   Flow diagrams, laid out in HTML rather than Graphviz.
+
+   Graphviz renders with its own fonts and its own idea of spacing, so a DOT
+   flow lands on the slide as a foreign object next to the deck's typography.
+   These classes draw the same flows with the deck's own type and palette.
+
+     ::: {.flowrow}                     left-to-right chain, arrows inserted
+     [$y_t$]{.flownode .navy}           between consecutive nodes
+     [STL]{.flownode .teal}
+     :::
+
+     ::: {.flowconv}                    several causes converging on one
+     ::: {.flowcauses}                  consequence
+     [cause]{.flownode .coral}
+     :::
+     [consequence]{.flownode .navy}
+     :::
+
+   A node may carry `[Heading]{.flowtitle}` and `[aside]{.flownote}`.
+   Accents: .navy (default), .teal, .coral, .purple.
+
+   Pandoc wraps loose spans in a <p>, which would otherwise sit between the
+   flex container and its nodes; `display: contents` lifts the nodes back out.
+   --------------------------------------------------------------------------- */
+.reveal .flowrow > p,
+.reveal .flowconv > p,
+.reveal .flowcauses > p {
+  display: contents;
+}
+
+.reveal .flownode {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background: rgba(28, 53, 94, 0.05);
+  border: 1px solid var(--sdaia-border);
+  border-top: 4px solid var(--sdaia-navy);
+  border-radius: 10px;
+  padding: 0.35em 0.7em;
+  line-height: 1.3;
+  color: var(--text);
+  text-align: center;
+}
+
+.reveal .flownode.teal   { border-top-color: var(--sdaia-teal); }
+.reveal .flownode.coral  { border-top-color: var(--sdaia-coral); }
+.reveal .flownode.purple { border-top-color: var(--sdaia-purple); }
+
+.reveal .flowtitle {
+  display: block;
+  font-weight: 800;
+  color: var(--sdaia-navy);
+}
+
+.reveal .flownote {
+  display: block;
+  font-size: 0.74em;
+  color: var(--muted);
+}
+
+.reveal .flownode code:not(pre code) {
+  font-size: 0.72em;
+}
+
+/* Chain: nodes side by side, an arrow between each pair. */
+.reveal .flowrow {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  margin: 0.6em 0;
+}
+
+.reveal .flowrow .flownode {
+  flex: 1 1 0;
+}
+
+.reveal .flowrow .flownode + .flownode {
+  margin-left: 2.3em;
+}
+
+.reveal .flowrow .flownode + .flownode::before {
+  content: "→";
+  position: absolute;
+  left: -1.6em;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Convergence: a stack of causes, one arrow, one consequence. */
+.reveal .flowconv {
+  display: flex;
+  align-items: center;
+  margin: 0.5em 0;
+}
+
+.reveal .flowconv > .flowcauses {
+  flex: 1 1 52%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+/* Causes and consequence are the same component, so they take the same
+   alignment; a centred box beside left-aligned ones reads as a mistake. */
+.reveal .flowconv .flownode {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.reveal .flowconv > p > .flownode {
+  flex: 1 1 48%;
+  margin-left: 2.8em;
+}
+
+.reveal .flowconv > p > .flownode::before {
+  content: "→";
+  position: absolute;
+  left: -1.8em;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* On a dark slide the nodes have to invert with everything else. */
+.reveal .slides section.sdaia-dark:not(:has(> section)) .flownode,
+.reveal .slides section.has-dark-background:not(:has(> section)) .flownode {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+
+  &.navy   { border-top-color: rgba(255, 255, 255, 0.55); }
+  &.teal   { border-top-color: var(--sdaia-teal-on-dark); }
+  &.coral  { border-top-color: var(--sdaia-coral-on-dark); }
+  &.purple { border-top-color: var(--sdaia-purple-on-dark); }
+
+  .flowtitle { color: #ffffff; }
+  .flownote  { color: rgba(255, 255, 255, 0.8); }
+}
+
+/* The slide counter is a sibling of .slides, not a child of the slide, so it
+   cannot inherit the dark palette the way everything inside the section does.
+   Look up from .reveal at whichever slide is currently present. */
+.reveal:has(section.present.sdaia-dark) .slide-number,
+.reveal:has(section.present.has-dark-background) .slide-number {
+  color: rgba(255, 255, 255, 0.75);
+}

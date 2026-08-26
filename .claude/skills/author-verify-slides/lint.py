@@ -391,6 +391,19 @@ def rule_static_image_of_data(path, text, lines):
                           "instead so it cannot go stale")
 
 
+def rule_graphviz_diagram(path, text, lines):
+    """A {dot} block draws with Graphviz's fonts and spacing, not the deck's."""
+    for lang, start, _body in _code_cells(lines):
+        if lang.strip("{}").split()[0].lower() in ("dot", "graphviz", "neato"):
+            yield Finding("ERROR", path, start, "graphviz-diagram",
+                          "a Graphviz diagram ignores the deck's fonts, "
+                          "palette and spacing and reads as a foreign object "
+                          "on the slide",
+                          "redraw it with the theme's .flowrow / .flowconv "
+                          "classes (see reference/patterns.md), or use "
+                          "{mermaid} if the shape is a genuine graph")
+
+
 RULES = [
     rule_em_dash,
     rule_banned_words,
@@ -403,6 +416,7 @@ RULES = [
     rule_bullet_count,
     rule_speaker_notes,
     rule_static_image_of_data,
+    rule_graphviz_diagram,
 ]
 
 LEVEL_ORDER = {"ERROR": 0, "WARN": 1, "INFO": 2}

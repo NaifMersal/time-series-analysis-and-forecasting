@@ -122,9 +122,11 @@ always navy→purple. See `.claude/skills/author-verify-slides/reference/pattern
 `freeze: auto` (so untouched decks do not re-execute). Both are load-bearing.
 
 **Visual policy.** Data-driven visuals are executable `{python}` cells; conceptual flows
-are `{dot}` or `{mermaid}` with literal hex colours; illustrative imagery is recorded in
-`slides/assets/image_prompts.md` first. Never use a static image for something a `{python}`
-cell could draw.
+are the theme's `.flowrow` / `.flowconv` HTML classes (see the skill's `patterns.md`);
+illustrative imagery is recorded in `slides/assets/image_prompts.md` first. Never use a
+static image for something a `{python}` cell could draw, and no Graphviz: `{dot}` output
+ignores the deck's fonts and palette and reads as a foreign object on the slide. Mermaid
+is still fine for a genuinely graph-shaped diagram a flow row cannot express.
 
 **`{python}` executes; `{.python}` only highlights.** Confusing them is the most common
 render failure. Code is hidden by default — add `#| echo: true` to show it.

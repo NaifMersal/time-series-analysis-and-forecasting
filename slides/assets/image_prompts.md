@@ -20,7 +20,8 @@ deck as `assets/filename.png` (paths resolve relative to the `.qmd`).
 ## Notes
 
 Days 1 and 2 currently use **no** illustrative images: every visual is either an
-executable `{python}` chart or a `{dot}` diagram. That is deliberate and worth preserving
+executable `{python}` chart or a `.flowrow` / `.flowconv` HTML diagram. That is deliberate
+and worth preserving
 — add a row here only when a picture would carry something the data cannot.
 
 If a Day 3 deck needs, say, a conceptual illustration of transfer learning, that is the

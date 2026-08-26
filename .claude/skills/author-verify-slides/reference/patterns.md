@@ -174,32 +174,47 @@ plt.plot([1, 2, 3])
 
 ## Diagrams
 
-Use **Graphviz DOT for simple flowcharts** (cleaner output, no init
-boilerplate) and **mermaid for complex diagrams** (sequence, gantt, large
-graphs). Both take **literal hex** colors — they cannot read the
-`--sdaia-*` CSS variables, so paste the brand-base hexes directly (diagrams
-sit on light slides). Center wide diagrams in a column.
+Draw flows with the theme's **`.flowrow` / `.flowconv` classes**, not with
+Graphviz. A DOT graph renders with its own fonts, its own spacing and its own
+idea of a box, so it lands on the slide as a foreign object beside the deck's
+typography, and it cannot read the `--sdaia-*` variables. The HTML classes use
+the deck's own type and palette, reflow with the slide, and stay legible at
+projector size.
 
-**DOT (preferred for simple flows):**
+**A chain** — nodes left to right, arrows inserted between them:
+
 ````markdown
-```{dot}
-//| fig-width: 9
-digraph G {
-    bgcolor="transparent";
-    rankdir=LR;
-    node [shape=box style="rounded,filled" fontname="Noto Sans" fontsize=14
-          color="#1C355E" penwidth=2];
-    edge [fontname="Noto Sans" fontsize=12 color="#5b6678" penwidth=1.6];
-
-    A [label="Good path"      fillcolor="#00AE8D" fontcolor="white"];
-    B [label="Context fills"  fillcolor="#E96852" fontcolor="white"];
-    A -> B [label="scoped"];
-}
-```
+::: {.flowrow}
+[$y_t$]{.flownode .navy}
+[[STL]{.flowtitle}[splits off the seasonal part]{.flownote}]{.flownode .navy}
+[[Forecast each part]{.flowtitle}[drift · seasonal naive]{.flownote}]{.flownode .teal}
+[[Add them back]{.flowtitle}[one forecast]{.flownote}]{.flownode .purple}
+:::
 ````
 
-**Mermaid (for richer diagrams)** — set the theme block once at the top, use
-`classDef` rather than per-node `style`:
+**A convergence** — several causes, one consequence:
+
+````markdown
+::: {.flowconv}
+::: {.flowcauses}
+[[Scale on the whole series]{.flowtitle}`scaler.fit(spine)`]{.flownode .coral}
+[[Centred rolling features]{.flowtitle}`rolling(12, center=True)`]{.flownode .coral}
+:::
+[[The answer is in the input]{.flowtitle}[CV flatters the model.]{.flownote}]{.flownode .navy}
+:::
+````
+
+A node carries an optional `[Heading]{.flowtitle}` and `[aside]{.flownote}`,
+and inline code renders at a size that fits the box. Accent modifiers are
+`.navy` (default), `.teal`, `.coral`, `.purple`; nodes invert automatically on
+a `.sdaia-dark` slide. Keep a row to four nodes or fewer, and keep each label
+to a few words, or the boxes wrap and the row goes tall.
+
+**Mermaid** stays available for genuinely graph-shaped diagrams a row or a
+convergence cannot express (sequence diagrams, gantt charts, a graph with
+cycles). Set the theme block once at the top and use `classDef` rather than
+per-node `style`, and note it takes **literal hex** colors:
+
 ````markdown
 ```{mermaid}
 %%{init: {'theme':'base', 'themeVariables': {
