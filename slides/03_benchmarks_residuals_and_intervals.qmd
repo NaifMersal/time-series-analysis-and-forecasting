@@ -39,6 +39,8 @@ LABELS = {"HistoricAverage": "Mean", "Naive": "Naive",
           "SeasonalNaive": "Seasonal naive", "RWD": "Drift"}
 
 # --- Ch 5.7: the decomposition route, as a fifth model -------------------
+from statsforecast.models import mstl, _predict_mstl_seas
+
 sf_stl = StatsForecast(
     models=[MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())],
     freq=D.FREQ, n_jobs=1,
@@ -51,6 +53,14 @@ STL_MASE, SN_MASE = (
     float(mase(_scored, models=[m], seasonality=12, train_df=train)[m].iloc[0])
     for m in ("MSTL", "SeasonalNaive")
 )
+
+# Decomposition breakdown for visual intuition
+mstl_res = mstl(train["y"].values, period=12)
+dcmp_sa = mstl_res["trend"].values + mstl_res["remainder"].values
+dcmp_seas = mstl_res["seasonal"].values
+pred_seas = _predict_mstl_seas(mstl_res, h=H, season_length=12)
+slope_sa = (dcmp_sa[-1] - dcmp_sa[0]) / (len(dcmp_sa) - 1)
+pred_drift_sa = dcmp_sa[-1] + slope_sa * np.arange(1, H + 1)
 
 # --- the three ways to draw the same interval, on one holdout -------------
 resid_sn = (fv["y"] - fv["SeasonalNaive"]).dropna()
@@ -79,7 +89,8 @@ def _cv_coverage_80(model):
     return float(((cv["y"] >= lo) & (cv["y"] <= hi)).mean())
 
 
-def _cv_coverage_80_bootstrap():
+def _cv_coverage_80_bootstrap(pool=None):
+    """pool=N restricts the draw pool to the last N residuals (the i.i.d. knob)."""
     sf_sn = StatsForecast(models=[SeasonalNaive(season_length=12)],
                           freq=D.FREQ, n_jobs=1)
     inside = []
@@ -89,7 +100,8 @@ def _cv_coverage_80_bootstrap():
         sf_sn.forecast(df=tr, h=12, fitted=True)
         fvw = sf_sn.forecast_fitted_values()
         paths = P.bootstrap_paths(tr["y"], fvw["y"] - fvw["SeasonalNaive"], h=12,
-                                  season_length=12, n_paths=5000, seed=7)
+                                  season_length=12, n_paths=5000, seed=7,
+                                  resid_tail=pool)
         f = P.paths_to_fan(te["ds"], paths, levels=(80,))
         y = te["y"].to_numpy()
         inside.append((y >= f["lo-80"].to_numpy()) & (y <= f["hi-80"].to_numpy()))
@@ -98,7 +110,7 @@ def _cv_coverage_80_bootstrap():
 
 CV_COV = {
     "Gaussian": _cv_coverage_80(SeasonalNaive(season_length=12)),
-    "bootstrap": _cv_coverage_80_bootstrap(),
+    "bootstrap": _cv_coverage_80_bootstrap(),   # full pool; see POOL_COV below
     "conformal": _cv_coverage_80(SeasonalNaive(
         season_length=12,
         prediction_intervals=ConformalIntervals(n_windows=8, h=12))),
@@ -111,6 +123,50 @@ def as_fan(model, frame=fc):
         f"{model}-lo-80": "lo-80", f"{model}-hi-80": "hi-80",
         f"{model}-lo-95": "lo-95", f"{model}-hi-95": "hi-95",
     })
+
+
+# --- every number the prose quotes, computed, so none of it can go stale ---
+from scipy.stats import kurtosis as _kurtosis
+
+R_MEAN = float(resid_sn.mean())
+R_SD_EARLY = float(resid_sn.iloc[:120].std())
+R_SD_LATE = float(resid_sn.iloc[-120:].std())
+GROWTH = R_MEAN / float(train["y"].mean())   # a year of growth, as a share of level
+
+q_mean = f"{R_MEAN:+.1f}"
+q_pos = f"{(resid_sn > 0).mean():.0%}"
+q_n = f"{len(resid_sn)}"
+q_sd1 = f"{R_SD_EARLY:.1f}"
+q_sd2 = f"{R_SD_LATE:.1f}"
+q_sdx = f"{R_SD_LATE / R_SD_EARLY:.0f}x"
+q_kurt = f"{float(_kurtosis(resid_sn, fisher=True)):.1f}"
+q_r1 = f"{float(P.acf_values(resid_sn, nlags=1)[0][0]):.2f}"
+q_grow = f"{GROWTH:.0%}"
+
+_e_lo, _e_hi = np.quantile(resid_sn, [0.1, 0.9])          # the errors' own middle 80%
+_n_half = 1.2816 * float(resid_sn.std())                  # what a normal of that SD claims
+q_e80, q_n80 = f"{_e_hi - _e_lo:.0f}", f"{2 * _n_half:.0f}"
+
+
+def _mean_width(fan, level):
+    return float(np.mean(fan[f"hi-{level}"].to_numpy() - fan[f"lo-{level}"].to_numpy()))
+
+
+_gauss_fan = as_fan("SeasonalNaive")
+q_wg80, q_wb80 = (f"{_mean_width(f, 80):.1f}" for f in (_gauss_fan, boot_fan))
+q_wg95, q_wb95 = (f"{_mean_width(f, 95):.1f}" for f in (_gauss_fan, boot_fan))
+q_narrow = f"{1 - _mean_width(boot_fan, 80) / _mean_width(_gauss_fan, 80):.0%}"
+
+# conformal sizing, read off the ConformalIntervals(n_windows=8, h=24) above
+CONF_WINDOWS = 8
+q_minobs = f"{CONF_WINDOWS * H + 1}"
+q_scores = f"{2 * CONF_WINDOWS}"
+
+# the i.i.d. knob, for the note under the coverage slide
+POOL_COV = {None: CV_COV["bootstrap"],
+            120: _cv_coverage_80_bootstrap(pool=120),
+            60: _cv_coverage_80_bootstrap(pool=60)}
+q_pool_all, q_pool120, q_pool60 = (f"{POOL_COV[n]:.0%}" for n in (None, 120, 60))
 ```
 
 ## The Day 2 plan
@@ -148,19 +204,25 @@ scoreboard.
 
 Ch 5.1–5.2 · Simple, strong baselines
 
-## Four benchmarks set the floor a model must clear
+## Four benchmarks set the floor a model must clear {.smaller}
+
+Throughout: $T$ is the last observed time, the **forecast origin**; $h$ is how many
+steps ahead; $m$ is the **seasonal period**, 12 for monthly data.
 
 ::: {.incremental}
-- **Mean**: average of all historical observations
-- **Naive**: last observed value ($\hat{y}_{T+h} = y_T$)
-- **Seasonal Naive**: same season from previous year ($\hat{y}_{T+h} = y_{T+h-m}$)
-- **Drift**: last value plus average historical trend slope
+- **Mean**: $\hat{y}_{T+h} = \bar{y}$, the average of all $T$ observations
+- **Naive**: $\hat{y}_{T+h} = y_T$, the last observed value
+- **Seasonal naive**: $\hat{y}_{T+h} = y_{T+h-m(k+1)}$, the same month a whole
+  number of years back, where $k = \lfloor (h-1)/m \rfloor$ counts the complete
+  years the horizon crosses
+- **Drift**: $\hat{y}_{T+h} = y_T + \dfrac{h}{T-1}(y_T - y_1)$, the line drawn
+  through the first and the last observation, extended
 :::
 
 . . .
 
 ::: {.cardbox .teal}
-Always fit these 4 first. On many series, **Seasonal Naive is tough to beat**.
+Always fit these 4 first. On many series, **seasonal naive is tough to beat**.
 :::
 
 ::: {.notes}
@@ -172,6 +234,14 @@ Worth saying which is which in plain language: the mean forgets time entirely,
 the naive remembers only yesterday, the seasonal naive remembers this month last
 year, and the drift draws a straight line through the first and last points. Ask
 the room which one they expect to win here before you show them.
+
+Two bits of the algebra pay off later, so read them out rather than skipping.
+The drift denominator is T-1 because T observations have T-1 gaps between them,
+which is why its interval width carries a T-1 as well. And k is 0 whenever the
+horizon stays inside one year, so for h up to 12 the seasonal naive is just
+"last year's same month"; k only starts counting at h = 13, and that is exactly
+where its prediction interval takes its first step up. Segment C uses the same
+k for the same reason.
 :::
 
 ## Only one benchmark has the shape of the data
@@ -231,9 +301,10 @@ This is the slide to slow down on if the room is senior. The question in the
 callout is the one to take back to work: it costs nothing to ask, and it is the
 single most effective check on a forecasting claim.
 
-The MASE point is worth a sentence now because the metric arrives in lecture 2:
-the benchmark is not only a rival, it is also the denominator that makes errors
-comparable across series.
+The MASE point is worth a sentence now because the metric is defined properly in
+lecture 2: the benchmark is not only a rival, it is also the denominator that
+makes errors comparable across series. Two slides on, a chart legend quotes MASE
+numbers, and the line under it gives the room just enough to read them.
 :::
 
 ## Decomposition is also a forecasting method
@@ -249,23 +320,56 @@ Ch 5.7 · You already built every step on Day 1
 
 . . .
 
-The forecast carries the growth from one part and the shape from the other.
-
-. . .
+$$\hat{y}_{T+h} = \hat{A}_{T+h} + \hat{S}_{T+h}$$
 
 ::: {.cardbox .teal}
-`MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())` is that whole
-chain in one object.
+`MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())` runs this entire pipeline in one call.
 :::
 
 ::: {.notes}
-Ch 5.7. Every step is something they built yesterday: STL, the seasonally
-adjusted series, the seasonal component. The only new idea is that the two
-pieces can be forecast separately and added back.
+Ch 5.7. Every step is something they built yesterday: STL, the seasonally adjusted series A_t (trend + remainder), and the seasonal component S_t.
+The two pieces are forecast separately (drift on A_t, seasonal naive on S_t) and added back.
 
-The course pins trend_forecaster to drift on purpose: the default is AutoETS,
-which is Day 3's material, and we do not want a Day 3 model quietly winning a
-Day 2 comparison.
+The course pins trend_forecaster to drift on purpose: the default is AutoETS (Day 3), and we do not want a Day 3 model quietly winning a Day 2 comparison.
+
+The plus sign assumes additive seasonality (swings stay constant in size). Multiplicative (swings grow with level) is handled by logging first.
+:::
+
+## How drift and seasonal naive combine inside STL
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 10
+P.decomposition_forecast_plot(
+    train, dcmp_sa, dcmp_seas, pred_drift_sa, pred_seas, fc_stl,
+    actual=test, history_tail=48, figsize=(10, 4.4),
+    title="Decomposition forecast: drift on deseasonalised + seasonal naive on season")
+plt.show()
+```
+
+### Code
+```python
+# 1. Decompose into Seasonally Adjusted (A_t) and Seasonal (S_t)
+# 2. Forecast A_t with Drift:             y-hat_{T+h} = A_T + h * drift_slope
+# 3. Forecast S_t with Seasonal Naive:    y-hat_{T+h} = S_{T+h-m}
+# 4. Recombine:                           y-hat_{T+h} = A-hat_{T+h} + S-hat_{T+h}
+
+sf_stl = StatsForecast(
+    models=[MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())],
+    freq=D.FREQ, n_jobs=1,
+)
+fc_stl = sf_stl.forecast(df=train, h=24)
+```
+
+:::
+
+::: {.notes}
+Walk the three panels from top to bottom:
+1. Top panel: Seasonally adjusted series A_t. Drift extends it with a growth line.
+2. Middle panel: Seasonal component S_t. Seasonal naive repeats last year's shape.
+3. Bottom panel: Summing both yields the recombined MSTL forecast (sky blue).
 :::
 
 ## The decomposition route clears the floor
@@ -280,7 +384,7 @@ P.forecast_overlay(
     train, both, ["SeasonalNaive", "MSTL"],
     labels={"SeasonalNaive": f"Seasonal naive  (MASE {SN_MASE:.2f})",
             "MSTL": f"STL + drift  (MASE {STL_MASE:.2f})"},
-    actual=test, history_tail=48, ncols=2, figsize=(10, 3.5),
+    actual=test, history_tail=48, ncols=2, figsize=(10, 3.2),
     title="Spine: the floor, and the decomposition route")
 plt.show()
 ```
@@ -302,6 +406,8 @@ P.forecast_overlay(train, both, ["SeasonalNaive", "MSTL"], actual=test)
 
 ::: {.cardbox .coral}
 The seasonal naive repeats last year's **level**; STL lets drift carry the growth.
+*MASE is defined in lecture 2: the error relative to a seasonal naive in-sample,
+so 1.00 is the floor and lower is better.*
 :::
 
 ::: {.notes}
@@ -316,115 +422,207 @@ Ch 5.3–5.4 · Has the model finished?
 
 ## Residuals flatter, forecast errors do not
 
-**Residual** ($e_t$): Error on *in-sample training data* (one-step ahead)
-
+**Residual** ($e_t$): one-step error on **training** data
 $$e_t = y_t - \hat{y}_{t|t-1}$$
-
-. . .
-
-::: {.callout-important}
-## Two errors to keep straight
-- **Residuals** = In-sample training errors (flattering)
-- **Forecast Errors** = Out-of-sample holdout errors (honest)
-:::
-
-::: {.notes}
-This distinction causes more confusion later than anything else in the day, so
-make it concrete: a residual is what the model got wrong on data it had already
-seen; a forecast error is what it got wrong on data it had not. Residuals
-flatter, forecast errors do not.
-
-Everything in segment B is residuals. Everything in lecture 2 is forecast
-errors. Say that now and it saves a question later.
-:::
-
-## Two properties finish a model, two license its intervals
 
 :::: {.columns}
 ::: {.column width="50%"}
-::: {.cardbox .teal}
-[Essential]{.card-title}
-
-1. **Uncorrelated** ($r_k \approx 0$)  
-   $\rightarrow$ No signal left behind
-2. **Zero Mean** ($\bar{e} = 0$)  
-   $\rightarrow$ Unbiased forecast
-:::
-:::
-::: {.column width="50%"}
 ::: {.cardbox}
-[For Valid Intervals]{.card-title}
+[Residuals ($e_t$)]{.card-title}
 
-3. **Constant Variance**  
-   $\rightarrow$ Homoscedastic
-4. **Normally Distributed**  
-   $\rightarrow$ Gaussian intervals valid
+- In-sample training errors
+
+- **Flattering** to the model
+:::
+:::
+
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Forecast Errors ($e_{T+h}$)]{.card-title}
+
+- Out-of-sample holdout errors
+
+- **Honest** evidence
 :::
 :::
 ::::
 
-::: {.notes}
-The split matters: the first two are about whether the model is finished, and
-the last two are about whether its intervals can be trusted. A model can pass
-the left column and fail the right, and the intervals will still be wrong.
+. . .
 
-Segments C, D and E are, in order, the three ways to stop relying on the right
-column.
+::: {.cardbox .navy}
+Seasonal naive: $e_t = y_t - y_{t-12}$ (the raw year-on-year change).
 :::
 
-## The best benchmark here fails three of the four
+::: {.notes}
+The holdout has not happened yet. The only evidence a model has already given you is what it got wrong on the training data.
+
+Read yhat_{t|t-1} as "the forecast of y_t from data up to t-1" (the bar means given).
+
+Residuals flatter, forecast errors do not. Everything in segment B is residuals. Everything in lecture 2 is forecast errors.
+
+For a seasonal naive, the residual is simple subtraction: this March minus last March. Every number in the rest of the segment is a fact about that subtraction.
+:::
+
+## Start by looking at what the winner left behind
 
 ::: {.panel-tabset}
 
 ### Plot
 ```{python}
-#| fig-width: 8.2
+#| fig-width: 9.5
 resid = fv["y"] - fv["SeasonalNaive"]
-P.residual_diagnostics(resid, ds=fv["ds"], figsize=(8.2, 2.9),
-                       title="Seasonal naive: residual diagnostics")
+
+P.residual_time_plot(resid, ds=fv["ds"], show_mean=True, era_months=120,
+                     era_labels=("first 10 years", "last 10 years"),
+                     figsize=(9.5, 3.2), ylabel="residual ($M)",
+                     title=f"Seasonal naive: {len(resid_sn)} one-step residuals")
 plt.show()
 ```
 
 ### Code
 ```python
-# fv = train merged with StatsForecast fitted values (sf.forecast(..., fitted=True))
+# fv = the training rows with fitted values attached (sf.forecast(..., fitted=True))
 resid = fv["y"] - fv["SeasonalNaive"]
-P.residual_diagnostics(resid, ds=fv["ds"])
+
+P.residual_time_plot(resid, ds=fv["ds"], show_mean=True, era_months=120,
+                     era_labels=("first 10 years", "last 10 years"),
+                     figsize=(9.5, 3.2), ylabel="residual ($M)",
+                     title="Seasonal naive: 405 one-step residuals")
 ```
 
 :::
 
 ::: {.incremental}
-- **Zero mean** fails: mean residual $+7.9$, so the forecast runs low
-- **Constant variance** fails: SD $8.5$ in the first decade, $26.2$ in the last
-- **Uncorrelated** fails: ACF spikes stay outside the bounds
+- It sits **above** zero: `{python} q_pos` of them are positive, mean `{python} q_mean`
+- It **fans out**: the typical miss grew from `{python} q_sd1` to `{python} q_sd2`, `{python} q_sdx` as wide
 :::
 
 ::: {.notes}
-Three panels, and the three bullets read straight off them.
+Put the figure up and say nothing for a moment. Ask the room what is wrong with
+it before you reveal either bullet. Both faults are visible without a single
+statistic, which is the whole reason this panel gets a slide to itself.
 
-The time plot sits above zero far more than below, which is the bias: a seasonal
-naive repeats last year on a series that grows about 6% a year, so it runs low
-every month. Mean residual +7.9 against a series in the hundreds.
+The first answer you will get is that it is mostly above the zero line. Good:
+that is bias, and the dashed line is the mean. The second, which usually needs a
+prompt, is that the left third of the picture is thin and the right third is
+tall. That is the variance changing, and the two shaded stretches are the same
+observation written as a number.
 
-The same panel fans out, so constant variance fails. The ACF spikes well outside
-the bounds, so uncorrelated fails.
+Say what those two SDs are, because "SD" on its own is a statistic and this is
+a quantity: the shaded spans are the first ten years of residuals and the last
+ten, and each SD is how far a typical month missed by inside its own span, in
+the millions of dollars the y axis is drawn in. Early on the model was usually
+out by about 8;
+by the 2010s, by about 26. The series it is forecasting grew over the same
+period, which is why the errors grew with it - the misses did not get worse
+in relative terms, they got bigger in absolute ones.
 
-The fourth property, normality, is not on this slide because it is segment C's
-business. The histogram is already telling you the answer if you look at it.
+Do not name the four properties yet. Two of them just walked out of the picture;
+the naming slide comes after the room has seen why they exist.
+:::
 
-Do not treat any of this as a failure of the seasonal naive. It is the honest
-state of the best benchmark on this series, and every interval method later in
-this deck is a response to one of these lines.
+## The bias is the trend, arriving as an error
+
+$e_t = y_t - y_{t-12}$, so the **mean residual is the average year-on-year gain**:
+
+::: {.incremental}
+- The spine gains about `{python} q_grow` of its average level each year, and
+  `{python} q_mean` is that gain arriving one month at a time
+- A seasonal naive repeats last year. It has **no term for growth**, so it hands
+  the growth back as error
+- This is not a bad fit. It is structure the model never had
+:::
+
+. . .
+
+::: {.cardbox .navy}
+Which is exactly why the STL + drift route beat it in segment A: **drift is the
+missing term.**
+:::
+
+::: {.notes}
+This is the slide that turns a diagnostic number into a diagnosis. Students can
+read "+7.9" off any residual summary; what they cannot usually do is say where
+it came from. Here they can, because the residual is a subtraction they
+understand.
+
+Work the arithmetic out loud. Turnover grows about 5% a year on a series
+averaging 160, so a typical year adds roughly 8. The seasonal naive predicts
+this March from last March, so it is short by one year of growth every single
+month, and the average of those shortfalls is the mean residual. The two numbers
+are the same fact.
+
+Then land the card. Segment A showed the STL route winning the window and did
+not say why. This is why. That connection is worth pausing on: the residual
+check did not merely flag a problem, it named the fix, and the fix was already
+on the leaderboard.
+
+If someone asks why we do not just subtract 7.9 from every forecast: you can,
+and that is a bias correction. It fixes the average and leaves the growth
+unmodelled, so it is wrong again next year at a different size. Better to give
+the model a trend.
+:::
+
+## The residual ACF says what is left, and what is gone
+
+::: {.panel-tabset}
+
+### Plot
+```{python}
+#| fig-width: 9
+P.acf_plot(resid.dropna(), nlags=24, highlight_every=12, ylim=(-0.25, 1.0),
+           figsize=(9, 2.8),
+           title="Seasonal naive residuals, 24 lags (annual lags in orange)")
+plt.show()
+```
+
+### Code
+```python
+# Day 1's five ACF shapes, applied to residuals instead of to a series.
+P.acf_plot(resid.dropna(), nlags=24, highlight_every=12, ylim=(-0.25, 1.0),
+           figsize=(9, 3.2),
+           title="Seasonal naive residuals, 24 lags (annual lags in orange)")
+```
+
+:::
+
+::: {.incremental}
+- Lags 1–10 decay smoothly from `{python} q_r1`. Day 1 named that shape: **trend**
+- Lags 12 and 24 (orange) fall **inside** the bounds: the season is gone
+- Same fault, second instrument: the `{python} q_mean` and this decay are one missing trend
+:::
+
+::: {.notes}
+Send them back to Day 1's table of five shapes before you interpret anything.
+That table was built to read a series; it reads residuals with no change at all,
+because residuals are just another series. Ask what shape is on the screen and
+wait for someone to say slow decay.
+
+Then make both halves of the reading count, because the orange lags are the good
+news and students skate past them. Nothing at 12 or 24 means the seasonal naive
+did the job it was named for: it took the season out completely. What it left is
+the part it was never built to take, and that part has the trend signature.
+
+So the two slides agree. The mean residual said the model is short by a year of
+growth; the ACF says consecutive errors are short by nearly the same amount,
+which is what a slowly moving level looks like. One fault, two instruments.
+
+If asked why r_1 is so close to 1 rather than small: neighbouring months share
+almost all of their shortfall, because the level moves slowly. It decays to
+nothing by lag 11 because eleven months is long enough for the level to have
+moved on.
 :::
 
 ## Ljung-Box tests all the lags at once
 
-$$Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}$$
+Joint hypothesis test on $\ell$ residual autocorrelations:
+
+$$Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}
+\qquad Q \sim \chi^2_{\ell-K} \;\text{ under } H_0$$
 
 ::: {.incremental}
-- $p < 0.05$: autocorrelation is real, so the **model is not finished**
-- $p \ge 0.05$: residuals are indistinguishable from white noise
+- $p < 0.05$: Autocorrelation is real $\rightarrow$ **model is not finished**
+- $p \ge 0.05$: Residuals are indistinguishable from white noise
 :::
 
 ```{python}
@@ -435,7 +633,81 @@ print(f"{len(r)} residuals, lag 24:  p = {p:.1e}")
 ```
 
 ::: {.notes}
-Rule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data.
+Motivation from Day 1: With 24 individual lag bounds at 95%, expecting 1 spike by chance is normal.
+Ljung-Box pools all lags into a single test:
+- H_0: all autocorrelations up to lag l are zero.
+- Rule of thumb: l = 24 for seasonal monthly data (2m), K = 0 for benchmarks (no estimated params).
+
+The headline is the exponent: p = 8.6e-241 (240 zeros). The best baseline is nowhere near finished white noise. Day 3 models exist to capture this remaining signal.
+:::
+
+## Four properties, and two different repairs {.smaller}
+
+You just failed three of them **by looking**. Each failure sends you somewhere
+different.
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Essential: fix the model]{.card-title}
+
+1. **Uncorrelated**: fails, slow decay  
+   a pattern in the errors is signal the model never took
+2. **Zero mean**: fails, mean `{python} q_mean`  
+   bias, in the same direction every month
+:::
+:::
+::: {.column width="50%"}
+::: {.cardbox}
+[Useful: fix the band]{.card-title}
+
+3. **Constant variance**: fails, spread `{python} q_sd1` then `{python} q_sd2`  
+   one spread number sizes the band for every era
+4. **Normal**: not yet checked  
+   it sets the multiplier that widens the band
+:::
+:::
+::::
+
+. . .
+
+::: {.cardbox .navy}
+The left column failed and segment A already showed the repair. **The rest of
+this deck repairs the right column** by changing the interval, not the series.
+fpp3's other route, a log or Box-Cox transform, is Day 3's.
+:::
+
+::: {.notes}
+This slide is a summary, not an introduction. Everything in the left column and
+item 3 on the right was derived on the previous four slides, so read the
+verdicts off rather than re-teaching them. The only new line is normality, and
+it is deliberately unmarked: segment C opens with it.
+
+Say the split as an instruction rather than as a taxonomy. A left-column failure
+is a message about the model: go back and change it. A right-column failure
+leaves the point forecast alone and tells you the band around it is wrong. A
+model can pass the left column and fail the right.
+
+The right column is worth saying out loud as a pair, because both feed one
+formula: the band is a spread number times a multiplier. Constant variance is
+what lets a single spread number stand for the whole history; normality is what
+makes the multiplier the right size. Fail either and the width is wrong while
+the centre is fine.
+
+One honest caveat if someone asks: uncorrelated appears on both sides. It is
+essential for the model, and it is also one of the three assumptions behind the
+Gaussian interval, which segment C spells out.
+
+Expect a stats-literate room to reach for a transform before you offer it, so
+have the answer ready. Taking logs, or a Box-Cox with the spine's lambda of
+about 0.07, would stop the spread growing with the level and move item 3 out of
+the right column entirely. It is a real fix and it is deliberately not today's:
+today is about what to do when the band is wrong, and Day 3 opens with the
+transform.
+
+Segments C, D and E are, in order, the three ways to stop relying on the right
+column. Lab exercise 2.2 runs this same checklist on the drift method and asks
+them to write the verdict.
 :::
 
 # C. Prediction intervals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
@@ -471,26 +743,75 @@ Ch 5.5 · Quantifying uncertainty
 Decisions like staffing buffers, warehouse capacity, and safety inventory depend directly on the interval width.
 :::
 
-## One number becomes a range by adding uncertainty
+## The future is a range, not a point
 
-Estimate the residual spread, then step out by a multiplier:
+At forecast origin $T$ the future value is still random. Capital $Y$ marks a value
+that has not been observed yet; lowercase $y$ one that has:
 
-$$\hat{\sigma} = \sqrt{\frac{1}{T - K - M}\sum_{t=1}^{T} e_t^2}
-\qquad\qquad
-\hat{y}_{T+1|T} \pm c\,\hat{\sigma}$$
+$$Y_{T+h}\mid \mathcal{I}_T
+\qquad \mathcal{I}_T = \text{everything known at time } T$$
 
 ::: {.incremental}
-- $K$ = parameters estimated, $M$ = missing residuals (a seasonal naive has no fitted value for its first $m$ months)
-- $c = 1.28$ for 80%, $c = 1.96$ for 95%
+- **Forecast distribution:** plausible future values, given what is known at $T$
+- **Point forecast:** one centre, usually a mean or median
+- **80% interval:** 10th to 90th percentile
+- **95% interval:** 2.5th to 97.5th percentile
+:::
+
+. . .
+
+::: {.cardbox .teal}
+The **unknown future value**, not the prediction, is represented by a distribution.
 :::
 
 ::: {.notes}
-Two things students trip on. The M term: a seasonal naive cannot produce a
-fitted value for its first twelve months, so twelve residuals are missing and
-the denominator has to know that. And c is a normal quantile - 1.28 and 1.96 are
-only right if the residuals are normal, which we just showed they are not.
+Start with what is uncertain. We produce one point forecast, but we do not
+believe the future must equal that point. Before it is observed, we represent
+the future as plausible outcomes conditional on what we know now.
 
-Flag that now. The rest of the deck is the repair.
+The point forecast is one summary. An interval takes two quantiles. The rest of
+the deck asks how to construct them: impose a Gaussian shape, simulate futures
+from empirical errors, or calibrate a set from past forecast errors.
+:::
+
+## Gaussian intervals impose a shape
+
+$$\hat{\sigma} = \sqrt{\frac{1}{T - K - M}\sum_{t=1}^{T} e_t^2}
+\qquad\Longrightarrow\qquad
+\hat{y}_{T+1|T} \pm c\,\hat{\sigma}$$
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox}
+[Residual Spread $\hat{\sigma}$]{.card-title}
+
+- $K$: parameters estimated (0 for benchmarks)
+
+- $M$: missing residuals (e.g. 12 for seasonal naive)
+
+- Dividing by $T$ makes $\hat{\sigma}$ too small
+:::
+:::
+
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Normal Multiplier $c$]{.card-title}
+
+- **80% interval**: $c = 1.28$
+
+- **95% interval**: $c = 1.96$
+
+- Exact **only if** residuals are normal
+
+:::
+:::
+::::
+
+::: {.notes}
+The M term is where people trip: a seasonal naive cannot produce fitted values for its first 12 months, so 12 residuals are missing (405 residuals, not 417). Undercounting missing values makes sigma-hat too small and intervals too narrow.
+
+The multiplier c assumes standard normality. If residuals have fat tails or skew, 1.28 is the wrong multiplier.
+Segment D (bootstrap) and Segment E (conformal) solve this.
 :::
 
 ## How fast the range widens depends on the method
@@ -504,15 +825,19 @@ Flag that now. The rest of the deck is the repair.
 
 . . .
 
-::: {.callout-warning}
-## $\sqrt{h}$ is the *naive* case, not a law
-For a **seasonal naive** the width is a **staircase**: flat inside a year, one
-step up per complete year crossed. $k$ counts those years.
+::: {.cardbox .teal}
+**Seasonal naive width is a staircase**: flat within each year ($h \le 12$), stepping up only when crossing into another full cycle ($k+1$).
 :::
 
 ::: {.notes}
 All four formulas assume the residuals are uncorrelated. That assumption is
 already known to be false here - segment B just rejected it at p ~ 1e-240.
+
+Two of the four are readable straight off their point forecasts, so read them
+off. The mean's 1 + 1/T is one variance for the noise plus one T-th for not
+knowing the true mean. The drift's T-1 is the T-1 gaps its slope was averaged
+over, the same T-1 that is in its point forecast; the more history the slope
+came from, the less the extrapolation adds.
 :::
 
 ## The interval is the forecast, the line is its middle
@@ -550,41 +875,6 @@ If you want one sentence for this slide: the interval is the forecast, and the
 line down the middle is just its most likely value.
 :::
 
-## The seasonal naive does not widen like $\sqrt{h}$
-
-::: {.panel-tabset}
-
-### Plot
-```{python}
-#| fig-width: 9.5
-P.interval_width_plot(fc, model="SeasonalNaive",
-                      models=["Naive", "SeasonalNaive", "RWD"], labels=LABELS,
-                      season_length=12, level=80, figsize=(9.5, 3.7),
-                      titles=("Seasonal naive: a staircase, not a curve",
-                              "Width growth by benchmark"))
-# Colours come from P.MODEL_PALETTE, so a model keeps the same colour in both
-# Day 2 decks and in the lab; the two reference curves are annotations and stay
-# neutral.
-plt.show()
-```
-
-### Code
-```python
-# Dataset: Benchmark forecasts on Victorian retail takeaway turnover (fc)
-# Left  - the seasonal naive's width against BOTH candidate laws: the
-#         sqrt(k+1) staircase (k = complete years inside the horizon) and the
-#         sqrt(h) curve. Which one the data tracks is the point of the slide.
-# Right - the same width for three benchmarks, where the shapes separate.
-P.interval_width_plot(fc, model="SeasonalNaive",
-                      models=["Naive", "SeasonalNaive", "RWD"], labels=LABELS)
-```
-
-:::
-
-::: {.notes}
-Width is flat for h = 1..12 and jumps by a factor of sqrt(2) at h = 13. A
-sqrt(h) curve would have it 4.9x wider by h = 24; it is only 1.41x wider.
-:::
 
 ## The Gaussian interval rests on three assumptions
 
@@ -597,61 +887,76 @@ sqrt(h) curve would have it 4.9x wider by h = 24; it is only 1.41x wider.
 . . .
 
 ::: {.cardbox .navy}
-On this series **all three fail.** The next two methods each buy one of them back.
+Segment B failed the first two **by looking.** The third has never been checked.
 :::
 
 ::: {.notes}
-Count them off on your fingers, because the next three segments buy them back
-one at a time and it helps if the room is counting with you. Bootstrap buys back
-normality. Conformal buys back the distribution entirely. Nothing in this course
-buys back independence.
+Count them off on your fingers, because the next two segments buy them back one
+at a time and it helps if the room is counting with you. Two of the three were
+measured in segment B - the slow decay, and the SD tripling across the eras.
+The third, normality, is the one segment B left open, and the next slide closes
+it. Bootstrap buys back normality. Conformal avoids specifying a distributional
+shape, but replaces those assumptions with exchangeability. Distribution-free
+never means assumption-free.
 :::
 
-## The spread tripled and the tails are fat
+## Normality fails too, and it makes the band too wide
 
 ::: {.panel-tabset}
 
 ### Plot
 ```{python}
-#| fig-width: 9.5
+#| fig-width: 9
 P.residual_assumption_plot(resid_sn, ds=fv["ds"], window=36, level=80,
-                           figsize=(9.5, 3.1),
-                           titles=("Rolling 3-year residual SD",
-                                   "Central 80%: empirical (blue) vs normal (orange)"))
+                           figsize=(9.5, 2.7))
 plt.show()
 ```
 
 ### Code
 ```python
-# Dataset: seasonal naive in-sample residuals on the spine (resid_sn)
-r = resid_sn.to_numpy()
-
-# Left  - constant variance? A 3-year rolling SD against the pooled sigma-hat.
-pd.Series(r).rolling(36).std()
-
-# Right - normal? Histogram against a normal of the SAME SD, plus the two
-#         candidate 80% cut points.
-np.quantile(r, [0.1, 0.9])                    # the bootstrap's cut points
-1.2816 * r.std(ddof=1) * np.array([-1., 1.])  # the Gaussian's cut points
+# Left:  a rolling 36-month SD against the single pooled sigma-hat.
+# Right: the residual histogram against a normal of the SAME SD, with the
+#        empirical (blue) and normal (orange) central-80% cut points drawn on.
+P.residual_assumption_plot(resid_sn, ds=fv["ds"], window=36, level=80)
 ```
 
 :::
 
 ::: {.incremental}
-- The rolling SD wanders between **4 and 35**: never the single 17.6 assumed
-- Excess kurtosis **≈ 5.7**: sharper peak *and* fatter tails than a normal
+- Excess kurtosis `{python} q_kurt`: a sharp peak with fat tails, not a normal
+- The errors' own middle 80% (blue) spans `{python} q_e80`; $c = 1.28$ claims `{python} q_n80`
+:::
+
+::: {.cardbox .navy}
+All three assumptions fail. The next two methods each buy one of them back.
 :::
 
 ::: {.notes}
-Left panel: a 36-month rolling standard deviation runs from about 4 in the
-mid-1980s to about 34 at its peak, and the dashed line is the single pooled
-sigma-hat of 17.6 that the closed-form interval uses for the whole series. One
-number, for a spread that is nowhere near constant.
+This is the check segment B put off, and it closes the loop on the four
+properties: normality was item 4, and it was the only one left unmarked.
 
-Right panel: the blue lines are the empirical central 80%, the dashed orange are
-where the normal assumption puts them. The normal cuts sit further out, which is
-the tails being fat and the peak being sharp. The Gaussian interval is paying
-for a shape the data does not have.
+Read the panels as a pair. The left one is constant variance, failing in the
+plainest way a picture can fail: a rolling SD that climbs while the pooled
+sigma-hat sits flat through the middle of it. One number is standing in for a
+spread that tripled, so it is too big for the 1980s and too small for the 2010s.
+
+The right one is normality. Excess kurtosis is 0 for a normal; this is nearly 6,
+and the histogram shows why - a peak far sharper than the curve, and tails
+outside it. Then point at the two pairs of vertical lines, because that is where
+the abstraction turns into money. Orange is where a normal of this SD puts the
+central 80%; blue is where these errors actually put it. Blue is the narrower
+pair, about a fifth narrower, which is exactly the width segment D's bootstrap
+comes back with.
+
+Blue is also off-centre, and someone will spot it. That is the +7.9 bias again:
+these errors are not centred on zero, so their middle 80% is not either. A
+symmetric plus-or-minus cannot represent that at all.
+
+Worth saying that the fat tails cut the other way further out: at 95% the
+errors' own span is about a tenth WIDER than the normal's. Sharp peak, fat
+tails, so the 80% band shrinks and the 95% band does not. That is the punchline
+of the bootstrap comparison two slides on, and saying it here makes it a
+confirmation rather than a surprise.
 :::
 
 # D. Bootstrapped intervals {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)"}
@@ -659,54 +964,100 @@ for a shape the data does not have.
 Ch 5.5 · Dropping the normality assumption
 
 ::: {.notes}
-Roughly 55 minutes in, and the real break is still 40 minutes away at the deck
-boundary. Take two minutes here and let the room stand up. Segments D and E are
-the densest stretch of Day 2, and they land better on a room that has moved.
+Roughly 33 minutes into the deck, with about 22 still to run before the real
+break at the deck boundary. Take two minutes here and let the room stand up.
+Segments D and E are the densest stretch of Day 2, and they land better on a
+room that has moved.
 :::
 
 ## Resample the errors you actually saw
 
-A one-step error is $e_t = y_t - \hat{y}_{t|t-1}$. For the **naive** method
-$\hat{y}_{t|t-1} = y_{t-1}$, so $y_t = y_{t-1} + e_t$, and a future value can be
-*simulated* by drawing a past error:
+Stop assuming a bell curve. Use the `{python} q_n` errors the model already
+made: **draw one at random, add it, step forward, repeat.**
 
-$$y^*_{T+1} = y_T + e^*_{T+1}, \qquad
-  y^*_{T+2} = y^*_{T+1} + e^*_{T+2}, \qquad \dots$$
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Naive: last month + an error]{.card-title}
 
-. . .
+$y_t = y_{t-1} + e_t$
 
-For the **seasonal naive** the same recursion runs on the seasonal lag:
+$$y^*_{T+1} = y_T + e^*_{T+1}$$
+$$y^*_{T+2} = y^*_{T+1} + e^*_{T+2}$$
+:::
+:::
+
+::: {.column width="50%"}
+::: {.cardbox}
+[Seasonal naive: last year + an error]{.card-title}
+
+$y_t = y_{t-m} + e_t$
 
 $$y^*_{T+i} = y^*_{T+i-m} + e^*_{T+i}$$
+:::
+:::
+::::
+
+::: {.cardbox .navy}
+$e^*$: a past residual, drawn **with replacement** · $y^*$: one path out to
+$h$, which is one possible future
+:::
 
 ::: {.notes}
-The star means "one possible future that could have occurred", not the observed
-value. Run it 5000 times and you have 5000 possible futures.
+Say the idea before the algebra. Every one of these models says the next value
+is something we already know plus an error: e_t = y_t - yhat_{t|t-1} rearranges
+to y_t = yhat_{t|t-1} + e_t. Segment C filled that error in from a formula, by
+assuming it was normal with SD sigma-hat. We have just seen that it is not
+normal. So fill it in from the 405 errors the model actually made instead:
+put them in a hat, pull one out, write it down, put it back.
+
+With replacement is the part to say out loud. There are 405 residuals and we
+want 5000 futures of 24 months each, which is 120000 draws; the same past error
+turns up many times, and that is fine, because we are treating those 405 as a
+sample of the errors this model makes rather than as a list of what will happen.
+
+Then read the two columns as the same recipe on two different lags. The naive
+adds an error to last month, the seasonal naive to last year. Repeat 24 times
+and you have one path; the next slide runs it 5000 times.
+
+The seeding detail is the mechanism behind the fan, and it is worth the extra
+sentence. The first twelve simulated months each hang off a real observed value
+plus one drawn error, so they scatter by about one error's worth. Month 13 hangs
+off simulated month 1, so it carries that error plus a new one, and from there
+the errors accumulate. That is the fan, and it is why the band steps out at
+exactly the same place the closed-form staircase does.
 :::
 
 ## The assumption you just made
 
-::: {.cardbox .navy}
-The simple residual bootstrap assumes the residuals come from **one common
-distribution $\hat{F}$ whose distributional characteristics do not change over
-time**: i.i.d. draws from the pool of past errors.
+::: {.cardbox .teal}
+[Core Assumption: Identical Distribution]{.card-title}
+Residuals are assumed to come from a single fixed pool $\hat{F}$ that does not change over time (i.i.d. draws).
 :::
 
-::: {.incremental}
-- **Bought:** normality. The interval is now whatever shape the errors are, and need not be symmetric.
-- **Still owed:** independence, and *identical distribution*.
-- On this series the second one is false: the residual SD tripled.
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox}
+[What you bought]{.card-title}
+
+- **Normality dropped**: uses true error shape
+- Skew and kurtosis handled naturally
 :::
+:::
+
+::: {.column width="50%"}
+::: {.cardbox .navy}
+[What you still owe]{.card-title}
+
+- **Identical distribution**: fails as SD tripled
+- Pooling old and new residuals hurts coverage
+:::
+:::
+::::
 
 ::: {.notes}
-Every interval method spends an assumption; the honest question is which one.
-The bootstrap trades normality for identical distribution, and on this series
-that trade is a bad one - the residual SD tripled, so 1980s errors are in the
-same draw pool as 2010s errors.
-
-That is not a reason to avoid the bootstrap. It is a reason to know which knob
-you are turning, and the lab turns it: restricting the pool to recent residuals
-moves coverage from about 61% to about 87%.
+The bootstrap trades normality for identical distribution. On this series that trade fails if we pool all years because residual spread tripled.
+Restricting the bootstrap to recent residuals (the i.i.d. knob) restores coverage from ~61% to ~87-91%.
 :::
 
 ## 5000 possible futures
@@ -776,9 +1127,9 @@ P.fan_chart(train, boot_fan, levels=(80, 95), actual=test)
 :::
 
 ::: {.incremental}
-- Mean **80%** width: 59.7 Gaussian vs **46.4** bootstrap, a fifth narrower
-- Mean **95%** width: 91.3 vs **90.1**, the gap has closed
-- Sharp peak, fat tails. That is what excess kurtosis of 5.7 buys you
+- Mean **80%** width: `{python} q_wg80` Gaussian vs **`{python} q_wb80`** bootstrap, `{python} q_narrow` narrower
+- Mean **95%** width: `{python} q_wg95` vs **`{python} q_wb95`**, the gap has closed
+- Sharp peak, fat tails. That is what an excess kurtosis of `{python} q_kurt` buys you
 :::
 
 ::: {.notes}
@@ -799,26 +1150,32 @@ works on a model with no formula
 
 $$e_{t+h|t} = y_{t+h} - \hat{y}_{t+h|t}$$
 
-| Symbol | Meaning |
-|---|---|
-| $t$ | the time the forecast was **made**: the forecast origin |
-| $h$ | the forecast **horizon** |
-| $t+h$ | the future time being **predicted** |
-| $y_{t+h}$ | what actually happened |
-| $\hat{y}_{t+h\,\vert\,t}$ | the forecast made at time $t$ for time $t+h$ |
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox}
+[Indices]{.card-title}
 
-::: {.callout-note}
-At $h = 1$ these are exactly the residuals from part B. For $h > 1$ they are a
-different, wider set of errors, and they must be *collected*, not fitted.
+- $t$: Forecast **origin** (when made)
+- $h$: Forecast **horizon** (steps ahead)
+- $t+h$: Future time being predicted
 :::
+:::
+
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[Residual vs Horizon Error]{.card-title}
+
+- $h = 1$: Standard 1-step residual
+- $h > 1$: Out-of-sample error, **collected across rolling origins**
+:::
+:::
+::::
 
 ::: {.notes}
 Notation discipline pays off here. e_{t+h|t} carries two indices for a reason:
-which point is being forecast, and which origin it was forecast from. A 12-step
-error made in 2010 and a 12-step error made in 2016 are two members of the same
-calibration set.
+which point is being forecast, and which origin it was forecast from. A 12-step error made in 2010 and a 12-step error made in 2016 are two members of the same calibration set.
 
-Residuals had one index because there was only ever one origin: yesterday.
+Residuals had one index because there was only ever one origin: yesterday. For h > 1, errors must be collected, not fitted.
 :::
 
 ## A worked example of $e_{t+h|t}$
@@ -834,8 +1191,6 @@ You hold $y_1, y_2, \dots, y_{10}$ and want a **3-step-ahead** interval.
 3. Now look up what really happened: $y_8$.
 4. Record $e_{{8|5}} = y_8 - \hat{{y}}_{{8|5}}$, one 3-step-ahead error.
 :::
-
-. . .
 
 Slide the origin to $t = 6, 7, \dots$ and repeat. What you collect is the
 **calibration set** for $h = 3$.
@@ -868,38 +1223,37 @@ more elaborate than collecting those and taking a quantile of their absolute
 values.
 :::
 
-## Exchangeability, not i.i.d.
+## Distribution-free is not assumption-free
 
 ::: {.cardbox .teal}
-Conformal prediction replaces i.i.d. with **exchangeability**: the past
-$h$-step errors carry no information in their *order*.
+[Core Requirement: Exchangeability]{.card-title}
+Calibration errors and the next test error must be **exchangeable** (order invariant).
 :::
 
-. . .
+Empirical quantile of collected absolute errors:
+$$\hat{y}_{T+h|T} \pm Q_{1-\alpha}\big(|e_{t+h|t}|\big)$$
 
-The interval is then an empirical quantile of the collected errors:
-
-$$\hat{y}_{T+h|T} \pm Q_{1-\alpha}\!\left(\left|e_{t+h|t}\right|\right)$$
-
-::: {.incremental}
-- One quantile **per horizon $h$**: widening with $h$ is *measured*, not assumed
-- No $\hat{\sigma}$, no $c$, no assumed distribution: hence *distribution-free*
+:::: {.columns}
+::: {.column width="50%"}
+::: {.cardbox}
+[Per-Horizon Width]{.card-title}
+One quantile per $h$: interval growth with horizon is **measured**, not assumed
 :::
+:::
+
+::: {.column width="50%"}
+::: {.cardbox .navy}
+[Distribution-Free]{.card-title}
+No $\hat{\sigma}$, no normal table, no parametric distribution required
+:::
+:::
+::::
 
 ::: {.notes}
-This is the slide that earns the segment, so do not rush it.
+Exchangeability asks whether the calibration errors and the next error remain comparable when their order is shuffled. It permits dependence that i.i.d. forbids, but does not excuse a changing regime (e.g. non-constant variance over decades).
 
-Exchangeability is weaker than i.i.d., and the difference is worth spelling out.
-I.i.d. says every error is an independent draw from one fixed distribution.
-Exchangeability says only this: if you shuffled the order of the errors you
-collected, you would not be able to tell. That permits dependence i.i.d.
-forbids, which matters here, because the bootstrap's i.i.d. assumption is the
-one this series breaks.
-
-Then the payoff. Because the interval is an empirical quantile of errors the
-model actually made, there is no sigma-hat to estimate and no c to look up, and
-nothing anywhere assumes a shape. That is why this method works on a model whose
-interval has no formula, which is most of what Day 3 covers.
+Because the interval is an empirical quantile of actual model errors, there is no sigma-hat to estimate and no normal table to look up.
+That is why conformal intervals work on models that have no closed-form formula (ML models, neural nets, Day 3).
 :::
 
 ## Where the calibration set comes from
@@ -933,7 +1287,7 @@ statsforecast does exactly this internally: n_windows rolling origins, the
 absolute error at each horizon, then the empirical quantile of those.
 :::
 
-## Any model at all can be given a conformal interval
+## Any model at all can be given a conformal interval {.smaller}
 
 ```python
 from statsforecast.utils import ConformalIntervals
@@ -950,8 +1304,10 @@ fc_conf = sf_conf.forecast(df=train, h=24, level=[80, 95])
 
 ::: {.incremental}
 - `n_windows`: how many rolling origins make up the calibration set
-- Needs at least $2h + 1$ observations; more windows, steadier quantiles
-- With 8 windows only 16 scores sit behind each horizon, so the band is **visibly jittery**
+- Wants `n_windows` $\times\,h + 1$ observations (`{python} q_minobs` here). Given fewer it
+  **silently** fits as many windows as it can, and only errors below $2h + 1$
+- It mirrors each horizon's 8 absolute errors to $\hat{y} \pm |e|$ and takes the
+  quantile of those **`{python} q_scores`** values, so the band is **visibly jittery**
 :::
 
 ::: {.notes}
@@ -960,9 +1316,18 @@ will need: any model that has no closed-form interval gets one from
 prediction_intervals=ConformalIntervals(...). Not every statsforecast model can
 produce intervals on its own; all of them can produce conformal ones.
 
-The jitter warning is worth making concrete. With eight windows there are only
-sixteen scores behind each horizon, so the band wobbles. That is a small sample
-showing through, not a bug.
+The jitter warning is worth making concrete. Eight rolling origins give eight
+absolute errors per horizon; statsforecast reflects each one to both sides of
+the point forecast and takes the quantile of the sixteen values that makes,
+which is why the slide says sixteen where the room will have counted eight. The
+band wobbles because sixteen numbers is a small sample, not because anything is
+broken.
+
+The sizing bullet matters more than it looks. n_windows is a request, not a
+setting: statsforecast quietly takes min(n_windows, (n-1)//h) and only raises if
+that falls below 2. Ask for 8 windows at h=24 on a series of 200 points and you
+get 8; on 150 you silently get 6, with no warning anywhere. Anyone taking this
+to Day 3 or to work should check what they actually got.
 :::
 
 ## One point forecast, three different bands
@@ -978,7 +1343,7 @@ BANDS = {
     "Conformal": (fc_conf["SeasonalNaive-lo-80"], fc_conf["SeasonalNaive-hi-80"]),
 }
 P.interval_bounds_plot(train, fc["ds"], BANDS, actual=test, history_tail=24,
-                       level=80, figsize=(10, 2.9),
+                       level=80, figsize=(10, 2.8),
                        titles=("80% bounds, same point forecast",
                                "Staircase, narrow, and jittery"))
 plt.show()
@@ -999,6 +1364,8 @@ P.interval_bounds_plot(train, fc["ds"], BANDS, actual=test)
 ```
 
 :::
+
+**Coverage**: the share of the actual values that landed inside the band.
 
 ```{python}
 #| echo: false
@@ -1026,13 +1393,13 @@ they came from: 24 points. The next slide is the arithmetic on why that cannot
 separate three methods.
 :::
 
-## Each method buys back a different assumption
+## Every interval method spends an assumption
 
-| Method | Assumes | Buys you |
+| Method | Assumes | Gives |
 |---|---|---|
-| Gaussian | uncorrelated · constant variance · **normal** | a closed form, one line of code |
-| Bootstrap | uncorrelated · **i.i.d. from $\hat{F}$** | asymmetry, any error shape |
-| Conformal | **exchangeable** $h$-step errors | no assumed distribution at all |
+| Gaussian | uncorrelated · constant variance · **normal** | closed form |
+| Bootstrap | uncorrelated · **i.i.d. from $\hat{F}$** | any error shape |
+| Conformal | **exchangeable** $h$-step errors | no parametric shape |
 
 ::: {.callout-important}
 Pick by which assumption you can defend, not by the widths on the last slide.
@@ -1045,37 +1412,44 @@ am I willing to make about this series".
 
 If the room wants a default: conformal, because it assumes least, and because it
 is the one that generalises to models that have no formula. That is also why it
-is the one Day 3 will lean on.
+is the one Day 3 will lean on. But say the qualification out loud: its interval
+is distribution-free, not assumption-free, and a changing error regime can
+break exchangeability.
 :::
 
 ## Why one test window is misleading
 
-On a single small test set ($n = 24$), coverage error is large:
+$$\text{SE} = \sqrt{\frac{p(1-p)}{n}} = \sqrt{\frac{0.8 \times 0.2}{24}} \approx 8\%
+\qquad\Longrightarrow\qquad
+\text{95% CI on 80% coverage: } [64\%, 96\%]$$
 
-$$\text{SE} = \sqrt{\frac{p(1-p)}{n}} = \sqrt{\frac{0.8 \times 0.2}{24}} \approx \pm 8\% \quad (\pm 16\% \text{ at } 95\% \text{ CI})$$
-
-. . .
-
+:::: {.columns}
+::: {.column width="50%"}
 ::: {.cardbox .navy}
-A nominal 80% interval could easily measure anywhere from **64% to 96%** on a
-single 24-point holdout by chance alone.
+[Single Holdout ($n = 24$)]{.card-title}
+Coverage measures **96%** by chance alone. You cannot validate coverage on a single slice.
+:::
 :::
 
-. . .
+::: {.column width="50%"}
+::: {.cardbox .teal}
+[8-Fold CV ($n = 96$)]{.card-title}
 
-Over **8 rolling origins** (96 scored points) they separate cleanly:
+- **Gaussian**: 77%
+- **Bootstrap**: 61%
+- **Conformal**: 83%
 
-```{python}
-#| echo: false
-print("80% coverage over 96 scored points:   "
-      + "   ".join(f"{k} {v:.0%}" for k, v in CV_COV.items()))
-```
+*Methods separate cleanly.*
+:::
+:::
+::::
 
 ::: {.notes}
-The bootstrap's 61% is the identically-distributed assumption being punished:
-pooling 1980s residuals (SD 8.5) with 2010s residuals (SD 26) makes the draw pool
-far too tight for a forecast issued in 2016. Restricting the pool to the last
-120 residuals takes it to about 87%; the last 60 push it to 91%. The assumption is the knob, and the lab turns it.
+A nominal 80% interval easily measures anywhere from 64% to 96% on a single 24-point holdout by chance alone (and points clump rather than being independent coin flips).
+
+The bootstrap's 61% is the i.i.d. assumption being punished: pooling 1980s residuals (SD 8.5) with 2010s (SD 26.2) makes the draw pool too tight. Restricting the pool to recent residuals restores coverage to ~87-91%.
+
+Over 8 rolling origins, we actually get enough points to evaluate reliability.
 :::
 
 ## $\rightarrow$ Lab C · The toolbox {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #625D9C)"}

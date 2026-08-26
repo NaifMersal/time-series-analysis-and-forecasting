@@ -904,8 +904,11 @@ hold, and what does that imply?
 <!--SOLUTION-->
 *Answer.* Neither is close to white noise.
 
-- **Uncorrelated:** fails badly for both - Ljung-Box p is effectively zero and
-  the residual ACF has large spikes. There is a great deal of signal left.
+- **Uncorrelated:** fails badly for both - Ljung-Box p is effectively zero.
+  Read the *shape*: the seasonal naive's residual ACF is a slow decay from about
+  0.86 at lag 1, with lags 12 and 24 sitting inside the bounds. By Day 1's
+  table that is trend, and it means the season was removed completely and the
+  trend was left behind.
 - **Zero mean:** the seasonal naive's mean residual is clearly positive, because
   the series trends upward and last year's value is systematically too low. That
   is a *bias*: the forecast will be low every time.
@@ -916,8 +919,9 @@ hold, and what does that imply?
 - **Normal:** roughly, but with heavy tails.
 
 Implication: the benchmark floor is a floor, not a model. The failures are
-informative - the bias says "add a trend", the seasonal spikes say "the seasonal
-shape has changed", the variance says "transform first".
+informative, and two of them are the same message twice: the +7.9 bias and the
+slowly decaying ACF both say "add a trend", which is exactly what the STL +
+drift route did. The growing variance says "transform first".
 """),
 
     # ---------------------------------------------------------------- 2.3

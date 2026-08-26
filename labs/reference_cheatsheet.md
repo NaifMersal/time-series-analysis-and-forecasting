@@ -1,4 +1,4 @@
-# Time series cheat sheet: Days 1 & 2
+# Time series cheat sheet: Days 1, 2 & 3
 
 One page. Print it. It covers everything you need to diagnose a series and prove whether
 a forecast is any good.
@@ -257,6 +257,11 @@ you are spending.
 
 ## Metrics
 
+$e_t = y_t - \hat{y}_t$ is the forecast error. **MAE** is the mean of $|e_t|$,
+**RMSE** the root of the mean of $e_t^2$, **MAPE** the mean of $|e_t / y_t|$.
+**MASE** and **RMSSE** divide those by the seasonal naive's in-sample values of
+the same; **scaled CRPS** divides CRPS the same way.
+
 | | Scale-free? | Safe near zero? | Use it? |
 |---|---|---|---|
 | MAE | no | yes | within one series |
@@ -266,8 +271,17 @@ you are spending.
 | **RMSSE** | **yes** | **yes** | default, squared-error flavour |
 | **scaled CRPS** | **yes** | **yes** | **default for the whole distribution** |
 
-$$\text{MASE}=\frac{\text{mean}(|e_t|)}{Q},\qquad
+Scale each error by the in-sample one-step seasonal naive error,
+$q_j = e_j / Q$, then average:
+
+$$\text{MASE}=\text{mean}(|q_j|)=\frac{\text{mean}(|e_t|)}{Q},\qquad
 Q=\frac{1}{T-m}\sum_{t=m+1}^{T}|y_t-y_{t-m}|$$
+
+$$\text{RMSSE}=\sqrt{\text{mean}(q_j^2)},\qquad
+q_j^2=\frac{e_j^2}{\frac{1}{T-m}\sum_{t=m+1}^{T}(y_t-y_{t-m})^2}$$
+
+Nothing here is seasonal by nature: set $m=1$ and the denominator becomes the
+plain naive's error, which is the non-seasonal version of both metrics.
 
 **Why scale-free is not a slogan.** Re-measure the series in another unit,
 $y'_t = k y_t$ and $\hat{y}'_t = k \hat{y}_t$ with $k>0$. Then

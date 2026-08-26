@@ -358,48 +358,76 @@ once. Twelve is even and has no middle month, which is the wrinkle the next slid
 deals with, so do not use the name 2x12-MA yet.
 :::
 
-## A whole-cycle window cancels the season
+## A whole-cycle window cancels the season {.smaller}
 
-Averaging $m = 2k+1$ terms of $y_t = T_t + S_t + R_t$, centred on $t$:
+Add up $m = 2k+1$ terms of $y_t = T_t + S_t + R_t$, centred on $t$:
+
+$$\sum_{j=-k}^{k} y_{t+j} \;=\; \sum_{j=-k}^{k} T_{t+j} \;+\; \sum_{j=-k}^{k} S_{t+j} \;+\; \sum_{j=-k}^{k} R_{t+j}$$
+
+. . .
+
+Divide by $m$ and each component gets its own average:
 
 $$\hat{T}_t = \underbrace{\frac{1}{m}\sum_{j=-k}^{k} T_{t+j}}_{\text{trend}}
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} S_{t+j}}_{\text{season}}
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} R_{t+j}}_{\text{noise}}$$
 
 ::: {.incremental}
-- **Constraint $\sum_{j=1}^m S_j = 0$**: ensures pure swings around trend (any non-zero mean is unrecognizable trend)
-- **Season $= 0$, exactly**: an $m$-window spans one whole cycle
-- **Trend survives**: a symmetric window is unbiased on a linear trend
+- **Trend survives**: a symmetric window is unbiased on a locally linear trend
+- **Season is exactly 0**: the window spans one whole cycle (next slide)
 - **Noise shrinks** by $1/m$, damped but never removed
 :::
 
 ::: {.notes}
-The constraint sum(S_j) = 0 is essential: without it, decomposition is not
-unique. Any non-zero average in S is unrecognizable trend, so the seasonal
-component is defined only up to a constant and the split between trend and
-season is not.
-Because the window is exactly one cycle, the middle term sums to 0. Locally
-linear trend offsets cancel, leaving T_t plus damped noise.
+Work left to right. The moving average is a sum, and a sum passes straight
+through the additive model, so the window average of y is the window average of
+T plus that of S plus that of R. Nothing has been assumed yet.
+
+Then read the three terms. The trend term: over a window this short the trend is
+close to a straight line, and a symmetric window of a straight line averages to
+its midpoint, so this term is about T_t. The noise term: m independent draws
+averaged, so its spread is smaller by root m, damped but never gone. The season
+term is the interesting one and gets the next slide.
 
 For a multiplicative model the same idea multiplies instead: going through a
 full cycle, S1 x S2 x ... x Sm = 1, so a geometric mean over the window
 removes the season.
 :::
 
-## Seasonal terms always sum to zero over $m$ steps
+## Seasonal terms always sum to zero over $m$ steps {.smaller}
 
-Periodicity ($S_{t+m} = S_t$) means any $m$ consecutive terms span the full cycle:
+**By construction.** A seasonal component is *defined* to average to zero across one cycle:
 
-$$\{S_{t-k}, \dots, S_{t+k}\} = \{S_1, \dots, S_m\} \qquad (m = 2k + 1)$$
+$$S_1 + S_2 + \dots + S_m = 0$$
+
+::: {.incremental}
+- Without it the split is not unique: any constant inside $S$ really belongs to $T$
+- With it, $S$ is a pure swing and $T$ alone carries the level
+:::
 
 . . .
 
-Averaging over window $m$ cancels the season completely:
+**By periodicity** ($S_{t+m} = S_t$), any $m$ consecutive terms are that same full set:
 
-$$\bar{S}_t = \frac{1}{m}(S_{t-k} + \dots + S_{t+k}) = \frac{1}{m}(\underbrace{S_1 + S_2 + \dots + S_m}_{\text{sums to } 0}) = \frac{1}{m}(0) = \mathbf{0}$$
+$$\frac{1}{m}\sum_{j=-k}^{k} S_{t+j} = \frac{1}{m}(\underbrace{S_1 + S_2 + \dots + S_m}_{\text{sums to } 0}) = \mathbf{0}$$
+
+::: {.cardbox .teal}
+True at every $t$, whatever month the window happens to start on.
+:::
 
 ::: {.notes}
-Because additive seasonality sums to zero across one cycle by construction, any window of length m captures each season exactly once and averages to 0, regardless of the starting month.
+Two separate facts, and students conflate them. The first is a convention we
+impose to make the decomposition identifiable: shift 5 out of S and into T and
+the fit is unchanged, so the seasonal component is pinned down only once we
+demand it average to zero over a cycle. Classical decomposition enforces it
+explicitly, in the centring step of stage 3.
+
+The second is arithmetic: periodicity means a window of length m sees each of
+the m seasonal values exactly once, in some rotated order, and a sum does not
+care about order. So the window sum is S1 + ... + Sm, which the constraint makes
+0. Ask what happens if the window is 11 months or 13 instead: one month gets
+counted twice, the sum is no longer 0, and a residue of the season leaks into
+the trend estimate.
 :::
 
 ## An even $m$ needs the 2×$m$-MA to stay centred {.smaller}

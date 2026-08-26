@@ -36,6 +36,12 @@ SKY = "#56B4E9"
 SLATE = "#5b6678"   # dark neutral for reference marks that are not models
 GREY = "#9aa3ad"
 
+# Day 3 needs three more model colours than Okabe-Ito has room for. These are
+# only ever model colours -- nothing on a Day 1 or Day 2 axis uses them.
+AMBER = "#E69F00"
+VIOLET = "#785EF0"
+WINE = "#882255"
+
 #: Cycle used when several series share one pair of axes.
 SERIES_COLORS = [BLACK, ORANGE, BLUE, GREEN, PINK]
 
@@ -440,7 +446,8 @@ def acf_values(y, nlags=24):
 
 
 def acf_plot(y, nlags=24, ax=None, title="", highlight_every=None,
-             color=BLACK, show_bounds=True, ylim=(-1.05, 1.05)):
+             color=BLACK, show_bounds=True, ylim=(-1.05, 1.05),
+             figsize=(5.2, 3.2)):
     """Correlogram with the 1.96/sqrt(T) significance band.
 
     ``highlight_every=m`` paints the seasonal lags (m, 2m, ...) in ORANGE --
@@ -448,7 +455,7 @@ def acf_plot(y, nlags=24, ax=None, title="", highlight_every=None,
     being told it is there.
     """
     if ax is None:
-        _, ax = plt.subplots(figsize=(5.2, 3.2))
+        _, ax = plt.subplots(figsize=figsize)
     r, bound = acf_values(y, nlags=nlags)
     lags = np.arange(1, len(r) + 1)
     colors = [color] * len(r)
@@ -465,6 +472,51 @@ def acf_plot(y, nlags=24, ax=None, title="", highlight_every=None,
     return ax
 
 
+def residual_time_plot(resid, ds=None, ax=None, title="", show_mean=False,
+                       era_months=None, era_labels=None, color=BLACK, lw=0.9,
+                       ylabel="residual", figsize=(9, 2.6)):
+    """Residuals against zero -- the panel two properties are read straight off.
+
+    ``show_mean`` draws the mean residual, so zero mean is something the room
+    sees the model fail rather than something the slide asserts. ``era_months``
+    shades and labels the first and last that many observations with their SD,
+    which is the same move for constant variance: the two numbers sit on the
+    stretches of picture that produced them. ``era_labels`` is a pair of names
+    for those two stretches, so the reader is told which spans they are rather
+    than left to count gridlines.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=figsize)
+    r = pd.Series(resid).dropna()
+    x = pd.Series(ds).to_numpy()[-len(r):] if ds is not None else np.arange(len(r))
+    ax.plot(x, r.to_numpy(), color=color, lw=lw)
+    ax.axhline(0, color=SLATE, lw=1.2)
+    if show_mean:
+        m = float(r.mean())
+        ax.axhline(m, color=ORANGE, ls="--", lw=1.6,
+                   label=f"mean residual = {m:+.1f}")
+        ax.legend(frameon=False, loc="upper left", fontsize=10)
+    if era_months:
+        k = int(era_months)
+        # Labels go along the bottom: the top of a residual panel is where the
+        # legend and the tallest spikes live, and this figure has both.
+        lo, hi = ax.get_ylim()
+        ax.set_ylim(lo - 0.13 * (hi - lo), hi)
+        names = era_labels or ("", "")
+        for xs, seg, ha, name in ((x[:k], r.iloc[:k], "left", names[0]),
+                                  (x[-k:], r.iloc[-k:], "right", names[1])):
+            ax.axvspan(xs[0], xs[-1], color=SLATE, alpha=0.07, lw=0)
+            ax.annotate(f"{name}: SD {seg.std():.1f}" if name
+                        else f"SD {seg.std():.1f}",
+                        xy=(xs[0] if ha == "left" else xs[-1], ax.get_ylim()[0]),
+                        xytext=(4 if ha == "left" else -4, 4),
+                        textcoords="offset points",
+                        ha=ha, va="bottom", fontsize=10, color=ink(SLATE))
+    ax.set(title=title, ylabel=ylabel)
+    ax.margins(x=0.01)
+    return ax
+
+
 def residual_diagnostics(resid, ds=None, nlags=24, title="", bins=25,
                          figsize=(9, 5)):
     """The standard three-panel residual check: series, ACF, histogram."""
@@ -475,9 +527,7 @@ def residual_diagnostics(resid, ds=None, nlags=24, title="", bins=25,
     ax_acf = fig.add_subplot(gs[1, 0])
     ax_hist = fig.add_subplot(gs[1, 1])
 
-    x = np.asarray(ds)[-len(resid):] if ds is not None else np.arange(len(resid))
-    ax_top.plot(x, resid.to_numpy(), color=BLACK, lw=0.9)
-    ax_top.axhline(0, color=ORANGE, lw=1.2)
+    residual_time_plot(resid, ds=ds, ax=ax_top, color=BLACK)
     ax_top.set_title(title or "Innovation residuals", size=11)
 
     acf_plot(resid.to_numpy(), nlags=nlags, ax=ax_acf, title="Residual ACF")
@@ -724,11 +774,21 @@ MODEL_COLORS = [PINK, GREEN, ORANGE, BLUE, SKY]
 #: is how the seasonal naive came out orange before the break and green after
 #: it. Anything not named here falls back to MODEL_COLORS.
 MODEL_PALETTE = {
+    # Day 2's five.
     "HistoricAverage": PINK,
     "Naive": GREEN,
     "SeasonalNaive": ORANGE,
     "RWD": BLUE,
     "MSTL": SKY,
+    # Day 3's three. Okabe-Ito is spent after five, so these come from outside
+    # it; they are here because the leaderboard slide eventually shows all
+    # eight at once and a Day 3 model must not borrow a Day 2 model's colour.
+    # No Day 3 chart puts more than three models on one axis, so the burden on
+    # these three is separability from ORANGE (the floor they are measured
+    # against), not from each other.
+    "AutoETS": AMBER,
+    "AutoARIMA": VIOLET,
+    "AutoTheta": WINE,
 }
 
 
@@ -767,6 +827,57 @@ def model_colors(models, colors=None):
                      MODEL_COLORS[len(out) % len(MODEL_COLORS)])
         out.append(c)
     return out
+
+
+def decomposition_forecast_plot(history, dcmp_sa, dcmp_seas, fc_sa, fc_seas,
+                                 fc_recombined, actual=None, history_tail=48,
+                                 figsize=(10, 4.4), title=""):
+    """Three-panel view of decomposition forecasting (fpppy Ch 5.7).
+
+    Shows how decomposing a series into seasonally adjusted ($A_t$) and seasonal
+    ($S_t$) components allows forecasting trend with drift and seasonality with
+    seasonal naive, then adding them back together:
+    $\\hat{y}_{T+h} = \\hat{A}_{T+h} + \\hat{S}_{T+h}$.
+    """
+    fig, axes = plt.subplots(3, 1, sharex=True, figsize=figsize)
+    hist = history.tail(history_tail) if history_tail else history
+    fut_ds = fc_recombined["ds"]
+    hist_ds = hist["ds"]
+    n_hist = len(hist)
+
+    # Panel 1: Deseasonalised / Seasonally adjusted + Drift forecast
+    axes[0].plot(hist_ds, dcmp_sa[-n_hist:], color=BLACK, lw=1.1,
+                 label="Deseasonalised ($A_t$)")
+    axes[0].plot(fut_ds, fc_sa, color=BLUE, lw=1.8,
+                 label="Drift forecast ($\\hat{A}_{T+h}$)")
+    axes[0].set_ylabel("Deseasonalised", size=9)
+    axes[0].margins(y=0.18)
+    axes[0].legend(loc="upper left", frameon=False, fontsize=8.5, ncols=2)
+
+    # Panel 2: Seasonal component + Seasonal Naive forecast
+    axes[1].plot(hist_ds, dcmp_seas[-n_hist:], color=BLACK, lw=1.1,
+                 label="Seasonal component ($S_t$)")
+    axes[1].plot(fut_ds, fc_seas, color=ORANGE, lw=1.8,
+                 label="Seasonal naive ($\\hat{S}_{T+h}$)")
+    axes[1].set_ylabel("Seasonal", size=9)
+    axes[1].margins(y=0.25)
+    axes[1].legend(loc="upper left", frameon=False, fontsize=8.5, ncols=2)
+
+    # Panel 3: Observed series + Recombined forecast
+    axes[2].plot(hist_ds, hist["y"], color=BLACK, lw=1.1,
+                 label="Observed ($y_t$)")
+    if actual is not None:
+        axes[2].plot(actual["ds"], actual["y"], color=GREY, lw=1.3, ls="--",
+                     label="Actual holdout")
+    axes[2].plot(fut_ds, fc_recombined["MSTL"], color=SKY, lw=1.8,
+                 label="Recombined: STL + drift ($\\hat{y}_{T+h}$)")
+    axes[2].set_ylabel("Total turnover", size=9)
+    axes[2].margins(y=0.22)
+    axes[2].legend(loc="upper left", frameon=False, fontsize=8.5, ncols=3)
+
+    if title:
+        axes[0].set_title(title, loc="left", size=11)
+    return fig, axes
 
 
 def forecast_overlay(history, forecast, models, labels=None, colors=None,

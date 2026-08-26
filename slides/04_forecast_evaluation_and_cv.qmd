@@ -97,20 +97,28 @@ The point of the harness is that adding a model to it is a few lines.
 
 Ch 5.8 · Point forecast metrics
 
-## Only a scaled metric can compare across series
+## Five ways to score one forecast, and only two survive scaling {.smaller}
 
-Forecast error: $e_{T+h} = y_{T+h} - \hat{y}_{T+h|T}$
+Every metric below combines the same forecast errors $e_t = y_t - \hat{y}_t$, actual minus predicted, in a different way.
 
-| Metric | Property | Limitation |
-|---|---|---|
-| **MAE** | Easy to interpret | Scale-dependent: cannot be pooled across series |
-| **RMSE** | Punishes large errors | Scale-dependent |
-| **MAPE** | Unit-free | Explodes near zero, and asymmetric |
-| **MASE** | **Scaled**: MAE over the benchmark's | Needs the seasonal period |
-| **RMSSE** | **Scaled**: RMSE over the benchmark's | Same, and still punishes outliers |
+| | Definition | Property | Limitation |
+|---|---|---|---|
+| **MAE**, Mean Absolute Error | mean of $\lvert e_t \rvert$ | Easy to interpret | Scale-dependent: cannot be pooled |
+| **RMSE**, Root Mean Squared Error | $\sqrt{\text{mean}(e_t^2)}$ | Punishes large errors | Scale-dependent |
+| **MAPE**, Mean Absolute Percentage Error | mean of $\lvert p_t \rvert$, the percentage error $p_t = 100\,e_t / y_t$ | Unit-free | Explodes near zero, and asymmetric |
+| **MASE**, Mean Absolute Scaled Error | **Scaled**: MAE over the benchmark's own MAE | Scale-free | Needs the seasonal period |
+| **RMSSE**, Root Mean Squared Scaled Error | **Scaled**: RMSE over the benchmark's own RMSE | Scale-free | Same, and still punishes outliers |
 
 ::: {.notes}
-MAE and RMSE work well within a single series. To compare across different products or series, use MASE.
+The Definition column is the slide; read it left to right. MAE is the mean
+absolute error, RMSE is the square root of the mean squared error, MAPE is the
+mean absolute percentage error, and MASE and RMSSE are those same two errors
+divided by a benchmark. That division is the whole story of this segment.
+
+MAE and RMSE are honest within one series. The moment you want to compare
+different products or series, the unit is in the way, and only the scaled
+metrics survive. MAPE also drops the unit, and the next slides show why that
+alone does not make it safe.
 :::
 
 ## Rescaling the data moves MAE but not MASE
@@ -124,7 +132,7 @@ $$\text{MAE}' = \frac{1}{n}\sum \lvert k y_t - k\hat{y}_t \rvert = k\,\text{MAE}
 
 . . .
 
-$$PE'_t = \frac{k y_t - k\hat{y}_t}{k y_t} = PE_t
+$$p'_t = 100\,\frac{k y_t - k\hat{y}_t}{k y_t} = p_t
 \qquad
 \text{MASE}' = \frac{k\,\text{MAE}}{k\,Q} = \text{MASE}$$
 
@@ -166,7 +174,7 @@ preds = low[["ds"]].assign(A=low["y"] + 2.0, B=low["y"] - 0.15)
 P.forecast_overlay(low, preds, ["A", "B"], colors=[P.ORANGE, P.BLUE],
                    labels={"A": "forecast A (+2.0)", "B": "forecast B (-0.15)"},
                    history_tail=None, history_label="actual (low volume)",
-                   figsize=(10, 3.6), title="Low-volume demand breaks MAPE")
+                   figsize=(10, 3.6), title="Values near zero break MAPE")
 plt.show()
 ```
 
@@ -194,9 +202,15 @@ room commit. Forecast A is two units too high everywhere; forecast B is fifteen
 hundredths too low everywhere. Everyone picks B, and everyone is right.
 
 Then show the MAPE column: A scores 304%, B scores 23%. MAPE agrees here. Now
-ask what happens when the actual is 0.2 and you are two units out - the
+ask what happens when the actual is 0.2 and you are two units out: the
 percentage error is a thousand percent, and it is the denominator doing that,
 not the forecast.
+
+Near zero means exactly that, and the threshold is not a fixed number: any
+$y_t$ small enough that $e_t / y_t$ stops describing the miss and starts
+describing the denominator. On this series the typical month is about 1.4,
+so a 0.2 is a seventh of the usual value, and one unit of error is 500% of
+it.
 :::
 
 ## Three reasons MAPE cannot select a model
@@ -233,12 +247,13 @@ Report MAPE to executives if required, but **never optimize models using MAPE**.
 
 ## Dividing by the benchmark makes errors comparable
 
-Error divided by the in-sample Seasonal Naive error ($Q$):
+Scale each error by $Q$, the in-sample MAE of the **one-step seasonal naive** on the training data. $m$ is the season length (12), $T$ the last training index.
 
-$$\text{MASE} = \frac{\text{MAE}}{Q},
-\qquad Q = \frac{1}{T-m}\sum_{t=m+1}^{T} \lvert y_t - y_{t-m} \rvert$$
+$$q_j = \frac{e_j}{Q},
+\qquad Q = \frac{1}{T-m}\sum_{t=m+1}^{T} \lvert y_t - y_{t-m} \rvert,
+\qquad \text{MASE} = \text{mean}(\lvert q_j \rvert)$$
 
-$Q$ is measured in the units of the data, which is what cancelled the $k$.
+$Q$ carries the units of the data, which is what cancelled the $k$.
 
 . . .
 
@@ -246,6 +261,7 @@ $Q$ is measured in the units of the data, which is what cancelled the $k$.
 - **$\text{MASE} < 1$** $\rightarrow$ **Better** than the seasonal naive baseline
 - **$\text{MASE} = 1$** $\rightarrow$ Exactly as good as seasonal naive
 - **$\text{MASE} > 1$** $\rightarrow$ **Worse** than simple baseline
+- **Non-seasonal?** Set $m = 1$: $Q$ becomes the plain naive's error
 :::
 
 ::: {.notes}
@@ -253,9 +269,52 @@ The denominator is the whole idea: divide by the in-sample one-step seasonal
 naive error, and the metric becomes scale-free and readable. MASE below 1 beats
 the benchmark, above 1 loses to it.
 
+Hyndman and Koehler proposed this in 2006 precisely as the replacement for the
+percentage errors the last three slides took apart: both the numerator and the
+denominator are on the scale of the data, so the ratio has no unit and nothing
+to divide by zero.
+
+Say the m = 1 line out loud rather than reading it. Nothing about MASE is
+seasonal; the seasonal naive is just the strongest free benchmark when the
+series has a period. On a non-seasonal series the denominator is the mean
+absolute first difference and everything else is unchanged.
+
 Warn them the seasonal naive will score above 1 on this data, and that this is
 not a contradiction: forecasting 24 months out is harder than the one-step
 in-sample errors sitting in the denominator.
+:::
+
+## Squaring the same ratio gives RMSSE
+
+$$\text{RMSSE} = \sqrt{\text{mean}(q_j^2)},
+\qquad q_j^2 = \frac{e_j^2}{\dfrac{1}{T-m}\sum_{t=m+1}^{T} (y_t - y_{t-m})^2}$$
+
+Same benchmark, same cancellation, squared throughout.
+
+. . .
+
+::: {.incremental}
+- **MASE** answers: how big is the typical miss, in benchmark units?
+- **RMSSE** answers the same, with the worst months weighted heaviest
+- They usually agree. When they split, one model is losing on a few large misses
+:::
+
+::: {.cardbox .teal}
+Both go on the leaderboard, because a model can win the typical month and still
+be the one that blows up in December.
+:::
+
+::: {.notes}
+Keep this short: it is one slide because it is one idea already taught, run
+through a square. Point at the denominator and note it is now a root mean
+square of the benchmark's errors rather than a mean absolute one, so the
+cancellation argument from two slides ago goes through unchanged.
+
+Both columns ship because the choice between them is a business question, not a
+statistical one: RMSSE is the one to watch when a single large miss costs more
+than several small ones, which is why the M5 competition ranked on it. If the
+two ever disagree on this course's leaderboard, that is worth stopping on, and
+on the spine they do not.
 :::
 
 ## On this one window the STL route wins every metric
@@ -286,6 +345,10 @@ lucky year, and part B of this deck takes it back.
 
 RMSSE is the same idea as MASE with squared errors, which is why the two columns
 agree on the ranking here and why both end up on the leaderboard.
+
+MAPE is the only column here that the leaderboard drops. It is the one metric
+in the table that a single near-zero month can break, and the room just spent
+two slides on that. It stays for reporting, it never scores a model.
 :::
 
 # B. One split is not evidence {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
@@ -298,13 +361,14 @@ Ch 5.10 · Rolling-origin cross-validation
 - A single 24-month split is just **one sample point**
 - Score depends heavily on economic conditions during that window
 - High variance ($\pm 16\%$ error bars on 24 observations)
-- Encourages data snooping and overfitting
+- Encourages **data snooping**: keep refitting until the window looks good
 :::
 
 . . .
 
 ::: {.cardbox .navy}
-Time series cannot use standard k-fold. We need **rolling origins**.
+Time series cannot use standard **k-fold**: its shuffled folds put future rows
+into the training set. We need **rolling origins**.
 :::
 
 ::: {.notes}
@@ -363,9 +427,9 @@ cv = sf.cross_validation(
 ```
 
 ::: {.incremental}
-- **`h`**: match the true operational planning horizon
-- **`step_size`**: frequency of forecast production
-- **`n_windows`**: number of independent test origins
+- **`h`**: how far ahead each forecast reaches, set by the planning horizon
+- **`step_size`**: how far the origin moves between folds; 12 means refit monthly
+- **`n_windows`**: how many independent test origins the series affords
 :::
 
 ::: {.notes}
@@ -442,6 +506,9 @@ P.coverage_bars(coverage, nominal=0.8, labels=LABELS)
 
 :::
 
+**Coverage**: the share of actuals that fell inside the 80% band. **Nominal**:
+the share the band promised.
+
 ::: {.incremental}
 - **Seasonal naive**: 77% coverage, near the nominal 80%
 - **Mean model**: 0% coverage, on a series that grew sixfold
@@ -465,7 +532,7 @@ Ch 5.9 · Scoring the whole distribution
 - Coverage answers one question: **is the 80% band honest?**
 - It says nothing about **width**: an interval of $\pm\infty$ covers 100%
 - Two models at 80% coverage can be worlds apart in usefulness
-- A **proper score** charges you for width *and* for misses, in one number
+- A **proper score** prices width *and* misses in one number, so widening a band never helps
 :::
 
 . . .
@@ -482,6 +549,8 @@ and misses fairly.
 :::
 
 ## Quantile loss generalizes MAE to any level
+
+The $\alpha$-quantile $\hat{q}_\alpha$ is the value below which $\alpha$ of the forecast distribution falls: $\mathbb{P}(y \le \hat{q}_\alpha) = \alpha$.
 
 A quantile forecast can miss low ($y > \hat{q}_\alpha$) or miss high ($y < \hat{q}_\alpha$).
 At $\alpha = 0.9$ the two must not cost the same.
@@ -558,7 +627,7 @@ outside, the penalty is proportional to the distance of the miss.
 ::: {.incremental}
 - **Quantile loss**: scores a single quantile $\hat{q}_\alpha$
 - **Winkler score**: scores an interval $[\ell_\alpha, u_\alpha]$ (a pair of quantiles)
-- **CRPS**: scores the **whole distribution** by averaging quantile loss over all $\alpha \in (0, 1)$
+- **CRPS**, Continuous Ranked Probability Score: scores the **whole distribution** by averaging quantile loss over all $\alpha \in (0, 1)$
 :::
 
 . . .
@@ -568,8 +637,9 @@ $$\text{CRPS} = \int_0^1 2 \, L_\alpha(\hat{q}_\alpha, y) \, d\alpha \quad \appr
 . . .
 
 ::: {.cardbox .teal}
-**Scaled CRPS** divides by the seasonal naive benchmark error, making it scale-free
-and sortable across the entire portfolio.
+**Scaled CRPS** is to CRPS what MASE is to MAE: divide by the seasonal naive
+benchmark's own CRPS, making it scale-free and sortable across the entire
+portfolio.
 :::
 
 ::: {.notes}
