@@ -915,19 +915,26 @@ def interval_bounds_plot(history, forecast_ds, bands, actual=None,
     which is where a staircase, a narrow band and a jittery one separate.
     """
     fig, axes = plt.subplots(1, 2, figsize=figsize)
-    palette = list(colors) if colors is not None else [BLACK, SLATE, GREY, "#3a4a63"]
+    # Methods are told apart by dash pattern, not by hue: the one spare hue on
+    # this slide is grey, and grey is the actual series the bands are being
+    # judged against.
+    palette = list(colors) if colors is not None else [BLACK, SLATE, SLATE, SLATE]
+    strokes = [(None, None), (6, 3), (1.5, 2), (7, 2, 1.5, 2)]
     hist = history.tail(history_tail) if history_tail else history
     axes[0].plot(hist["ds"], hist["y"], color=BLACK, lw=1.2, label="observed")
     if actual is not None:
-        axes[0].plot(actual["ds"], actual["y"], color=GREY, lw=1.4, ls="--",
+        axes[0].plot(actual["ds"], actual["y"], color=GREY, lw=2.4, ls="--",
                      label="actual")
     for i, (name, (lo, hi)) in enumerate(bands.items()):
         color = palette[i % len(palette)]
+        dashes = strokes[i % len(strokes)]
+        style = {} if dashes[0] is None else {"dashes": dashes}
         lo, hi = np.asarray(lo, dtype=float), np.asarray(hi, dtype=float)
-        axes[0].plot(forecast_ds, lo, color=color, lw=1.6, label=f"{name} {level}%")
-        axes[0].plot(forecast_ds, hi, color=color, lw=1.6)
-        axes[1].plot(np.arange(1, len(lo) + 1), hi - lo, color=color, lw=2,
-                     label=name)
+        axes[0].plot(forecast_ds, lo, color=color, lw=1.7,
+                     label=f"{name} {level}%", **style)
+        axes[0].plot(forecast_ds, hi, color=color, lw=1.7, **style)
+        axes[1].plot(np.arange(1, len(lo) + 1), hi - lo, color=color, lw=2.1,
+                     label=name, **style)
     t = tuple(titles) if titles else (
         f"{level}% bounds, same point forecast",
         "Staircase, narrow, and jittery")
