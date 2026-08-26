@@ -238,46 +238,34 @@ comparable across series.
 
 ## Decomposition is also a forecasting method
 
-Ch 5.7 · You already built this on Day 1
+Ch 5.7 · You already built every step on Day 1
 
-```{dot}
-//| fig-width: 9
-//| fig-height: 2.6
-digraph G {
-    bgcolor="transparent";
-    rankdir=LR;
-    ranksep=0.4; nodesep=0.2;
-    node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=13
-          color="#1C355E" penwidth=2 margin="0.16,0.08"];
-    edge [fontname="Helvetica" fontsize=11 color="#5b6678" penwidth=1.6];
+::: {.flowrow}
+[[Series]{.flowtitle}[$y_t$]{.flownote}]{.flownode .navy}
+[[STL]{.flowtitle}[splits off the season]{.flownote}]{.flownode .teal}
+[[Forecast]{.flowtitle}[drift · seasonal naive]{.flownote}]{.flownode .coral}
+[[Recombine]{.flowtitle}[one forecast]{.flownote}]{.flownode .purple}
+:::
 
-    Y  [label="y_t" fillcolor="#1C355E" fontcolor="white"];
-    S  [label="STL" fillcolor="#1C355E" fontcolor="white"];
-    A  [label="Seasonally adjusted\ntrend + remainder" fillcolor="#00C9A7"];
-    N  [label="Seasonal\ncomponent" fillcolor="#9B8EC0" fontcolor="white"];
-    FA [label="Drift\nforecast" fillcolor="#00C9A7"];
-    FN [label="Seasonal naive\nforecast" fillcolor="#9B8EC0" fontcolor="white"];
-    R  [label="Recombine" fillcolor="#FF7A5C" fontcolor="white"];
+. . .
 
-    Y -> S;
-    S -> A; S -> N;
-    A -> FA; N -> FN;
-    FA -> R; FN -> R;
-}
-```
+The forecast carries the growth from one part and the shape from the other.
+
+. . .
 
 ::: {.cardbox .teal}
-`MSTL` is this whole diagram in one object.
+`MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())` is that whole
+chain in one object.
 :::
 
 ::: {.notes}
-Ch 5.7. They built every box in this diagram yesterday - STL, the seasonally
-adjusted series, the seasonal component. The only new idea is that you can
-forecast the two pieces separately and add them back.
+Ch 5.7. Every step is something they built yesterday: STL, the seasonally
+adjusted series, the seasonal component. The only new idea is that the two
+pieces can be forecast separately and added back.
 
-MSTL bundles the whole diagram. The course pins trend_forecaster to drift on
-purpose: the default is AutoETS, which is Day 3's material, and we do not want a
-Day 3 model quietly winning a Day 2 comparison.
+The course pins trend_forecaster to drift on purpose: the default is AutoETS,
+which is Day 3's material, and we do not want a Day 3 model quietly winning a
+Day 2 comparison.
 :::
 
 ## The decomposition route clears the floor

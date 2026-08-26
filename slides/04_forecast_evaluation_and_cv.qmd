@@ -354,7 +354,7 @@ Say explicitly why k-fold is wrong here: shuffling puts future rows in the
 training set, which is leakage, and the last slide of this deck comes back to it.
 :::
 
-## Three knobs control the CV: h, step_size and n_windows
+## Three knobs control the CV: h, step_size, n_windows
 
 ```python
 # Rolling-origin CV on the spine:
@@ -486,40 +486,17 @@ not a ranking metric. To rank models, we need a score that prices both width
 and misses fairly.
 :::
 
-## Asymmetric quantiles require asymmetric loss
-
-We want to forecast the $\alpha$-quantile $\hat{q}_\alpha$, where $P(Y \le q_\alpha) = \alpha$.
-
-::: {.incremental}
-- **Case 1: Underestimated** ($y > \hat{q}_\alpha$): forecast was too low
-- **Case 2: Overestimated** ($y < \hat{q}_\alpha$): forecast was too high
-:::
-
-. . .
-
-For $\alpha = 0.9$, underestimating should hurt **much more** than overestimating:
-
-::: {.incremental}
-- A 90th percentile is *supposed* to sit above 90% of observations
-- Overestimating ($y < \hat{q}_{0.9}$) happens 90% of the time by design
-- Underestimating ($y > \hat{q}_{0.9}$) is rare (10%), so each miss must cost more
-:::
-
-::: {.notes}
-Ask the room: if you forecast the 90th percentile, how often should the actual
-value come in below your forecast? Ninety percent of the time! So being higher
-than actual is not a failure, it is the job. The penalty must reflect that
-expected asymmetry.
-:::
-
 ## Quantile loss generalizes MAE to any level
+
+A quantile forecast can miss low ($y > \hat{q}_\alpha$) or miss high ($y < \hat{q}_\alpha$).
+At $\alpha = 0.9$ the two must not cost the same.
 
 ::: {.panel-tabset}
 
 ### Plot
 ```{python}
 #| fig-width: 8.5
-P.pinball_loss_plot(alphas=(0.1, 0.5, 0.9), figsize=(8.5, 3.2))
+P.pinball_loss_plot(alphas=(0.1, 0.5, 0.9), figsize=(8.5, 2.7))
 plt.show()
 ```
 
@@ -531,13 +508,19 @@ $$L_\alpha(\hat{q}, y) = \begin{cases}
 
 :::
 
-::: {.incremental}
-- At $\alpha = 0.5$: symmetric slopes ($0.5$), loss is $\frac{1}{2}|y - \hat{q}|$ (MAE was quantile loss all along)
-- At $\alpha = 0.9$: slope is $0.9$ on underestimation, $0.1$ on overestimation
+. . .
+
+::: {.cardbox .teal}
+At $\alpha = 0.5$ both slopes are $0.5$: MAE was quantile loss all along.
 :::
 
 ::: {.notes}
-Notice the slopes on the chart: at alpha=0.5, both sides rise at rate 0.5.
+Ask the room first: if you forecast the 90th percentile, how often should the
+actual value come in below your forecast? Ninety percent of the time! So being
+higher than actual is not a failure, it is the job. The penalty must reflect
+that expected asymmetry.
+
+Then notice the slopes on the chart: at alpha=0.5, both sides rise at rate 0.5.
 That is plain absolute error divided by 2. When you minimize MAE, you are
 finding the median forecast.
 
@@ -556,9 +539,9 @@ $$\text{Winkler}([\ell, u], y) = \frac{L_{0.1}(\ell, y) + L_{0.9}(u, y)}{0.1}$$
 Expanding the pinball losses gives a simple, intuitive charge:
 
 $$\text{Winkler} = \begin{cases}
-(u - \ell) & \text{if } \ell \le y \le u \quad \text{(inside: pay for width only)} \\
-(u - \ell) + \frac{2}{\alpha} (\ell - y) & \text{if } y < \ell \quad \text{(missed low)} \\
-(u - \ell) + \frac{2}{\alpha} (y - u) & \text{if } y > u \quad \text{(missed high)}
+(u - \ell) & \text{inside the band} \\
+(u - \ell) + \frac{2}{\alpha} (\ell - y) & \text{missed low } (y < \ell) \\
+(u - \ell) + \frac{2}{\alpha} (y - u) & \text{missed high } (y > u)
 \end{cases}$$
 
 . . .
@@ -646,29 +629,28 @@ right, and CRPS is what prices that trade in one number.
 
 ## Leakage is a model seeing its own future
 
-```{dot}
-//| fig-width: 9.5
-digraph G {
-    bgcolor="transparent";
-    rankdir=LR;
-    node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=12
-          color="#1C355E" penwidth=2 margin="0.16,0.09"];
-    edge [fontname="Helvetica" fontsize=11 color="#5b6678" penwidth=1.6];
+::: {.flowconv}
+::: {.flowcauses}
+[[Scale on the whole series]{.flowtitle}`scaler.fit(spine)` [the holdout sets the scale]{.flownote}]{.flownode .coral}
+[[Centred rolling features]{.flowtitle}`rolling(12, center=True)` [month $t$ has already seen $y_{t+6}$]{.flownote}]{.flownode .coral}
+[[Tune on the test set]{.flowtitle}[keep trying until the score improves]{.flownote}]{.flownode .coral}
+:::
+[[The answer is in the input]{.flowtitle}[CV flatters, production does not]{.flownote}]{.flownode .navy}
+:::
 
-    A [label="Scaling or normalising\non the full series" fillcolor="#FF7A5C" fontcolor="white"];
-    B [label="Centred rolling\nwindow features" fillcolor="#FF7A5C" fontcolor="white"];
-    C [label="Tuning hyperparameters\non the test set" fillcolor="#FF7A5C" fontcolor="white"];
-    L [label="Data Leakage\nOver-optimistic CV,\npoor production" fillcolor="#1C355E" fontcolor="white"];
+. . .
 
-    A -> L; B -> L; C -> L;
-}
-```
+::: {.cardbox .coral}
+The third one is the next slide, run live.
+:::
 
 ::: {.notes}
 Always fit scalers, imputers, and feature engineering strictly on each fold's
-training history. The third box is the one that gets past code review, because
-nobody wrote a line that looks wrong - they just kept trying models until the
-test score improved. The next slide runs that one.
+training history. The third cause is the one that gets past code review,
+because nobody wrote a line that looks wrong - they just kept trying models
+until the test score improved. The next slide runs that one, and the lab's
+stretch exercise prices the leak the students can see: a 24% discount bought
+by choosing the winner fold by fold.
 :::
 
 ## Choosing per fold with the answer in hand buys 24%

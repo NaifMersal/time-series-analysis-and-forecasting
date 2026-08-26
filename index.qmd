@@ -56,6 +56,7 @@ signal in this series that nothing on Day 2 captured, and that is where Day 3 op
 
 ## Day 3: Models
 
-*In preparation.* The mix is still being decided: ETS, ARIMA, dynamic regression,
-neural and foundation models. Whatever it turns out to be, every model gets plugged
-into the harness built on Day 2 and added to the same leaderboard.
+*In preparation.* Exponential smoothing (ETS) first, with AutoARIMA closing Day 2's
+white-noise question, then AutoGluon TimeSeries as the orchestrated layer over the same
+model zoo, and a closing map of the rest of the field. Every model gets plugged into the
+harness built on Day 2 and added to the same leaderboard.
