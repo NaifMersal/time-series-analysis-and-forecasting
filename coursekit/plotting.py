@@ -11,6 +11,7 @@ plain array, because the labs build up to the long layout gradually.
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 
@@ -1145,13 +1146,20 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
 
 
 def pct_label(v):
-    """``87.5%`` when the half-point matters, ``77%`` when it does not.
+    """``87.5%`` when the value is an exact half, ``77%`` when it is not.
 
-    Eight folds of twelve points put coverage on a 96th of a grid, so the
-    interesting values land on halves. Rounding 87.5 to 88 makes the chart
-    contradict the prose beside it, which quotes the half.
+    Eight folds of twelve points put coverage on a grid of 96ths, and the
+    values the course quotes in prose land on exact halves: 84/96 is 87.5%,
+    60/96 is 62.5%. Rounding those to 88 and 62 makes a chart contradict the
+    sentence beside it. Nothing else earns a decimal -- 74/96 is 77.083% and
+    every slide in this course calls it 77% -- so the test is exactness, not a
+    tolerance: a tolerance wide enough to catch the halves also drags 39.58%
+    to 39.6% and puts a Day 2 chart out of step with its own prose.
     """
-    return f"{v:.0%}" if abs(v * 100 - round(v * 100)) < 0.05 else f"{v:.1%}"
+    hundredths, halves = v * 100, v * 200
+    is_whole = abs(hundredths - round(hundredths)) < 1e-9
+    is_half = abs(halves - round(halves)) < 1e-9
+    return f"{v:.1%}" if is_half and not is_whole else f"{v:.0%}"
 
 
 def coverage_bars(coverage, nominal=0.8, labels=None, ax=None, figsize=(9, 3.4),
@@ -1181,9 +1189,6 @@ def coverage_bars(coverage, nominal=0.8, labels=None, ax=None, figsize=(9, 3.4),
             height=0.6, zorder=2)
     ax.axvline(nominal, color=BLACK, ls="--", lw=1.4, zorder=3)
     ax.text(nominal, -0.72, f" nominal {nominal:.0%}", size=10)
-    ax.text(nominal + tolerance, len(vals) - 0.35,
-            f" honest within {tolerance:.0%} points", size=9, color=GREY,
-            va="center")
 
     for i, (v, ok) in enumerate(zip(vals, inside)):
         verdict = "" if ok else ("  too wide" if v > nominal else
@@ -1197,7 +1202,14 @@ def coverage_bars(coverage, nominal=0.8, labels=None, ax=None, figsize=(9, 3.4),
             ax.text(v, i, f" {pct_label(v)}{verdict}", va="center", size=10)
 
     # Room for the verdict text, but only when there is verdict text to fit.
-    ax.set(xlim=(0, 1.28 if not all(inside) else 1.05), title=title)
+    # The band gets named in the axis label rather than annotated on the plot:
+    # anywhere inside the axes it either lands on the nominal label or under
+    # the tick row, and it has to be readable to do its job.
+    ax.xaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
+    ax.set(xlim=(0, 1.22 if not all(inside) else 1.05), title=title,
+           xlabel=f"share of holdout points inside the band  "
+                  f"(shaded: {nominal:.0%} give or take "
+                  f"{tolerance * 100:.0f} points, the honest range)")
     ax.invert_yaxis()
     ax.grid(axis="y", visible=False)
     return ax
@@ -1242,6 +1254,8 @@ def metric_vs_baseline_plot(scores, baseline, labels=None, ax=None,
             size=10, color=BLACK)
 
     better = "better" if lower_is_better else "worse"
+    ax.xaxis.set_major_formatter(
+        mticker.FuncFormatter(lambda x, _: f"{x:+.0f}%".replace("+0%", "0")))
     ax.set(xlim=(-span * 1.45, span * 1.45), title=title,
            xlabel=f"{metric} against the floor  "
                   f"(left is {better}, right is not)")

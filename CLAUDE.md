@@ -67,7 +67,7 @@ coursekit/       the shared package (installed editable)
   scoring.py     LEVELS/QCOLS/QUANTILES and score_cv -- the harness Day 3 plugs into
   checks.py      the check_ex_* assertions the labs call
   data/          cached .rda files -- COMMITTED so the course runs offline
-scripts/         check_env.py, prefetch_data.py, build_labs.py, measure_arima.py
+scripts/         check_env.py, prefetch_data.py, build_labs.py
 slides_template/ SDAIA branding, from the author-verify-slides skill bundle
 exercises/       03-decomposition.ipynb -- pre-existing Ch-3 worked exercises, kept as
                  instructor reference; not part of the taught course
@@ -175,19 +175,36 @@ Day 3 is taught on **Google Colab** (torch preinstalled, network always availabl
 The arc is *transparent → orchestrated → the map*, ~70/30 basics-to-black-box:
 when students build with a black-box tool, the mental model they bring is the one
 this course built. Two decks, two lab blocks, five exercises. `notes/day3_plan.md`
-holds the rationale; the measured numbers are reproduced by `notes/day3_probe.py`.
+holds the original rationale, and `notes/day3_slide_map.md` is current.
 
 **Deck 5 (`05_exponential_smoothing_and_ets.qmd`) — ETS (Ch 8), the deep one, and
 the only model taught properly.** 34 slides. Three steps, one component added each
 time: SES → Holt → Holt-Winters. The 30-variant (E,T,S) taxonomy is a single
 lookup-table slide, not a segment. Framed as the Day 2 STL+drift route with the
 weights learned instead of pinned. Lab E: fit, read the components, 8 rolling
-folds, CRPS/coverage, add to the leaderboard.
+folds, CRPS/coverage against the floor.
 
-**Deck 6 (`06_orchestration_and_the_field.qmd`) — AutoARIMA, AutoGluon, the map.**
-22 slides. Segment A closes Day 2's white-noise hook by name (Ljung-Box
-p ≈ 2e-245) and names the selected `ARIMA(1,0,1)(1,1,1)[12]`. Segment B is
-AutoGluon, hands-on in the lab. Segment C is the field, listed not taught.
+**Deck 6 (`06_orchestration_and_the_field.qmd`) — AutoGluon, then the map.**
+16 slides, two segments. Segment A is AutoGluon and is hands-on in the lab.
+Segment B is the field, listed not taught.
+
+**ARIMA is not taught at all, and that is a decision, not an omission.** It costs
+a chapter — differencing, stationarity, AR against MA, PACF for order selection,
+then seasonal orders — and three hours buys either a rushed half-version or a
+black box, and the black-box beat already belongs to AutoGluon. It gets a line on
+the map, where it is named as where the residual autocorrelation Ljung-Box found
+on Day 2 actually lives, and it stays in AutoGluon's zoo, where the honest beat is
+that a framework fits families nobody taught you. **Do not re-add an ARIMA
+segment.** An earlier build had one plus `scripts/measure_arima.py` and
+`coursekit/data/day3_arima.json`; all three were removed on the readiness pass.
+
+**Day 3 writes no shared leaderboard.** `labs/leaderboard.csv` is a Day 2
+artifact, it is generated and gitignored, and a fresh Colab clone therefore has
+none. Rather than carry it across a platform boundary, Day 3 re-measures the
+seasonal naive over the same eight folds in Exercise 3.2 and keeps its own
+`RESULTS` frame; Exercise 3.5 adds one row to it. Deck 6 measures every model in
+its own setup cell (~5 s) so it renders the same whether the labs have been run
+or not. `coursekit/leaderboard.py` is Day 2 only.
 
 ### The results, and why they are the lesson
 
@@ -197,61 +214,60 @@ Measured over 8 rolling folds on the spine:
 |---|---|---|---|
 | **Theta** (the capstone plant) | **1.025** | **0.0288** | 70% |
 | Seasonal naive (the Day 2 floor) | 1.183 | 0.0306 | 77% |
-| ARIMA | 1.149 | 0.0311 | 62.5% |
 | ETS | 1.176 | 0.0329 | 87.5% |
 | STL + drift | 1.225 | 0.0339 | 61% |
 
 - **ETS ties the floor on MASE and loses the distribution** by over-covering at
   87.5% — bands too wide. That is deck 5's payoff and it is a better lesson than
   a win. Do not go looking for a model that wins outright instead.
-- **ARIMA fails in the opposite direction**, under-covering at 62.5%. Two models,
-  two opposite interval failures, one Day 2 lesson confirmed from both sides.
-- **AutoTheta is the capstone plant**: three lines, no lecture, and it is the only
+- **AutoTheta is the capstone plant**: four lines, no lecture, and it is the only
   model all day that beats the seasonal naive on CRPS. The floor surviving
-  everything else is the closing beat. `check_ex_3_2` asserts ETS wins MASE and
-  loses CRPS; do not "fix" it.
+  everything the course taught properly is the closing beat. `check_ex_3_2`
+  asserts ETS wins MASE and loses CRPS; do not "fix" it.
+- Deck 6's closing chart plots CRPS **relative to the seasonal naive**, not
+  absolute. Absolute, the four contenders run 0.0288 to 0.0339 and read as four
+  bars of the same length; against the floor they spread over seventeen points and
+  the result becomes the shape of the chart.
 
-**ARIMA is deliberately not taught** — it costs a chapter (differencing,
-stationarity, AR vs MA, PACF for order selection, then seasonal orders) and three
-hours buys either a rushed half-version or a black box, and the black-box beat
-already belongs to AutoGluon. It gets one slide plus its result.
-
-### Two things that bite
-
-**AutoARIMA is measured once, not fitted on every render.** An order search plus
-eight folds is ~100 s, `freeze` was not reliably reusing it, and a 2.5-minute
-render for a one-word edit is how a deck stops getting screenshotted. So
-`scripts/measure_arima.py` writes `coursekit/data/day3_arima.json` and deck 6
-reads it. The numbers stay measured rather than typed. **Re-run that script if the
-spine, the fold layout or `scoring.LEVELS` changes.** Every other model in deck 6
-is still fitted live (the whole cell is ~5 s).
+### Three things that bite
 
 **`check-labs` cannot verify the AutoGluon cells here** — no torch, no autogluon
 locally, ~2.5 GB to install. Every AutoGluon cell is skip-guarded on
 `importlib.util.find_spec("autogluon")`, so both targets stay honest; without it
 they print the install line and move on. **Exercise 3.4 has therefore never
-executed** — it needs one real run on Colab, after which the resulting leaderboard
-should be committed to `coursekit/data/`. Two details to confirm on that run: the
-zoo key names (`AutoETS` vs `ETS`, `Theta` vs `AutoTheta`) and that AutoGluon has
-no Drift model, so the zoo is five models rather than the six the plan named.
+executed** — it needs one real run on Colab. Two details to confirm on that run:
+the zoo key names (`AutoETS` against `ETS`, `Theta` against `AutoTheta`) and that
+AutoGluon has no Drift model, so the zoo is five models rather than six.
+
+**`AutoCES` crashes on this stack.** `statsforecast` 2.0.1 with this numba raises a
+`TypingError` inside `ces.py` (`y[:] = y[::-1]`). It was a capstone candidate in
+Exercise 3.5 until the readiness pass ran every candidate end to end. The four
+that remain — `AutoTheta`, `HoltWinters`, `AutoMFLES`, `WindowAverage` — are all
+verified through `cross_validation` plus `score_cv`. Verify any new one before
+listing it.
+
+**A deck does not re-execute when only `coursekit` changes.** `freeze: auto` keys
+on the source document, so a plotting-helper edit leaves every deck that calls it
+rendering the old picture. Delete the deck's directory under `_freeze/slides/`
+after changing a helper, or the screenshot you check will be stale.
 
 ### The harness is the interface
 
-Every Day 3 model plugs into the Day 2 harness and appends to
-`labs/leaderboard.csv`:
+Every Day 3 model goes through the Day 2 harness unchanged:
 
 ```python
-from coursekit import scoring, leaderboard as lb
+from coursekit import scoring
 cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
                          level=scoring.LEVELS)
-lb.record("ETS", day=3, **scoring.score_cv(cv, "AutoETS", spine))
+scoring.score_cv(cv, "AutoETS", spine)   # mase, rmsse, crps, coverage_80,
+                                         # mase_min, mase_max
 ```
 
 `scoring.QCOLS` and `scoring.QUANTILES` are derived from `LEVELS` rather than
 typed out, because out of step they make `scaled_crps` return a number that is
 wrong and still positive. A model with no closed-form interval (`WindowAverage`,
-and most ML models) raises *"You must pass `prediction_intervals`"* the moment
-`cross_validation` is asked for a level; give it
+`AutoMFLES`, and most ML models) raises *"You must pass `prediction_intervals`"*
+the moment `cross_validation` is asked for a level; give it
 `prediction_intervals=ConformalIntervals(...)`, which deck 03's segment E teaches.
 
 The AutoGluon data conversion stays **visible in the notebook**. A `coursekit`

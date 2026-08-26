@@ -449,14 +449,19 @@ def check_ex_3_3(fc: pd.DataFrame, undamped: str = "AAN",
                   f"{gap_late:.1f} units against the straight line")
 
 
-def check_ex_3_4(ag_board: pd.DataFrame, ours: pd.DataFrame) -> None:
-    """AutoGluon's leaderboard, set next to the course's.
+def check_ex_3_4(ag_board: pd.DataFrame) -> None:
+    """AutoGluon's own leaderboard, read on its own terms.
+
+    Deliberately *not* compared against a course table. The exercise is about
+    reading what a framework hands back -- its sign convention, its catalogue,
+    and the single validation window behind its ranking -- and the room has no
+    table of its own on screen at this point to set beside it.
 
     Skip-guarded in the notebook: without autogluon installed the cell says so
     and moves on, which is how both check-labs targets stay honest on a machine
     that has neither torch nor 2.5 GB to spare.
     """
-    _not_todo(ag_board=ag_board, ours=ours)
+    _not_todo(ag_board=ag_board)
     assert "model" in ag_board.columns, (
         f"An AutoGluon leaderboard has a `model` column; got "
         f"{list(ag_board.columns)}."
@@ -475,30 +480,26 @@ def check_ex_3_4(ag_board: pd.DataFrame, ours: pd.DataFrame) -> None:
         "The local zoo should include the benchmarks this course built on, "
         f"SeasonalNaive above all. AutoGluon fitted: {names}"
     )
-    assert len(ours) >= 5, (
-        "Pass the course leaderboard as `ours` so the two tables can be read "
-        f"side by side; yours has {len(ours)} row(s)."
-    )
     _ok("EX 3.4", f"AutoGluon fitted {len(ag_board)} models - note its scores "
-                  "are NEGATED, so higher is better there and lower is better "
-                  "on ours")
+                  "are NEGATED, so higher is better there while every metric "
+                  "this course taught is lower-is-better")
 
 
-def check_ex_3_5(table: pd.DataFrame, model: str) -> None:
-    """The capstone: one more model, the same few lines, the same leaderboard."""
-    _not_todo(table=table, model=model)
-    _need_cols(table, ["model", "day", "mase", "crps", "coverage_80"],
-               "the leaderboard")
-    assert model in set(table["model"]), (
-        f"'{model}' is not on the leaderboard. `lb.record(name, day=3, "
-        "**scoring.score_cv(cv, name, spine))` - and the name you record has "
-        f"to be the name you pass here. On the board: {sorted(table['model'])}"
+def check_ex_3_5(results: pd.DataFrame, model: str) -> None:
+    """The capstone: one more model, the same four lines, the same numbers.
+
+    ``results`` is the frame Exercise 3.2 built -- one row per model, indexed by
+    name, carrying what ``scoring.score_cv`` returns. The point of the exercise
+    is that adding a row to it costs four lines whatever the model is.
+    """
+    _not_todo(results=results, model=model)
+    _need_cols(results, ["mase", "rmsse", "crps", "coverage_80"], "RESULTS")
+    assert model in set(results.index), (
+        f"'{model}' is not in RESULTS. `RESULTS.loc[name] = "
+        "scoring.score_cv(cv, column, spine)` - and the name you use there has "
+        f"to be the name you pass here. Present: {sorted(results.index)}"
     )
-    row = table.loc[table["model"] == model].iloc[0]
-    assert int(row["day"]) == 3, (
-        f"Record your capstone model with `day=3`; it went in as day "
-        f"{row['day']}."
-    )
+    row = results.loc[model]
     assert pd.notna(row["crps"]) and row["crps"] > 0, (
         "Your model needs a scaled CRPS, which means cross-validating with "
         "`level=scoring.LEVELS`. A model with no closed-form interval raises "
@@ -506,10 +507,14 @@ def check_ex_3_5(table: pd.DataFrame, model: str) -> None:
         "give it `prediction_intervals=ConformalIntervals(n_windows=..., "
         "h=...)`, from Day 2's segment E."
     )
-    day3 = table[table["day"] == 3]
-    assert len(day3) >= 2, (
-        f"Day 3 should have added ETS in Exercise 3.2 and your model here; the "
-        f"table carries {len(day3)} day-3 row(s)."
+    floor = next((i for i in results.index
+                  if "seasonal" in str(i).lower().replace(" ", "")), None)
+    assert floor is not None, (
+        "Keep the seasonal naive in RESULTS - it is the floor every other row "
+        f"is read against. Present: {sorted(results.index)}"
     )
-    best = table.loc[table["crps"].idxmin(), "model"]
-    _ok("EX 3.5", f"{len(table)} models on the board; best scaled CRPS = {best}")
+    verdict = ("beats" if row["crps"] < results.loc[floor, "crps"]
+               else "does not beat")
+    _ok("EX 3.5", f"{len(results)} models scored; {model} {verdict} the floor "
+                  f"on scaled CRPS ({row['crps']:.4f} against "
+                  f"{results.loc[floor, 'crps']:.4f})")

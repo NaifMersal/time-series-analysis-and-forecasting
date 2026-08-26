@@ -49,10 +49,10 @@ Ljung-Box · prediction intervals and why they widen · Gaussian, bootstrap and 
 intervals and what each one spends · MAE, RMSE, MAPE and why MASE instead · scaled CRPS,
 because coverage cannot rank · rolling-origin cross-validation · leakage.
 
-Day 2 ends with an **evaluation harness** and the first rows of the course leaderboard,
-and with a model that wins on one window and loses over eight. The floor to beat is a
-seasonal naive at MASE 1.18. Its residuals fail Ljung-Box at p about 1e-240, so there is
-signal in this series that nothing on Day 2 captured, and that is where Day 3 opens.
+Day 2 ends with an **evaluation harness** and with a model that wins on one window and
+loses over eight. The floor to beat is a seasonal naive at MASE 1.18. Its residuals fail
+Ljung-Box at p about 1e-240, so there is signal in this series that nothing on Day 2
+captured, and that is where Day 3 opens.
 
 ## Day 3: Models & orchestration
 
@@ -66,10 +66,10 @@ signal in this series that nothing on Day 2 captured, and that is where Day 3 op
 
 Simple exponential smoothing as a weighted average · adding a trend state, and damping it ·
 Holt-Winters and the third state · the (E,T,S) family and AICc selection · Box-Cox against a
-multiplicative error · AutoARIMA closing Day 2's white-noise question · AutoGluon TimeSeries
-as the orchestrated layer · a closing map of the field, listed not taught.
+multiplicative error · AutoGluon TimeSeries as the orchestrated layer, and how to read what
+a framework hands back · a closing map of the field, listed not taught.
 
-Day 3 ends with eight models on one leaderboard. ETS ties the floor on MASE and **loses the
-distribution** by over-covering at 87.5%; ARIMA fails the opposite way at 62.5%. Only Theta,
-three lines and no lecture, beats the seasonal naive on scaled CRPS. The floor Day 2 built
-survives a full day of fitted models, which is the closing argument of the course.
+Day 3 scores every model on Day 2's harness. ETS ties the floor on MASE and **loses the
+distribution** by over-covering at 87.5%. Only Theta, which got no lecture at all, beats the
+seasonal naive on scaled CRPS. The floor Day 2 built survives a full day of fitted models,
+which is the closing argument of the course.

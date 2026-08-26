@@ -412,17 +412,18 @@ Pin a member of the family by hand with `AutoETS(model="AAN", damped=True)`.
 
 ---
 
-## Adding any model to the leaderboard
+## Scoring any model at all
 
-The whole point of the Day 2 harness: a new model is one line.
+The whole point of the Day 2 harness: a new model is four lines, whatever it is.
 
 ```python
-from coursekit import scoring, leaderboard as lb
+from coursekit import scoring
 
 sf = StatsForecast(models=[AutoTheta(season_length=12)], freq="MS")
 cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
                          level=scoring.LEVELS)
-lb.record("Theta", day=3, **scoring.score_cv(cv, "AutoTheta", spine))
+scoring.score_cv(cv, "AutoTheta", spine)   # mase, rmsse, crps, coverage_80,
+                                           # mase_min, mase_max
 ```
 
 **A model with no closed-form interval** raises *"You must pass
@@ -436,25 +437,23 @@ WindowAverage(window_size=12,
 
 ---
 
-## The final board, 8 rolling folds
+## Where everything landed, 8 rolling folds
 
 | model | MASE | CRPS | cov-80 |
 |---|---|---|---|
 | **Theta** | **1.025** | **0.0288** | 70% |
 | Seasonal naive | 1.183 | 0.0306 | 77% |
-| ARIMA | 1.149 | 0.0311 | 62% |
-| ETS | 1.176 | 0.0329 | 87% |
+| ETS | 1.176 | 0.0329 | 87.5% |
 | STL + drift | 1.225 | 0.0339 | 61% |
 
-Two failures worth memorising, because they are opposites:
+**ETS over-covers** (87.5% on an 80% band). Bands too wide. That is not caution:
+every decision sized off them is hedged more than the evidence justifies, and
+scaled CRPS charges for it. ETS ties the seasonal naive on MASE and loses to it
+on CRPS, which is the result to remember - neither sharpness nor coverage ranks a
+forecast on its own, and a proper score does.
 
-- **ETS over-covers** (87% on an 80% band). Bands too wide. Not caution: every
-  decision sized off them is hedged more than the evidence justifies.
-- **ARIMA under-covers** (62%). Bands too narrow. Surprises roughly twice as often
-  as planning assumed.
-
-Both beat or tie the seasonal naive on MASE and both lose to it on CRPS. Neither
-sharpness nor coverage ranks a forecast on its own; a proper score does.
+Theta is the only model in the course that beat the floor on CRPS, and it got no
+lecture at all.
 
 ---
 
@@ -467,7 +466,7 @@ sharpness nor coverage ranks a forecast on its own; a proper score does.
 | value | `y` | `target` |
 | container | `pd.DataFrame` | `TimeSeriesDataFrame` |
 | score sign | lower is better | **higher** is better (negated) |
-| validation | 8 rolling folds | one internal split |
+| validation | rolling origins, several | one internal split |
 
 ```python
 from autogluon.timeseries import TimeSeriesDataFrame, TimeSeriesPredictor
@@ -495,7 +494,7 @@ check what it validated on.
 | family | when it earns its place |
 |---|---|
 | Theta | simple, fast, strong. Try it early |
-| ARIMA (Ch 9) | the other classical family |
+| ARIMA (Ch 9) | the other classical family; where the residual autocorrelation lives |
 | Dynamic regression (Ch 7+10) | you have price, promotions, holidays |
 | Hierarchical (Ch 11) | regions must sum to the national total |
 | Lag-feature ML (`mlforecast`) | tabular framing, gradient boosting |

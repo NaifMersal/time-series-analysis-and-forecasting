@@ -33,9 +33,9 @@ steps = StatsForecast(
     freq=D.FREQ, n_jobs=1)
 fc_steps = steps.forecast(df=train, h=H)
 
-# The three steps are not course models -- they never reach the leaderboard,
-# they are one story told in three slides -- so they carry their own colours
-# rather than borrowing from MODEL_PALETTE.
+# The three steps are not course models -- they are never scored, they are one
+# story told in three slides -- so they carry their own colours rather than
+# borrowing from MODEL_PALETTE.
 STEP_COLORS = [P.BLUE, P.GREEN, P.AMBER]
 
 # --- what AutoETS picks on the full spine, and the states it learned -------
@@ -101,7 +101,7 @@ mase = {m: score[m]["mase"] for m in DAY3}
 ::: {.incremental}
 - **Parts A to C**: one model, built in three steps, on states you already know
 - **Part D**: the family those three steps belong to, and how it picks a member
-- **Part E**: the same harness, two new rows on the same leaderboard
+- **Part E**: the same harness Day 2 built, pointed at a model it has never seen
 :::
 
 . . .
@@ -114,8 +114,8 @@ Its residuals fail Ljung-Box at $p \approx 10^{-240}$, so it is beatable.
 
 ::: {.notes}
 Open by putting yesterday's last slide back up in words. They left with a
-leaderboard file on disk, five rows in it, and a seasonal naive on top at MASE
-1.18 and scaled CRPS 0.031. And they left with the reason to keep going: those
+a scoring harness they wrote themselves and a seasonal naive on top of
+everything it measured, at MASE 1.18 and scaled CRPS 0.031. And they left with the reason to keep going: those
 residuals are nowhere near white noise, so there is structure in this series
 that none of the five benchmarks captured.
 
@@ -155,7 +155,7 @@ history. They just sit at opposite extremes of the same dial.
 
 Ask the room which one is closer to right for the takeaway food series. Most
 will say the naive, and they are right, which is exactly why the seasonal naive
-is on top of the leaderboard. But nobody actually believes that only December
+was yesterday's best benchmark. But nobody actually believes that only December
 2018 carries information about December 2019.
 
 The obvious repair is a weighted average where recent observations count more
@@ -773,31 +773,32 @@ by accident, because it let the search choose.
 
 # E. Scoring it on the Day 2 harness {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)"}
 
-Ch 8.7 · Two new rows on the same leaderboard
+Ch 8.7 · The Day 2 harness, pointed somewhere new
 
 ## The harness takes it unchanged
 
 ```python
-# The only new line is the model on line 3. Everything else is Exercise 2.5.
-from coursekit import scoring, leaderboard as lb
+# The only new line is the model on line 4. Everything else is Exercise 2.5.
+from coursekit import scoring
 
 sf = StatsForecast(models=[AutoETS(season_length=12)], freq="MS")
 cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
                          level=scoring.LEVELS)
-lb.record("AutoETS", day=3, **scoring.score_cv(cv, "AutoETS", spine))
+scoring.score_cv(cv, "AutoETS", spine)     # mase, rmsse, crps, coverage_80
 ```
 
 . . .
 
-Nothing here is new except line 3. Same folds, same metrics, same file.
+Nothing here is new except the model. Same folds, same metrics, same numbers
+out.
 
 ::: {.notes}
-Six lines, and five of them are yesterday's. Make that visible by walking the
-highlight: line 4 is the cross-validation call they wrote in Exercise 2.5, with
-the same h, the same step size, the same eight windows. Line 6 is the recording
-call from the same exercise.
+Five lines, and four of them are yesterday's. Make that visible by walking the
+code: the cross-validation call is the one they wrote in Exercise 2.5, with the
+same h, the same step size, the same eight windows, and score_cv is the scoring
+they did by hand there, packaged.
 
-The only new thing is the model on line 3. That is what a harness is for, and
+The only new thing is the model on line 4. That is what a harness is for, and
 it is worth naming, because this afternoon a framework will do the same job
 with a different API and they should be able to see what it is buying.
 
@@ -843,7 +844,7 @@ difference between a good year and a bad one.
 
 If someone asks whether the win is real, the honest answer is that eight folds
 cannot settle a gap this size, and the next move is more folds or more series,
-not a louder claim. That is why the leaderboard carries mase_min and mase_max.
+not a louder claim. That is why score_cv returns mase_min and mase_max.
 :::
 
 ## And it loses the distribution
@@ -956,18 +957,17 @@ Open `labs/03_day3_models_and_orchestration.ipynb`
 *40 minutes. The notebook carries the instructions; work down it in order.*
 
 ::: {.cardbox .teal}
-**3.2 appends to `labs/leaderboard.csv`**, the file Day 2 built. Do not skip it.
+**3.2 is the one that produces a result.** It scores ETS against the floor over
+the same eight folds. Do not skip it.
 :::
 
 ::: {.notes}
-Same file all day: Lab F picks it up at Exercise 3.4 after the second lecture.
+Warn them about the Colab runtime before they start, out loud, before anyone
+opens a cell. If the runtime resets, every install is gone and the setup cell
+has to run again. That is the single most common way to lose ten minutes today,
+and the notebook is written so that re-running the setup cell fixes it.
 
-Warn them about the Colab runtime before they start. If the runtime resets,
-every install is gone and the setup cell has to run again. That is the single
-most common way to lose ten minutes today.
-
-3.3 is genuinely optional and the notebook says so. 3.1 and 3.2 are not, and
-3.2 is the one that writes to the leaderboard.
+3.3 is genuinely optional and the notebook says so. 3.1 and 3.2 are not.
 :::
 
 ## Lecture summary {.sdaia-dark background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)"}
@@ -983,7 +983,7 @@ most common way to lose ten minutes today.
 
 ::: {.cardbox .navy}
 Every parameter today was fitted from the data, and you can still name all of
-them. This afternoon a framework fits a dozen models for you. Same leaderboard.
+them. This afternoon a framework fits a zoo of models for you, in one call.
 :::
 
 ::: {.notes}
@@ -991,9 +991,9 @@ Close on the transition, because it is the shape of the whole day. This morning
 was one model with every moving part visible and named. This afternoon is a
 tool that runs ten of them behind one call.
 
-The reason that order is not arbitrary: when AutoGluon prints a leaderboard
+The reason that order is not arbitrary: when AutoGluon prints its leaderboard
 after lunch, ETS and the seasonal naive will both be on it, and they will know
-exactly what those rows mean.
+exactly what those two rows mean.
 
 If time is short, cut the summary and go straight to the lab. The card is the
 only thing here that is not already on an earlier slide.

@@ -1597,13 +1597,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsforecast import StatsForecast
-from statsforecast.models import (MSTL, AutoETS, AutoTheta, HistoricAverage,
-                                  Naive, RandomWalkWithDrift, SeasonalNaive)
+from statsforecast.models import AutoETS, AutoTheta, SeasonalNaive
 from statsforecast.utils import ConformalIntervals
 
 from coursekit import checks
 from coursekit import datasets as D
-from coursekit import leaderboard as lb
 from coursekit import plotting as P
 from coursekit import scoring
 
@@ -1617,41 +1615,6 @@ print(f"spine  : {len(spine)} months, "
       f"{spine['ds'].min().date()} to {spine['ds'].max().date()}")
 print(f"levels : {scoring.LEVELS}")
 """),
-    md("""
-### The Day 2 board
-
-`labs/leaderboard.csv` is **generated, not committed** - it is written by the
-code you ran, not shipped with the repo. So a fresh Colab runtime starts with
-an empty board, and today's models would have nothing to be measured against.
-
-The cell below rebuilds Day 2's five rows if they are missing. It is the same
-`cross_validation` call Exercise 2.5 made, on the same folds, and it takes a
-couple of seconds - which is itself the point: **the harness is cheap enough to
-re-run, so nothing today rests on a file surviving a runtime reset.**
-"""),
-    code("""
-DAY2 = [("HistoricAverage", "Mean"), ("Naive", "Naive"),
-        ("SeasonalNaive", "Seasonal naive"), ("RWD", "Drift"),
-        ("MSTL", "STL + drift")]
-
-if lb.load().empty:
-    day2 = StatsForecast(
-        models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
-                RandomWalkWithDrift(),
-                MSTL(season_length=12,
-                     trend_forecaster=RandomWalkWithDrift())],
-        freq=D.FREQ, n_jobs=1)
-    cv2 = day2.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
-                                level=scoring.LEVELS)
-    for col, name in DAY2:
-        lb.record(name, day=2, **scoring.score_cv(cv2, col, spine),
-                  notes="Day 2 baseline, 8-fold rolling origin")
-    print("board  : rebuilt Day 2's five rows (no leaderboard.csv found)")
-else:
-    print(f"board  : {len(lb.load())} rows already here")
-
-lb.show().round(4)
-"""),
 
     # ================================================================ Lab E
     md("""
@@ -1660,8 +1623,10 @@ lb.show().round(4)
 
 Runs after the fifth deck. Exercises 3.1 to 3.3, 40 minutes.
 
-`labs/leaderboard.csv` holds the benchmark floor, and today's models append to
-the same file.
+Nothing carries over from yesterday except the method. You will re-measure the
+seasonal naive here, over the same eight folds, so today's models have a floor
+to be read against - and re-measuring it costs a couple of seconds, which is
+the argument for having a harness at all.
 """),
 
     # ---------------------------------------------------------------- 3.1
@@ -1844,14 +1809,15 @@ it that way. A team tracking only MASE would ship ETS today and write in the
 summary that the new model beat the benchmark.
 """),
     md("""
-Put it on the board. **Same file Day 2 wrote** - this is what a harness is for.
+Keep the result. `RESULTS` is the running record for the rest of today - the
+capstone in Exercise 3.5 adds one more row to it, and that is all a scoreboard
+has to be.
 """),
     code("""
-lb.record("ETS", day=3,
-          **scoring.score_cv(cv, "AutoETS", spine),
-          notes="Day 3, AutoETS(M,N,A), 8-fold rolling origin")
+RESULTS = scores.copy()
+RESULTS.index = [LABELS[m] for m in RESULTS.index]
 
-lb.show().round(4)
+RESULTS.round(4)
 """),
 
     # ---------------------------------------------------------------- 3.3
@@ -1923,30 +1889,6 @@ same judgement.
 # Lab F - Orchestration, and one model of your own
 
 Runs after the sixth deck. Exercises 3.4 and 3.5, 35 minutes.
-
-First, the row the lecture measured. `AutoARIMA`'s order search over eight
-folds takes over a minute, which is too long to spend here, so it was measured
-once by `scripts/measure_arima.py` and committed to `coursekit/data/`. The
-numbers below are that measurement, not typed values - and the point is that a
-model measured somewhere else still goes on the board through the same call.
-"""),
-    code("""
-import json
-from pathlib import Path
-
-import coursekit
-
-arima = json.loads((Path(coursekit.__file__).parent / "data" /
-                    "day3_arima.json").read_text(encoding="utf-8"))
-
-lb.record("ARIMA", day=3,
-          **{k: arima[k] for k in ("mase", "rmsse", "crps", "coverage_80",
-                                   "mase_min", "mase_max")},
-          notes=f"Day 3 lecture, {arima['spec']}, 8-fold rolling origin")
-
-print(f"{arima['spec']}   "
-      f"cross-validated in {arima['cv_seconds']:.0f}s when it was measured")
-lb.show().round(4)
 """),
 
     # ---------------------------------------------------------------- 3.4
@@ -2015,41 +1957,42 @@ if HAS_AG:
     code("""
 if HAS_AG:
     ag_board = predictor.leaderboard(tsdf)
-    ours = lb.show()
 
-    checks.check_ex_3_4(ag_board, ours)
+    checks.check_ex_3_4(ag_board)
     display(ag_board)
-    display(ours.round(4))
 """),
     md("""
-**Two leaderboards, one series.** Read them against each other and account for
-three differences: the *sign* of the scores, the *models* that appear, and the
-*ranking*. Which one would you trust to pick a model for production, and what
-does the other one buy you?
+**Read what it handed back.** Three questions, all answerable from that table
+alone: what is the *sign* of `score_val`, which models did it fit, and how many
+windows did it score them on? Say what that last answer means for how much you
+should trust the ranking.
 
 <!--STUDENT-->
 *Your answer:*
 
 <!--SOLUTION-->
-*Answer.* **Sign.** AutoGluon reports every metric negated, so higher is
-better there and lower is better on ours. A `score_val` of -1.18 is a MASE of
-1.18. This trips people up constantly, and it is the first thing to check
-whenever a framework's leaderboard disagrees with your own.
+*Answer.* **Sign.** AutoGluon reports every metric negated, so higher is better
+there, while every metric this course taught is lower-is-better. A `score_val`
+of -1.18 is a MASE of 1.18. This trips people up constantly, and it is the
+first thing to check whenever a tool's ranking surprises you.
 
-**Models.** The zoo is a subset of what you already have - Naive, SeasonalNaive,
-ETS, AutoARIMA, Theta - plus a `WeightedEnsemble` it builds from them. Nothing
-in it is a model this course did not name. That is the punchline of the
-lecture: you have now seen every line this library runs.
+**Models.** Naive, SeasonalNaive and AutoETS are yours - two Day 2 benchmarks
+and this morning's model - plus AutoARIMA and Theta, which the course only put
+on the map, plus a `WeightedEnsemble` it built from the rest. A framework will
+fit whatever is in its catalogue, including families nobody taught you. That is
+not a flaw; it is the reason the map at the end of the lecture exists.
 
-**Ranking.** They will not agree exactly, and the reason is methodological, not
-a bug. AutoGluon scored one internal validation window; the course leaderboard
-averages eight rolling folds and scores the full distribution with CRPS. That
-is the Exercise 2.5 lesson pointed at a tool instead of a model - and it is why
-the course table is the one to trust for a production decision.
+**Windows.** One. `score_val` comes from a single internal validation split,
+and `predictor.leaderboard(tsdf)` adds a `score_test` from one more. Day 2
+spent an hour on why that cannot rank two models: Exercise 2.4 crowned the STL
+route on one window and Exercise 2.5 took the crown back over eight, on this
+same series.
 
-What the framework buys is speed and coverage: five models fitted, tuned and
-ensembled inside a two-minute budget with one call. In industry you hand this
-step to a framework. You just need to be able to read what it hands back.
+So read this ranking as a shortlist, not a verdict - it tells you which models
+are worth cross-validating properly. What the framework buys is real: five
+models fitted, tuned and ensembled inside a two-minute budget with one call,
+and the same code on 148 series instead of one. What it does not buy is an
+evaluation protocol you trust. That part stays yours.
 """),
 
     # ---------------------------------------------------------------- 3.5
@@ -2059,9 +2002,9 @@ step to a framework. You just need to be able to read what it hands back.
 
 *15 minutes.*
 
-One model, your choice, onto the same leaderboard. This is the whole course in
-a few lines: pick a model, cross-validate it over the same eight folds, score
-it with the same harness, record it under a name.
+One model, your choice, scored the same way as everything else today. This is
+the whole course in a few lines: pick a model, cross-validate it over the same
+eight folds, score it with the same harness, and read it against the floor.
 
 Some to try - all in `statsforecast.models`:
 
@@ -2078,20 +2021,21 @@ Some to try - all in `statsforecast.models`:
 > segment E.
 """),
     code("""
-# TODO: pick a model. Cross-validate it over the SAME folds (h=12,
-#       step_size=12, n_windows=8, level=scoring.LEVELS), score it with
-#       scoring.score_cv, and record it with day=3.
+# TODO: pick a model, import it, and cross-validate it over the SAME folds
+#       (h=12, step_size=12, n_windows=8, level=scoring.LEVELS). Score it with
+#       scoring.score_cv and add the row to RESULTS.
 #
-#       MY_MODEL is the statsforecast column name; MY_NAME is what goes on the
-#       leaderboard.
+#       MY_MODEL is the statsforecast column name; MY_NAME is the label.
 MY_MODEL = ...
 MY_NAME = ...
 
 mysf = ...
 mycv = ...
 
-checks.check_ex_3_5(lb.show(), MY_NAME)
-lb.show().round(4)
+RESULTS.loc[MY_NAME] = ...
+
+checks.check_ex_3_5(RESULTS, MY_NAME)
+RESULTS.sort_values("crps").round(4)
 """, """
 MY_MODEL = "AutoTheta"
 MY_NAME = "Theta"
@@ -2101,15 +2045,13 @@ mysf = StatsForecast(models=[AutoTheta(season_length=12)],
 mycv = mysf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
                              level=scoring.LEVELS)
 
-lb.record(MY_NAME, day=3,
-          **scoring.score_cv(mycv, MY_MODEL, spine),
-          notes="Day 3 capstone, 8-fold rolling origin")
+RESULTS.loc[MY_NAME] = scoring.score_cv(mycv, MY_MODEL, spine)
 
-checks.check_ex_3_5(lb.show(), MY_NAME)
-lb.show().round(4)
+checks.check_ex_3_5(RESULTS, MY_NAME)
+RESULTS.sort_values("crps").round(4)
 """),
     md("""
-**Read the final board.** Which model has the best scaled CRPS, and how much
+**Read the three rows.** Which model has the best scaled CRPS, and how much
 lecture time did it get? What does that say about the seasonal naive you fitted
 on Day 2 in one line?
 
@@ -2118,31 +2060,29 @@ on Day 2 in one line?
 
 <!--SOLUTION-->
 *Answer.* Theta wins on both MASE (about 1.02) and scaled CRPS (about 0.029),
-and it got three lines and no lecture. ETS got a ninety-minute deck and tied
-the benchmark. ARIMA, the row the lecture measured, scores about 1.15 MASE for
-over a minute of fitting and *under*-covers at about 62% - the opposite failure
-to ETS's over-coverage, and the same lesson from the other side.
+and it got no lecture at all - it was a name in AutoGluon's zoo and a line on
+the map. ETS got a ninety-minute deck, every parameter fitted from the data,
+and tied the benchmark on MASE while losing the distribution.
 
 Two things to take away.
 
-**The floor held.** Across a full day of real, fitted models, only one beat the
-seasonal naive on the metric that scores the whole distribution. A model that
-took one line and no fitting time is still better calibrated than most of what
-came after it. That is why the first thing you do on a new series is fit the
-benchmarks - not as a formality, as the thing you have to beat.
+**The floor held.** A full day of real, fitted models, and the model this
+course taught properly did not beat a one-line benchmark on the metric that
+scores the whole distribution. That is why the first thing you do on a new
+series is fit the benchmarks - not as a formality, as the thing you have to
+beat.
 
 **Model complexity is not the axis you think it is.** Theta is simpler than
-ETS and beat it. ARIMA is more complex than both and lost. What actually
-decided the ranking was whether a model's uncertainty was priced honestly, and
-you cannot know that without a harness. You now have one, and every model
-today plugged into it in the same four lines.
+ETS and beat it. What actually decided the ranking was whether each model's
+uncertainty was priced honestly, and you cannot know that without a harness.
+You now have one, and every model today went through it in the same four
+lines.
 """),
     md("""
 ---
 ## End of the course
 
-`labs/leaderboard.csv` is the record: three days, one series, every model
-scored the same way.
+Three days, one series, every model scored the same way.
 
 You can now take a series you have never seen, plot it, decompose it, fit the
 benchmark floor, check the residuals, put honest intervals on a forecast,
@@ -2150,8 +2090,8 @@ cross-validate over rolling origins, and rank candidates on a proper score -
 and you can hand the fitting step to a framework without losing track of what
 it did.
 
-The map slide at the end of deck 6 is where to go next. `notes/` and
-`labs/reference_cheatsheet.md` carry the syntax.
+The map at the end of deck 6 is where to go next, and
+`labs/reference_cheatsheet.md` carries the syntax.
 """),
 ]
 
