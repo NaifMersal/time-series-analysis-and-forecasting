@@ -34,6 +34,8 @@ BOARD = [("HistoricAverage", "Mean", 2), ("Naive", "Naive", 2),
          ("MSTL", "STL + drift", 2), ("AutoETS", "ETS", 3),
          ("AutoARIMA", "ARIMA", 3), ("AutoTheta", "Theta", 3)]
 LABELS = {col: label for col, label, _ in BOARD}
+COLUMN_OF = {label: col for col, label, _ in BOARD}
+FLOOR = LABELS["SeasonalNaive"]
 
 # Everything except AutoARIMA is cheap enough to fit while the deck renders.
 sf = StatsForecast(
@@ -56,6 +58,7 @@ arima = json.loads(
     (Path(coursekit.__file__).parent / "data" / "day3_arima.json")
     .read_text(encoding="utf-8"))
 ARIMA_SPEC = arima["spec"]
+ARIMA_CV_SECONDS = arima["cv_seconds"]
 score["AutoARIMA"] = {k: arima[k] for k in
                       ("mase", "rmsse", "crps", "coverage_80",
                        "mase_min", "mase_max")}
@@ -65,9 +68,15 @@ board = (pd.DataFrame([{"model": label, "day": day, **score[col]}
          .sort_values("crps").reset_index(drop=True))
 
 # --- the Day 2 hook this deck closes: seasonal naive residuals -------------
+# Deliberately the *training split* Day 2 fitted on, not the full spine. This
+# slide quotes a number back to the room as the one they saw yesterday, and on
+# the full spine the same test returns 2e-245 against deck 3's 8.6e-241. Two
+# numbers for one quantity is a contradiction a student can catch; the fix is
+# to run yesterday's test on yesterday's residuals.
+train_d2, _ = D.train_test(spine, h=24)
 sn = StatsForecast(models=[SeasonalNaive(season_length=12)], freq=D.FREQ,
                    n_jobs=1)
-sn.forecast(df=spine, h=1, fitted=True)
+sn.forecast(df=train_d2, h=1, fitted=True)
 fv = sn.forecast_fitted_values()
 sn_resid = (fv["y"] - fv["SeasonalNaive"]).dropna()
 LB_P = float(acorr_ljungbox(sn_resid, lags=[24],
@@ -184,7 +193,7 @@ twelve months back, until the series stops trending. Stationarity is the
 assumption underneath the whole family. That is as far as this course goes.
 :::
 
-## One call, sixty seconds, and the promise kept
+## One call, one order search, and the promise kept
 
 ```python
 from statsforecast.models import AutoARIMA
@@ -202,14 +211,19 @@ lb.record("ARIMA", day=3, **scoring.score_cv(cv, "AutoARIMA", spine))
 | MASE | `{python} f"{mase['SeasonalNaive']:.3f}"` | `{python} f"{mase['AutoETS']:.3f}"` | **`{python} f"{mase['AutoARIMA']:.3f}"`** |
 | Scaled CRPS | **`{python} f"{crps['SeasonalNaive']:.4f}"`** | `{python} f"{crps['AutoETS']:.4f}"` | `{python} f"{crps['AutoARIMA']:.4f}"` |
 
+Eight folds of order search: about
+`{python} f"{ARIMA_CV_SECONDS:.0f}"` seconds, against under one for everything
+else today.
+
 ::: {.notes}
 Same six lines as this morning, one word changed. That is the third time today
 the harness has taken a new model without modification, and it is worth naming
 again because Part B is about what you give up when a framework owns that step.
 
-The cross-validation takes about a minute. Say so before you run it, and use
-the pause: this is the first model in the course whose fitting time is
-noticeable, and eight folds of order search is where it goes.
+Say the runtime before you run it, and use the pause: this is the first model
+in the course whose fitting time is noticeable, and eight folds of order search
+is where it goes. The number on the slide is measured, so it moves if the
+machine does; expect the same order on Colab.
 
 The result is the best MASE of the three. ARIMA did find structure that the
 seasonal naive and ETS both missed, which is the promise from yesterday kept.
@@ -486,7 +500,7 @@ Hierarchical is worth naming for anyone forecasting a business with regions or
 product lines, which is most of them.
 :::
 
-## Where machine learning enters the field
+## Machine learning changes the model, not the harness
 
 ::: {.incremental}
 - **Lag-feature ML** · LightGBM with `mlforecast`; a tabular framing, no fpppy chapter
@@ -558,14 +572,21 @@ benchmarks first. The next slide is why.
 ## The board after a full day of real models
 
 ```{python}
-#| fig-width: 9
-# The five contenders only. On one axis with the mean method at 0.348 the whole
-# story -- five models inside 0.006 of each other -- is squashed into a band
-# too narrow to read from the back of a room. The also-rans are in the card.
-P.metric_bars({r["model"]: r["crps"] for _, r in board.iterrows()
-               if r["crps"] < 0.05},
-              title="Scaled CRPS over 8 rolling folds (lower is better)",
-              figsize=(9, 3.0), fmt="{:.4f}")
+#| fig-width: 10
+# The five contenders, measured against the floor rather than against zero.
+# Their scaled CRPS runs 0.0288 to 0.0339, so on an axis anchored at zero they
+# are five bars of the same length and the closing result of the course reads
+# as a tie. Against the seasonal naive they spread over seventeen points and
+# the sentence -- one model beat the floor, four did not -- is the shape of the
+# chart. Colours name models, so nothing borrows the floor's orange.
+contenders = board[board["crps"] < 0.05]
+challengers = [m for m in contenders["model"] if m != FLOOR]
+P.metric_vs_baseline_plot(
+    {r["model"]: r["crps"] for _, r in contenders.iterrows()},
+    baseline=FLOOR, metric="scaled CRPS",
+    colors=P.model_colors([COLUMN_OF[m] for m in challengers]),
+    title="Scaled CRPS over 8 rolling folds, against the Day 2 floor",
+    figsize=(10, 3.9))
 plt.show()
 ```
 
@@ -579,19 +600,20 @@ Those three were never in contention.
 Eight models, three days, one series, one metric that scores the whole forecast
 distribution. Give them a moment to read it before you say anything.
 
+Read the axis out loud once, because it is not the usual one. Zero is
+yesterday's seasonal naive, every bar is a percentage against it, and left is
+better. The raw scores are all between 0.029 and 0.034, which on an ordinary
+axis is five bars of the same length; measured against the floor the same five
+spread over seventeen points.
+
 Say what the chart leaves out and why: the naive, the drift and the mean were
-never in contention, and on the same axis their bars would squash these five
-into something unreadable. The card carries their numbers.
+never in contention. The card carries their numbers.
 
-The shape to point at is how *close* the five are. They sit inside 0.006 of
-each other, which is a much smaller spread than the fold-to-fold variation
-inside any one of them.
+Then walk the right-hand side. ARIMA, which got an order search and eight folds
+of fitting time, is worse than the floor. ETS, which got a ninety-minute deck,
+is worse. Yesterday's decomposition route is worse.
 
-ETS, which got a ninety-minute deck, is behind the seasonal naive. ARIMA, which
-took sixty seconds a fold, is behind it too. The decomposition route from
-yesterday is behind it.
-
-One model is in front, and it is the one nobody lectured about.
+One bar is on the left, and it belongs to the model nobody lectured about.
 :::
 
 ## The floor held, and one thing beat it

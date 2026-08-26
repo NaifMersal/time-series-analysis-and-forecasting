@@ -203,7 +203,7 @@ alpha times the sum of (1 minus alpha) to the j, which is exactly 1.
 ```{python}
 #| fig-width: 10
 P.smoothing_weights_plot(
-    alphas=(0.2, 0.5, 0.8), n_lags=16,
+    alphas=(0.2, 0.5, 0.8), n_lags=16, figsize=(9, 4.6),
     title="Weight on each past observation, for three values of $\\alpha$")
 plt.show()
 ```
@@ -520,7 +520,7 @@ P.forecast_overlay(
     train, fc_steps, ["SES", "Holt", "HoltWinters"],
     labels={"SES": "SES", "Holt": "Holt", "HoltWinters": "Holt-Winters"},
     colors=STEP_COLORS, actual=test, history_tail=60, ncols=3,
-    figsize=(10, 3.9),
+    figsize=(10, 4.8),
     title="Three states: level, slope, season", ylabel="turnover ($M)")
 plt.show()
 ```
@@ -648,7 +648,7 @@ selected_tag = next(iter(d_aicc))
 P.metric_bars(
     {(f"{k}  selected" if k == selected_tag else k): v
      for k, v in d_aicc.items()},
-    fmt="{:.0f}", figsize=(8.6, 3.4),
+    fmt="{:.0f}", figsize=(8.6, 4.2),
     title="AICc distance from the best model (0 = the winner)")
 plt.show()
 ```
@@ -710,7 +710,7 @@ it, not the story you had in your head. It is not a substitute for looking.
 P.decomposition_plot(
     states, ["level", "season"],
     title="The two states ETS fitted, month by month",
-    ylabel="turnover ($M)", panel_height=1.7)
+    ylabel="turnover ($M)", panel_height=2.3)
 plt.show()
 ```
 
@@ -859,9 +859,9 @@ plt.show()
 ```
 
 ::: {.cardbox .coral}
-ETS covers `{python} f"{cover80['AutoETS']:.0%}"` of the holdout points with a
-band that claims 80%. The seasonal naive covers
-`{python} f"{cover80['SeasonalNaive']:.0%}"`.
+ETS covers `{python} P.pct_label(cover80['AutoETS'])` of the holdout points with
+a band that claims 80%. The seasonal naive covers
+`{python} P.pct_label(cover80['SeasonalNaive'])`.
 :::
 
 ::: {.notes}
@@ -889,7 +889,7 @@ P.width_vs_crps_plot(
     {LABELS[m]: width80[m] for m in DAY3},
     {LABELS[m]: crps[m] for m in DAY3},
     coverage={LABELS[m]: cover80[m] for m in DAY3},
-    figsize=(10, 3.0))
+    figsize=(10, 3.9))
 plt.show()
 ```
 
@@ -914,7 +914,7 @@ because its band is roughly the right size and roughly in the right place.
 |---|---|---|
 | MASE | `{python} f"{mase['SeasonalNaive']:.3f}"` | **`{python} f"{mase['AutoETS']:.3f}"`** |
 | Scaled CRPS | **`{python} f"{crps['SeasonalNaive']:.4f}"`** | `{python} f"{crps['AutoETS']:.4f}"` |
-| 80% coverage | `{python} f"{cover80['SeasonalNaive']:.0%}"` | `{python} f"{cover80['AutoETS']:.0%}"` |
+| 80% coverage | `{python} P.pct_label(cover80['SeasonalNaive'])` | `{python} P.pct_label(cover80['AutoETS'])` |
 
 . . .
 

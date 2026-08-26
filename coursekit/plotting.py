@@ -1144,33 +1144,107 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
     return fig, axes
 
 
+def pct_label(v):
+    """``87.5%`` when the half-point matters, ``77%`` when it does not.
+
+    Eight folds of twelve points put coverage on a 96th of a grid, so the
+    interesting values land on halves. Rounding 87.5 to 88 makes the chart
+    contradict the prose beside it, which quotes the half.
+    """
+    return f"{v:.0%}" if abs(v * 100 - round(v * 100)) < 0.05 else f"{v:.1%}"
+
+
 def coverage_bars(coverage, nominal=0.8, labels=None, ax=None, figsize=(9, 3.4),
                   title="", tolerance=0.1):
     """Measured coverage per model against the nominal rate it claims.
 
-    Bars within ``tolerance`` of ``nominal`` are orange, the rest grey, which is
-    the same convention ``metric_bars`` uses: orange is the bar the slide is
-    about. The claim is honest-or-not, so the colour carries it and the reader
-    does not have to compare bar ends to a dashed line by eye.
+    The honest range is drawn as a *band* (``nominal`` plus or minus
+    ``tolerance``), not as a line, because the claim this chart has to carry is
+    "that band is the wrong size" and over-coverage otherwise reads as good
+    news: a longer bar past a single dashed line looks like more safety. With
+    the band shaded, a bar that stops short of it is visibly too narrow and one
+    that runs past it is visibly too wide, and each miss says which in words.
+
+    Bars inside the band are orange, the rest grey -- the same convention
+    ``metric_bars`` uses, where orange is the bar the slide is about.
     """
     if ax is None:
         _, ax = plt.subplots(figsize=figsize)
     labels = dict(labels or {})
     names = [labels.get(m, m) for m in coverage]
     vals = [float(v) for v in coverage.values()]
-    colors = [ORANGE if abs(v - nominal) < tolerance else GREY for v in vals]
-    ax.barh(names, vals, color=colors, height=0.6)
-    ax.axvline(nominal, color=BLACK, ls="--", lw=1.4)
-    ax.text(nominal, -0.75, f" nominal {nominal:.0%}", size=10)
-    for i, v in enumerate(vals):
+    inside = [abs(v - nominal) < tolerance for v in vals]
+
+    ax.axvspan(nominal - tolerance, nominal + tolerance, color=ORANGE,
+               alpha=0.10, lw=0, zorder=0)
+    ax.barh(names, vals, color=[ORANGE if ok else GREY for ok in inside],
+            height=0.6, zorder=2)
+    ax.axvline(nominal, color=BLACK, ls="--", lw=1.4, zorder=3)
+    ax.text(nominal, -0.72, f" nominal {nominal:.0%}", size=10)
+    ax.text(nominal + tolerance, len(vals) - 0.35,
+            f" honest within {tolerance:.0%} points", size=9, color=GREY,
+            va="center")
+
+    for i, (v, ok) in enumerate(zip(vals, inside)):
+        verdict = "" if ok else ("  too wide" if v > nominal else
+                                 "  too narrow")
         if abs(v - nominal) < 0.04:
             # The label would land on top of the dashed nominal line, so it
             # goes inside the bar end instead of outside it.
-            ax.text(v, i, f"{v:.0%} ", va="center", ha="right", size=10,
-                    color="white", weight="bold")
+            ax.text(v, i, f"{pct_label(v)} ", va="center", ha="right", size=10,
+                    color="white", weight="bold", zorder=4)
         else:
-            ax.text(v, i, f" {v:.0%}", va="center", size=10)
-    ax.set(xlim=(0, 1.05), title=title)
+            ax.text(v, i, f" {pct_label(v)}{verdict}", va="center", size=10)
+
+    # Room for the verdict text, but only when there is verdict text to fit.
+    ax.set(xlim=(0, 1.28 if not all(inside) else 1.05), title=title)
+    ax.invert_yaxis()
+    ax.grid(axis="y", visible=False)
+    return ax
+
+
+def metric_vs_baseline_plot(scores, baseline, labels=None, ax=None,
+                            figsize=(9, 3.6), title="", colors=None,
+                            metric="scaled CRPS", lower_is_better=True):
+    """Each model's metric as a percentage against one baseline, diverging.
+
+    On an axis anchored at zero, five models whose scaled CRPS runs 0.0288 to
+    0.0339 are five bars of near-identical length: the ranking survives only in
+    the printed numbers and the highlight colour, and from the back of a room
+    the closing slide of the course reads as a tie. Measured against the
+    benchmark instead, the same five spread over seventeen points and the
+    sentence the slide is making -- the floor held, and one thing beat it --
+    becomes the shape of the chart: one bar on the good side of zero, the rest
+    on the other.
+
+    ``baseline`` is a key of ``scores``. It gets the zero line rather than a
+    bar. Colours name models (``model_colors`` by default), because direction
+    already carries better-or-worse and the colour is then free to do the job
+    the rest of the course gives it.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=figsize)
+    labels = dict(labels or {})
+    keys = [k for k in scores if k != baseline]
+    base = float(scores[baseline])
+    rel = [(float(scores[k]) - base) / base * 100 for k in keys]
+    names = [labels.get(k, k) for k in keys]
+    pal = list(colors) if colors is not None else model_colors(keys)
+
+    ax.barh(names, rel, color=pal[:len(keys)], height=0.6, zorder=2)
+    ax.axvline(0, color=BLACK, lw=1.6, zorder=3)
+    span = max(abs(min(rel)), abs(max(rel))) or 1.0
+    for i, v in enumerate(rel):
+        off = span * 0.03
+        ax.text(v + (off if v >= 0 else -off), i, f"{v:+.1f}%", va="center",
+                ha="left" if v >= 0 else "right", size=10)
+    ax.text(0, -0.72, f"  {labels.get(baseline, baseline)} = the floor",
+            size=10, color=BLACK)
+
+    better = "better" if lower_is_better else "worse"
+    ax.set(xlim=(-span * 1.45, span * 1.45), title=title,
+           xlabel=f"{metric} against the floor  "
+                  f"(left is {better}, right is not)")
     ax.invert_yaxis()
     ax.grid(axis="y", visible=False)
     return ax
@@ -1199,8 +1273,8 @@ def width_vs_crps_plot(width, crps, coverage=None, labels=None,
                  color=[ORANGE if m == best else GREY for m in models])
     if coverage is not None:
         for i, m in enumerate(models):
-            axes[0].text(widths[i], i, f"  {coverage[m]:.0%} cov", va="center",
-                         size=9)
+            axes[0].text(widths[i], i, f"  {pct_label(coverage[m])} cov",
+                         va="center", size=9)
     axes[0].set(title=t[0], xlim=(0, max(widths) * 1.35),
                 xlabel="interval width (turnover, $M)")
     axes[0].invert_yaxis()

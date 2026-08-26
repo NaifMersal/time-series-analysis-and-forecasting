@@ -1597,7 +1597,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsforecast import StatsForecast
-from statsforecast.models import AutoETS, AutoTheta, SeasonalNaive
+from statsforecast.models import (MSTL, AutoETS, AutoTheta, HistoricAverage,
+                                  Naive, RandomWalkWithDrift, SeasonalNaive)
 from statsforecast.utils import ConformalIntervals
 
 from coursekit import checks
@@ -1615,7 +1616,41 @@ LABELS = {"SeasonalNaive": "Seasonal naive", "AutoETS": "ETS"}
 print(f"spine  : {len(spine)} months, "
       f"{spine['ds'].min().date()} to {spine['ds'].max().date()}")
 print(f"levels : {scoring.LEVELS}")
-print(f"board  : {len(lb.load())} models carried over from Day 2")
+"""),
+    md("""
+### The Day 2 board
+
+`labs/leaderboard.csv` is **generated, not committed** - it is written by the
+code you ran, not shipped with the repo. So a fresh Colab runtime starts with
+an empty board, and today's models would have nothing to be measured against.
+
+The cell below rebuilds Day 2's five rows if they are missing. It is the same
+`cross_validation` call Exercise 2.5 made, on the same folds, and it takes a
+couple of seconds - which is itself the point: **the harness is cheap enough to
+re-run, so nothing today rests on a file surviving a runtime reset.**
+"""),
+    code("""
+DAY2 = [("HistoricAverage", "Mean"), ("Naive", "Naive"),
+        ("SeasonalNaive", "Seasonal naive"), ("RWD", "Drift"),
+        ("MSTL", "STL + drift")]
+
+if lb.load().empty:
+    day2 = StatsForecast(
+        models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12),
+                RandomWalkWithDrift(),
+                MSTL(season_length=12,
+                     trend_forecaster=RandomWalkWithDrift())],
+        freq=D.FREQ, n_jobs=1)
+    cv2 = day2.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                                level=scoring.LEVELS)
+    for col, name in DAY2:
+        lb.record(name, day=2, **scoring.score_cv(cv2, col, spine),
+                  notes="Day 2 baseline, 8-fold rolling origin")
+    print("board  : rebuilt Day 2's five rows (no leaderboard.csv found)")
+else:
+    print(f"board  : {len(lb.load())} rows already here")
+
+lb.show().round(4)
 """),
 
     # ================================================================ Lab E
@@ -1625,8 +1660,8 @@ print(f"board  : {len(lb.load())} models carried over from Day 2")
 
 Runs after the fifth deck. Exercises 3.1 to 3.3, 40 minutes.
 
-Everything you built on Day 2 is still here. `labs/leaderboard.csv` already
-holds the benchmark floor, and today's models append to the same file.
+`labs/leaderboard.csv` holds the benchmark floor, and today's models append to
+the same file.
 """),
 
     # ---------------------------------------------------------------- 3.1
@@ -1888,6 +1923,30 @@ same judgement.
 # Lab F - Orchestration, and one model of your own
 
 Runs after the sixth deck. Exercises 3.4 and 3.5, 35 minutes.
+
+First, the row the lecture measured. `AutoARIMA`'s order search over eight
+folds takes over a minute, which is too long to spend here, so it was measured
+once by `scripts/measure_arima.py` and committed to `coursekit/data/`. The
+numbers below are that measurement, not typed values - and the point is that a
+model measured somewhere else still goes on the board through the same call.
+"""),
+    code("""
+import json
+from pathlib import Path
+
+import coursekit
+
+arima = json.loads((Path(coursekit.__file__).parent / "data" /
+                    "day3_arima.json").read_text(encoding="utf-8"))
+
+lb.record("ARIMA", day=3,
+          **{k: arima[k] for k in ("mase", "rmsse", "crps", "coverage_80",
+                                   "mase_min", "mase_max")},
+          notes=f"Day 3 lecture, {arima['spec']}, 8-fold rolling origin")
+
+print(f"{arima['spec']}   "
+      f"cross-validated in {arima['cv_seconds']:.0f}s when it was measured")
+lb.show().round(4)
 """),
 
     # ---------------------------------------------------------------- 3.4
@@ -2009,9 +2068,9 @@ Some to try - all in `statsforecast.models`:
 | model | why |
 |---|---|
 | `AutoTheta(season_length=12)` | simple, fast, and strong on this series |
-| `AutoCES(season_length=12)` | complex exponential smoothing |
-| `AutoARIMA(season_length=12)` | the other classical family; **slow (~60s)** |
-| `WindowAverage(window_size=12)` | needs `prediction_intervals=` - see below |
+| `HoltWinters(season_length=12)` | the model you watched get built in Part C |
+| `AutoMFLES(test_size=12, season_length=12)` | a boosted decomposition; needs `prediction_intervals=` |
+| `WindowAverage(window_size=12)` | needs `prediction_intervals=` |
 
 > A model with no closed-form interval raises *"You must pass
 > `prediction_intervals`"* the moment you ask for a level. Give it
@@ -2060,9 +2119,9 @@ on Day 2 in one line?
 <!--SOLUTION-->
 *Answer.* Theta wins on both MASE (about 1.02) and scaled CRPS (about 0.029),
 and it got three lines and no lecture. ETS got a ninety-minute deck and tied
-the benchmark. AutoARIMA, if you ran it, scores about 1.15 MASE for sixty
-seconds of fitting and *under*-covers at about 62% - the opposite failure to
-ETS's over-coverage, and the same lesson from the other side.
+the benchmark. ARIMA, the row the lecture measured, scores about 1.15 MASE for
+over a minute of fitting and *under*-covers at about 62% - the opposite failure
+to ETS's over-coverage, and the same lesson from the other side.
 
 Two things to take away.
 
