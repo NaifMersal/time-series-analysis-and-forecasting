@@ -1,115 +1,157 @@
 [
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#you-have-4-forecasts.-which-is-best",
-    "href": "slides/04_forecast_evaluation_and_cv.html#you-have-4-forecasts.-which-is-best",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#you-have-5-forecasts.-which-is-best",
+    "href": "slides/04_forecast_evaluation_and_cv.html#you-have-5-forecasts.-which-is-best",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "You have 4 forecasts. Which is best?",
-    "text": "You have 4 forecasts. Which is best?\n\nSegment 4 — How to score point forecasts fairly\nSegment 5 — Why 1 test split is not enough, and how rolling-origin CV fixes it\n\n\n\n\n\n\n\n\nDeliverable\n\n\nBuild a standardized evaluation harness to benchmark any forecasting model."
+    "section": "You have 5 forecasts. Which is best?",
+    "text": "You have 5 forecasts. Which is best?\n\nPart A: How to score point forecasts fairly\nPart B: Why 1 test split is not enough, and how rolling-origin CV fixes it\n\n\n\n\n\n\n\n\nThe deliverable is a reusable evaluation harness\n\n\nA standard way to score any forecasting model, built and used today.\n\n\n\n\nPick this up from lecture 1 rather than restarting. They left the room with five forecasts and one number each, measured on a single 24-month window, and the STL route on top at 0.70. This lecture asks whether that number means anything.\nThe answer, twice over, is no: not with that metric, and not on that many windows.\nSay what leaves the room today. By the end of Exercise 2.5 there is a file, labs/leaderboard.csv, with one row per benchmark and four columns that matter: MASE, RMSSE, scaled CRPS, and 80% coverage. Day 3 appends to that same file.\nThat framing is worth repeating at the end of every exercise in this lecture. The point of the harness is that adding a model to it is a few lines."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#error-metric-summary",
-    "href": "slides/04_forecast_evaluation_and_cv.html#error-metric-summary",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#only-a-scaled-metric-can-compare-across-series",
+    "href": "slides/04_forecast_evaluation_and_cv.html#only-a-scaled-metric-can-compare-across-series",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Error metric summary",
-    "text": "Error metric summary\nForecast error: \\(e_{T+h} = y_{T+h} - \\hat{y}_{T+h|T}\\)\n\n\n\n\n\n\n\n\nMetric\nProperty\nLimitation\n\n\n\n\nMAE\nEasy to interpret\nScale-dependent (cannot compare across series)\n\n\nRMSE\nPenalizes large errors\nScale-dependent\n\n\nMAPE\nPercentage error\nExplodes near zero; asymmetric\n\n\nMASE\nScale-free (relative to baseline)\nRequires seasonal period\n\n\n\n\nMAE and RMSE work well within a single series. To compare across different products or series, use MASE."
+    "section": "Only a scaled metric can compare across series",
+    "text": "Only a scaled metric can compare across series\nForecast error: \\(e_{T+h} = y_{T+h} - \\hat{y}_{T+h|T}\\)\n\n\n\n\n\n\n\n\nMetric\nProperty\nLimitation\n\n\n\n\nMAE\nEasy to interpret\nScale-dependent: cannot be pooled across series\n\n\nRMSE\nPunishes large errors\nScale-dependent\n\n\nMAPE\nUnit-free\nExplodes near zero, and asymmetric\n\n\nMASE\nScaled: MAE over the benchmark’s\nNeeds the seasonal period\n\n\nRMSSE\nScaled: RMSE over the benchmark’s\nSame, and still punishes outliers\n\n\n\n\nMAE and RMSE work well within a single series. To compare across different products or series, use MASE."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#the-flaw-with-mape",
-    "href": "slides/04_forecast_evaluation_and_cv.html#the-flaw-with-mape",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#rescaling-the-data-moves-mae-but-not-mase",
+    "href": "slides/04_forecast_evaluation_and_cv.html#rescaling-the-data-moves-mae-but-not-mase",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "The flaw with MAPE",
-    "text": "The flaw with MAPE\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Simulated low-volume / intermittent demand series (Poisson)\nrng = np.random.default_rng(3)\nn = 48\nlow = pd.DataFrame({\n    \"unique_id\": \"spare parts\",\n    \"ds\": pd.date_range(\"2020-01-01\", periods=n, freq=\"MS\"),\n    \"y\": np.clip(rng.poisson(1.4, n).astype(float), 0.2, None),\n})\npred_hi = low[\"y\"] + 2.0\npred_lo = low[\"y\"] - 0.15\n\nfig, ax = plt.subplots(figsize=(10, 3.6))\nax.plot(low[\"ds\"], low[\"y\"], color=P.BLACK, lw=1.2, label=\"Actual (Low Volume)\")\nax.plot(low[\"ds\"], pred_hi, color=P.ORANGE, lw=1.4, label=\"Forecast A (+2.0)\")\nax.plot(low[\"ds\"], pred_lo, color=P.BLUE, lw=1.4, label=\"Forecast B (-0.15)\")\n\n\n\n\nForecast A: MAE = 2.00, MAPE = 184%\nForecast B: MAE = 0.15, MAPE = 23%"
+    "section": "Rescaling the data moves MAE but not MASE",
+    "text": "Rescaling the data moves MAE but not MASE\nSame series, new unit, with \\(k &gt; 0\\): \\(y'_t = k\\,y_t\\) and \\(\\hat{y}'_t = k\\,\\hat{y}_t\\).\n\n\\[\\text{MAE}' = \\frac{1}{n}\\sum \\lvert k y_t - k\\hat{y}_t \\rvert = k\\,\\text{MAE}\n\\quad\\text{(moves with the unit)}\\]\n\n\n\\[PE'_t = \\frac{k y_t - k\\hat{y}_t}{k y_t} = PE_t\n\\qquad\n\\text{MASE}' = \\frac{k\\,\\text{MAE}}{k\\,Q} = \\text{MASE}\\]\nNow shift as well as scale, \\(y'_t = k y_t + c\\), which is what °C to °F is. Differences kill \\(c\\), so MASE holds. MAPE’s denominator keeps it.\n\nMAPE cancelled \\(k\\) and is still the worst metric in this deck. Cancelling is necessary, not sufficient.\n\n\nDo this one at the board pace, not the slide pace. Ask what happens to each metric if the finance team reports the same series in thousands instead of dollars. Everyone knows MAE has to move. Then substitute.\nMAE picks up the k and moves with the unit. MAPE cancels it, top and bottom. MASE cancels it too, and the reason is worth saying out loud: Q is built from the same data, so the denominator scales by exactly the same k as the numerator. That cancellation is the licence for what Day 1 did when it pooled 148 retail series with different turnovers into one ranking.\nThen the sting. MAPE passed the test and is still the worst metric in this deck, so cancelling k is necessary and not sufficient. Add an offset and the two part company: every term in MASE is a difference, so c disappears, but MAPE divides by a level and the c rides along. That is the temperature objection, three slides early, and now it is a consequence rather than an assertion."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#reasons-to-avoid-mape-for-model-selection",
-    "href": "slides/04_forecast_evaluation_and_cv.html#reasons-to-avoid-mape-for-model-selection",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#mape-explodes-when-the-actual-is-near-zero",
+    "href": "slides/04_forecast_evaluation_and_cv.html#mape-explodes-when-the-actual-is-near-zero",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "3 reasons to avoid MAPE for model selection",
-    "text": "3 reasons to avoid MAPE for model selection\n\nUndefined at zero — explodes on intermittent / low-volume demand\nAsymmetric — penalizes over-forecasting far more than under-forecasting\nFails without a true zero — invalid for temperature (°C)\n\n\n\nReport MAPE to executives if required, but never optimize models using MAPE."
+    "section": "MAPE explodes when the actual is near zero",
+    "text": "MAPE explodes when the actual is near zero\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: simulated low-volume / intermittent demand (Poisson counts near zero)\nlow = D.low_volume_demand(n=48, seed=3)\npreds = low[[\"ds\"]].assign(A=low[\"y\"] + 2.0,      # always 2 units too high\n                           B=low[\"y\"] - 0.15)     # always 0.15 too low\n\nP.forecast_overlay(low, preds, [\"A\", \"B\"], history_tail=None,\n                   history_label=\"actual (low volume)\")\n\n\n\n\nForecast A: MAE = 2.00, MAPE = 304%\nForecast B: MAE = 0.15, MAPE = 23%\n\n\nRead the two forecasts off the chart before quoting the numbers, and let the room commit. Forecast A is two units too high everywhere; forecast B is fifteen hundredths too low everywhere. Everyone picks B, and everyone is right.\nThen show the MAPE column: A scores 304%, B scores 23%. MAPE agrees here. Now ask what happens when the actual is 0.2 and you are two units out - the percentage error is a thousand percent, and it is the denominator doing that, not the forecast."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#scaled-errors-mase",
-    "href": "slides/04_forecast_evaluation_and_cv.html#scaled-errors-mase",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#three-reasons-mape-cannot-select-a-model",
+    "href": "slides/04_forecast_evaluation_and_cv.html#three-reasons-mape-cannot-select-a-model",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Scaled Errors: MASE",
-    "text": "Scaled Errors: MASE\nError divided by the in-sample Seasonal Naive error (\\(Q\\)):\n\\[\\text{MASE} = \\frac{\\text{MAE}}{Q}\\]\n\n\n\\(\\text{MASE} &lt; 1\\) \\(\\rightarrow\\) Better than the seasonal naive baseline\n\\(\\text{MASE} = 1\\) \\(\\rightarrow\\) Exactly as good as seasonal naive\n\\(\\text{MASE} &gt; 1\\) \\(\\rightarrow\\) Worse than simple baseline"
+    "section": "Three reasons MAPE cannot select a model",
+    "text": "Three reasons MAPE cannot select a model\n\nUndefined at zero: explodes on intermittent / low-volume demand\nAsymmetric: penalizes over-forecasting far more than under-forecasting\nFails without a true zero: the offset never cancels, so °C breaks it\n\n\nThe second one surprises people, so make it concrete. Forecast 100 when the actual is 50 and MAPE charges you 100%. Forecast 50 when the actual is 100 and it charges you 50%. The same 50-unit error, twice the penalty for being high. A team that selects on MAPE learns to under-forecast, and in an inventory setting that means stocking out.\nThe third is the one people argue with, and the rescaling slide already answered it. MAPE needs a meaningful zero to divide by, and 0 degrees Celsius is not “no temperature”, it is a point on a scale somebody chose. Convert to Fahrenheit and the offset survives in the denominator, so the same forecast scores differently in the two units. MASE, built from differences, does not care.\nNone of this makes MAPE useless. It reports well to a business audience. It just cannot be the thing you select a model on.\n\n\n\nReport MAPE to executives if required, but never optimize models using MAPE."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#benchmarks-scored-on-test-set",
-    "href": "slides/04_forecast_evaluation_and_cv.html#benchmarks-scored-on-test-set",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#dividing-by-the-benchmark-makes-errors-comparable",
+    "href": "slides/04_forecast_evaluation_and_cv.html#dividing-by-the-benchmark-makes-errors-comparable",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Benchmarks scored on test set",
-    "text": "Benchmarks scored on test set\n\n\n                   MAE    RMSE  MAPE %   MASE  RMSSE\nMean            173.67  175.55   51.82  12.66   9.09\nNaive            37.07   42.46   11.64   2.70   2.20\nSeasonal naive   15.24   17.56    4.55   1.11   0.91\nDrift            44.35   49.02   13.86   3.23   2.54\n\n\n\nSeasonal Naive wins across all metrics (\\(\\text{MASE} = 1.11\\)).\n\n\nMASE &gt; 1.0 because forecasting 24 months ahead is harder than in-sample 1-step naive errors."
+    "section": "Dividing by the benchmark makes errors comparable",
+    "text": "Dividing by the benchmark makes errors comparable\nError divided by the in-sample Seasonal Naive error (\\(Q\\)):\n\\[\\text{MASE} = \\frac{\\text{MAE}}{Q},\n\\qquad Q = \\frac{1}{T-m}\\sum_{t=m+1}^{T} \\lvert y_t - y_{t-m} \\rvert\\]\n\\(Q\\) is measured in the units of the data, which is what cancelled the \\(k\\).\n\n\n\\(\\text{MASE} &lt; 1\\) \\(\\rightarrow\\) Better than the seasonal naive baseline\n\\(\\text{MASE} = 1\\) \\(\\rightarrow\\) Exactly as good as seasonal naive\n\\(\\text{MASE} &gt; 1\\) \\(\\rightarrow\\) Worse than simple baseline\n\n\nThe denominator is the whole idea: divide by the in-sample one-step seasonal naive error, and the metric becomes scale-free and readable. MASE below 1 beats the benchmark, above 1 loses to it.\nWarn them the seasonal naive will score above 1 on this data, and that this is not a contradiction: forecasting 24 months out is harder than the one-step in-sample errors sitting in the denominator."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#rightarrow-exercise-2.4",
-    "href": "slides/04_forecast_evaluation_and_cv.html#rightarrow-exercise-2.4",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#on-this-one-window-the-stl-route-wins-every-metric",
+    "href": "slides/04_forecast_evaluation_and_cv.html#on-this-one-window-the-stl-route-wins-every-metric",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "\\(\\rightarrow\\) Exercise 2.4",
-    "text": "\\(\\rightarrow\\) Exercise 2.4\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nCompute MAE, RMSE, MAPE, and MASE for all baselines\nConstruct a scenario where MAPE produces misleading rankings\nDefend the top-ranked model using MASE\n\n\n12 minutes."
+    "section": "On this one window the STL route wins every metric",
+    "text": "On this one window the STL route wins every metric\n\n\n                   MAE    RMSE  MAPE %   MASE  RMSSE\nMean            173.67  175.55   51.82  12.66   9.09\nNaive            37.07   42.46   11.64   2.70   2.20\nSeasonal naive   15.24   17.56    4.55   1.11   0.91\nDrift            44.35   49.02   13.86   3.23   2.54\nSTL + drift       9.62   12.30    3.01   0.70   0.64\n\n\n\nOn this window the STL route wins on every metric (\\(\\text{MASE} = 0.70\\)), with the seasonal naive second at \\(1.11\\). Hold that thought until part B.\n\n\nResist declaring a winner here. The seasonal naive’s MASE &gt; 1.0 because forecasting 24 months ahead is harder than the in-sample one-step naive errors in the denominator. The STL route’s 0.70 is the number that gets a model promoted on one lucky year, and part B of this deck takes it back.\nRMSSE is the same idea as MASE with squared errors, which is why the two columns agree on the ranking here and why both end up on the leaderboard."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#why-a-single-traintest-split-fails",
-    "href": "slides/04_forecast_evaluation_and_cv.html#why-a-single-traintest-split-fails",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#one-split-gives-a-number-with-no-error-bar",
+    "href": "slides/04_forecast_evaluation_and_cv.html#one-split-gives-a-number-with-no-error-bar",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Why a single train/test split fails",
-    "text": "Why a single train/test split fails\n\nA single 24-month split is just one sample point\nScore depends heavily on economic conditions during that window\nHigh variance (\\(\\pm 16\\%\\) error bars on 24 observations)\nEncourages data snooping and overfitting\n\n\n\nTime series cannot use standard k-fold. We need rolling origins."
+    "section": "One split gives a number with no error bar",
+    "text": "One split gives a number with no error bar\n\nA single 24-month split is just one sample point\nScore depends heavily on economic conditions during that window\nHigh variance (\\(\\pm 16\\%\\) error bars on 24 observations)\nEncourages data snooping and overfitting\n\n\n\nTime series cannot use standard k-fold. We need rolling origins.\n\n\nThis is the hinge of the day. One split gives one number, and one number has no error bar, so it cannot support a ranking.\nAsk the room how confident they would be in a drug trial with one patient. Same objection, same fix: more origins."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#rolling-origin-cross-validation",
-    "href": "slides/04_forecast_evaluation_and_cv.html#rolling-origin-cross-validation",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#rolling-the-origin-turns-one-score-into-a-distribution",
+    "href": "slides/04_forecast_evaluation_and_cv.html#rolling-the-origin-turns-one-score-into-a-distribution",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Rolling-Origin Cross-Validation",
-    "text": "Rolling-Origin Cross-Validation\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Diagram: Rolling-origin cross-validation splits (expanding window)\n# 96 total periods, initial train size 48, horizon 12, step size 12\nfig, ax = plt.subplots(figsize=(10, 4.4))\nP.cv_staircase(n_obs=96, initial=48, horizon=12, step=12, ax=ax,\n               title=\"Expanding Training Window Across Origins\")\n\n\n\n\nEach fold trains only on past data. No fold ever peeks into its future."
+    "section": "Rolling the origin turns one score into a distribution",
+    "text": "Rolling the origin turns one score into a distribution\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Diagram: the eight folds this deck scores on, drawn to scale.\n# 144 periods, initial train 48, horizon 12, step 12 -&gt; 8 origins.\nP.cv_staircase(n_obs=144, initial=48, horizon=12, step=12)\n\n\n\n\nEach fold trains only on past data. No fold ever peeks into its future.\n\n\nWalk the diagram fold by fold. Blue is what the model saw, orange is what it was scored on, grey is the future it was not allowed to know about. Every row moves the boundary forward and never backwards.\nSay explicitly why k-fold is wrong here: shuffling puts future rows in the training set, which is leakage, and the last slide of this deck comes back to it."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#key-cv-parameters",
-    "href": "slides/04_forecast_evaluation_and_cv.html#key-cv-parameters",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#three-knobs-control-the-cv-h-step_size-n_windows",
+    "href": "slides/04_forecast_evaluation_and_cv.html#three-knobs-control-the-cv-h-step_size-n_windows",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Key CV parameters",
-    "text": "Key CV parameters\n# Cross-validation setup with StatsForecast on Victorian takeaway turnover (spine):\ncv = sf.cross_validation(\n    df=spine,\n    h=12,          # Forecast horizon matched to business need\n    step_size=12,  # Steps between successive origins\n    n_windows=8,   # Number of evaluation folds\n    level=[80],\n)\n\nh — match the true operational planning horizon\nstep_size — frequency of forecast production\nn_windows — number of independent test origins"
+    "section": "Three knobs control the CV: h, step_size, n_windows",
+    "text": "Three knobs control the CV: h, step_size, n_windows\n# Rolling-origin CV on the spine:\ncv = sf.cross_validation(\n    df=spine,\n    h=12,          # Forecast horizon matched to business need\n    step_size=12,  # Steps between successive origins\n    n_windows=8,   # Number of evaluation folds\n    level=[80],\n)\n\nh: match the true operational planning horizon\nstep_size: frequency of forecast production\nn_windows: number of independent test origins\n\n\nPick h from the decision, not from the data. If the plan is quarterly, h is three, and a model that wins at h=12 is not the one you want.\nThe trade in n_windows is honest: more windows is a steadier estimate and a shorter first training set. Eight is what this series affords."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#cross-validation-results-across-8-folds",
-    "href": "slides/04_forecast_evaluation_and_cv.html#cross-validation-results-across-8-folds",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#eight-folds-keep-the-ranking-and-move-the-winner",
+    "href": "slides/04_forecast_evaluation_and_cv.html#eight-folds-keep-the-ranking-and-move-the-winner",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Cross-validation results across 8 folds",
-    "text": "Cross-validation results across 8 folds\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian takeaway food turnover (cv = sf.cross_validation(spine, n_windows=8))\n# Left: Single 24-month split vs Mean across 8 CV origins\n# Right: Distribution of MASE across individual CV folds\nfig, axes = plt.subplots(1, 2, figsize=(10, 4.0))\n\nsingle = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]\nx = np.arange(len(MODELS))\naxes[0].bar(x - 0.2, single.values, width=0.4, color=P.GREY, label=\"Single Split\")\naxes[0].bar(x + 0.2, per_window.mean().values, width=0.4, color=P.BLUE, label=f\"Mean of {N_WINDOWS} Folds\")\n\nfor i, m in enumerate(MODELS):\n    axes[1].scatter(np.full(len(per_window), i), per_window[m], s=40, color=P.ORANGE, alpha=0.75, zorder=3)\n\n\n\n\nNotice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky/unlucky, but the average is robust."
+    "section": "Eight folds keep the ranking and move the winner",
+    "text": "Eight folds keep the ranking and move the winner\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Score EVERY fold separately, each against its own training history: a fold's\n# MASE denominator must come from data that fold was allowed to see.\nper_window = pd.DataFrame([\n    mase(g.drop(columns=[\"cutoff\"]), models=MODELS, seasonality=12,\n         train_df=spine[spine[\"ds\"] &lt;= cut])[MODELS].iloc[0]\n    for cut, g in cv.groupby(\"cutoff\")\n])\n\nsingle = mase(merged, models=MODELS, seasonality=12, train_df=train)[MODELS].iloc[0]\nP.single_vs_cv_plot(single, per_window[MODELS], labels=LABELS)\n\n\n\n\nNotice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky or unlucky; the 8-fold average is what to trust.\n\n\nOne window crowned STL + drift at 0.70. Eight folds hand it back, 1.18 to 1.22."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#interval-coverage-across-all-8-folds",
-    "href": "slides/04_forecast_evaluation_and_cv.html#interval-coverage-across-all-8-folds",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#only-the-seasonal-naives-band-is-close-to-honest",
+    "href": "slides/04_forecast_evaluation_and_cv.html#only-the-seasonal-naives-band-is-close-to-honest",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Interval coverage across all 8 folds",
-    "text": "Interval coverage across all 8 folds\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian takeaway food turnover (cv across 8 origins x 12 horizon = 96 points)\n# Coverage = percentage of holdout points falling between 80% lo/hi bounds\nfig, ax = plt.subplots(figsize=(9, 3.4))\nnames = [LABELS[m] for m in MODELS]\nvals = [coverage[m] for m in MODELS]\ncols = [P.BLUE if abs(v - 0.8) &lt; 0.1 else P.ORANGE for v in vals]\nax.barh(names, vals, color=cols, height=0.6)\nax.axvline(0.8, color=P.BLACK, ls=\"--\", lw=1.4)\n\n\n\n\nSeasonal Naive: 77% coverage (near nominal 80%)\nMean Model: 0% coverage (fails on trending data)"
+    "section": "Only the seasonal naive’s band is close to honest",
+    "text": "Only the seasonal naive’s band is close to honest\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian takeaway food turnover (cv across 8 origins x 12 horizon = 96 points)\n# Coverage = share of holdout points falling between the 80% lo/hi bounds.\ncoverage = {m: float(((cv[\"y\"] &gt;= cv[f\"{m}-lo-80\"])\n                      & (cv[\"y\"] &lt;= cv[f\"{m}-hi-80\"])).mean()) for m in MODELS}\n\nP.coverage_bars(coverage, nominal=0.8, labels=LABELS)\n\n\n\n\nSeasonal naive: 77% coverage, near the nominal 80%\nMean model: 0% coverage, on a series that grew sixfold\n\n\nThe mean model scores exactly 0%. Not “poorly” - zero. On a series that grew sixfold, an interval centred on the historical average never touches the last few years at all, and that is worth pausing on: a model can be so wrong that its uncertainty estimate is not even wrong in an interesting way.\nThe seasonal naive’s 77% against a nominal 80% is the honest result here, and 96% on the single window in lecture 1 is the same interval measured badly."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#information-leakage-risks",
-    "href": "slides/04_forecast_evaluation_and_cv.html#information-leakage-risks",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#coverage-checks-the-band.-it-cannot-rank.",
+    "href": "slides/04_forecast_evaluation_and_cv.html#coverage-checks-the-band.-it-cannot-rank.",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Information leakage risks",
-    "text": "Information leakage risks\n\n\n\n\n\n\n\nG\n\n\nA\n\nScaling / Normalizing\non the full series\n\n\n\nL\n\nData Leakage\nOver-optimistic CV,\npoor production\n\n\n\nA-&gt;L\n\n\n\n\n\nB\n\nCentered rolling\nwindow features\n\n\n\nB-&gt;L\n\n\n\n\n\nC\n\nTuning hyperparameters\non the test set\n\n\n\nC-&gt;L\n\n\n\n\n\n\n\n\n\n\n\nAlways fit scalers, imputers, and feature engineering strictly on each fold’s training history."
+    "section": "Coverage checks the band. It cannot rank.",
+    "text": "Coverage checks the band. It cannot rank.\nCh 5.9 · Scoring the whole distribution\n\nCoverage answers one question: is the 80% band honest?\nIt says nothing about width: an interval of \\(\\pm\\infty\\) covers 100%\nTwo models at 80% coverage can be worlds apart in usefulness\nA proper score charges you for width and for misses, in one number\n\n\n\nTo score a distribution, we start by scoring a single quantile.\n\n\nThe infinity example lands immediately: an interval of plus or minus infinity has 100% coverage and zero value. Coverage is a pass/fail check on honesty, not a ranking metric. To rank models, we need a score that prices both width and misses fairly."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#evaluation-pitfalls-to-avoid",
-    "href": "slides/04_forecast_evaluation_and_cv.html#evaluation-pitfalls-to-avoid",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#quantile-loss-generalizes-mae-to-any-level",
+    "href": "slides/04_forecast_evaluation_and_cv.html#quantile-loss-generalizes-mae-to-any-level",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "Evaluation pitfalls to avoid",
-    "text": "Evaluation pitfalls to avoid\n\nRegime changes — verify if old folds disagree with recent folds\nUnderpowered sample — evaluate over sufficient origins (\\(&gt;50\\) points)\nOverlapping folds — beware overly narrow confidence intervals when step_size &lt; h\nData gaps — verify timestamp continuity across all origins"
+    "section": "Quantile loss generalizes MAE to any level",
+    "text": "Quantile loss generalizes MAE to any level\nA quantile forecast can miss low (\\(y &gt; \\hat{q}_\\alpha\\)) or miss high (\\(y &lt; \\hat{q}_\\alpha\\)). At \\(\\alpha = 0.9\\) the two must not cost the same.\n\nPlotFormula\n\n\n\n\n\n\n\n\n\n\n\n\n\n\\[L_\\alpha(\\hat{q}, y) = \\begin{cases}\n\\alpha \\, (y - \\hat{q}) & \\text{if } y \\ge \\hat{q} \\quad \\text{(underestimated)} \\\\\n(1 - \\alpha) \\, (\\hat{q} - y) & \\text{if } y &lt; \\hat{q} \\quad \\text{(overestimated)}\n\\end{cases}\\]\n\n\n\n\n\nAt \\(\\alpha = 0.5\\) both slopes are \\(0.5\\): MAE was quantile loss all along.\n\n\nAsk the room first: if you forecast the 90th percentile, how often should the actual value come in below your forecast? Ninety percent of the time! So being higher than actual is not a failure, it is the job. The penalty must reflect that expected asymmetry.\nThen notice the slopes on the chart: at alpha=0.5, both sides rise at rate 0.5. That is plain absolute error divided by 2. When you minimize MAE, you are finding the median forecast.\nAt alpha=0.9, the slope to the right is 0.9 and to the left is 0.1. Setting the expected derivative to zero gives P(Y &lt;= q) = alpha."
   },
   {
-    "objectID": "slides/04_forecast_evaluation_and_cv.html#rightarrow-exercise-2.5",
-    "href": "slides/04_forecast_evaluation_and_cv.html#rightarrow-exercise-2.5",
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#winkler-score-combines-two-quantiles-into-an-interval",
+    "href": "slides/04_forecast_evaluation_and_cv.html#winkler-score-combines-two-quantiles-into-an-interval",
     "title": "Forecast Evaluation & Cross-Validation",
-    "section": "\\(\\rightarrow\\) Exercise 2.5",
-    "text": "\\(\\rightarrow\\) Exercise 2.5\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nRun rolling-origin cross-validation on 4 baselines\nCompute MASE, RMSSE, and 80% coverage\nBuild the baseline leaderboard for Day 3 models\n\n\n17 minutes."
+    "section": "Winkler score combines two quantiles into an interval",
+    "text": "Winkler score combines two quantiles into an interval\nAn \\(80\\%\\) prediction interval \\([\\ell_{0.2}, u_{0.2}]\\) is bounded by the \\(10\\%\\) and \\(90\\%\\) quantiles.\n\\[\\text{Winkler}([\\ell, u], y) = \\frac{L_{0.1}(\\ell, y) + L_{0.9}(u, y)}{0.1}\\]\n\nExpanding the pinball losses gives a simple, intuitive charge:\n\\[\\text{Winkler} = \\begin{cases}\n(u - \\ell) & \\text{inside the band} \\\\\n(u - \\ell) + \\frac{2}{\\alpha} (\\ell - y) & \\text{missed low } (y &lt; \\ell) \\\\\n(u - \\ell) + \\frac{2}{\\alpha} (y - u) & \\text{missed high } (y &gt; u)\n\\end{cases}\\]\n\n\n\nWinkler prices the trade: narrow intervals win inside the band, but pay a heavy linear fine for every unit outside.\n\n\nThe Winkler score is not a new ad-hoc formula. It is literally the sum of the two bounding quantile losses divided by alpha. When the actual observation falls inside the band, the score is simply the interval width (u - l). If it falls outside, the penalty is proportional to the distance of the miss."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#scaled-crps-averages-quantile-loss-across-all-levels",
+    "href": "slides/04_forecast_evaluation_and_cv.html#scaled-crps-averages-quantile-loss-across-all-levels",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Scaled CRPS averages quantile loss across all levels",
+    "text": "Scaled CRPS averages quantile loss across all levels\n\nQuantile loss: scores a single quantile \\(\\hat{q}_\\alpha\\)\nWinkler score: scores an interval \\([\\ell_\\alpha, u_\\alpha]\\) (a pair of quantiles)\nCRPS: scores the whole distribution by averaging quantile loss over all \\(\\alpha \\in (0, 1)\\)\n\n\n\\[\\text{CRPS} = \\int_0^1 2 \\, L_\\alpha(\\hat{q}_\\alpha, y) \\, d\\alpha \\quad \\approx \\quad \\frac{1}{|\\text{levels}|} \\sum_{\\alpha} 2 \\, L_\\alpha(\\hat{q}_\\alpha, y)\\]\n\n\n\nScaled CRPS divides by the seasonal naive benchmark error, making it scale-free and sortable across the entire portfolio.\n\n\nThis completes the arc from point forecast to distribution: MAE -&gt; Quantile Loss -&gt; Winkler Score -&gt; CRPS -&gt; Scaled CRPS. Now the room understands why LEVELS in scoring.py has a ladder of five levels (20, 40, 60, 80, 95): it provides 10 quantiles to approximate this integral."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#narrow-is-not-the-same-as-good",
+    "href": "slides/04_forecast_evaluation_and_cv.html#narrow-is-not-the-same-as-good",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Narrow is not the same as good",
+    "text": "Narrow is not the same as good\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian takeaway food turnover, 8 rolling origins x 12 months\nfrom utilsforecast.losses import scaled_crps\n\nQCOLS = [\"lo-95\", \"lo-80\", \"lo-60\", \"lo-40\", \"lo-20\",\n         \"hi-20\", \"hi-40\", \"hi-60\", \"hi-80\", \"hi-95\"]\nQUANTILES = np.array([0.025, 0.10, 0.20, 0.30, 0.40, 0.60, 0.70, 0.80, 0.90, 0.975])\n\ncrps = {m: scaled_crps(cv.drop(columns=[\"cutoff\"]),\n                       models={m: [f\"{m}-{c}\" for c in QCOLS]},\n                       quantiles=QUANTILES)[m].iloc[0] for m in MODELS}\n\n\n\n\nThe STL route’s intervals are the narrowest here, and it still loses on CRPS. Narrowness that is not earned gets charged for.\n\n\nThis is the Ch 5.9 payoff, so give it the time. It is the slide that stops “my intervals are tighter” from being an argument.\nThe STL route has the narrower 80% band - about 40 units against the seasonal naive’s 49 - and it loses on CRPS, 0.034 to 0.031, because those narrow bands miss more often: 61% coverage against 77%. Tighter is only better if you were right, and CRPS is what prices that trade in one number."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#leakage-is-a-model-seeing-its-own-future",
+    "href": "slides/04_forecast_evaluation_and_cv.html#leakage-is-a-model-seeing-its-own-future",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Leakage is a model seeing its own future",
+    "text": "Leakage is a model seeing its own future\n\n\nScale on the whole seriesscaler.fit(spine) the holdout sets the scale Centred rolling featuresrolling(12, center=True) month \\(t\\) has already seen \\(y_{t+6}\\) Tune on the test setkeep trying until the score improves\n\nThe answer is in the inputCV flatters, production does not\n\n\n\nThe third one is the next slide, run live.\n\n\nAlways fit scalers, imputers, and feature engineering strictly on each fold’s training history. The third cause is the one that gets past code review, because nobody wrote a line that looks wrong - they just kept trying models until the test score improved. The next slide runs that one, and the lab’s stretch exercise prices the leak the students can see: a 24% discount bought by choosing the winner fold by fold."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#choosing-per-fold-with-the-answer-in-hand-buys-24",
+    "href": "slides/04_forecast_evaluation_and_cv.html#choosing-per-fold-with-the-answer-in-hand-buys-24",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Choosing per fold with the answer in hand buys 24%",
+    "text": "Choosing per fold with the answer in hand buys 24%\n\n# one rule fixed in advance, against the best model in each fold\nhonest = per_window[\"SeasonalNaive\"].mean()\noracle = per_window[MODELS].min(axis=1).mean()\n\nprint(f\"seasonal naive, every fold  : MASE {honest:.2f}\")\nprint(f\"best model, chosen per fold : MASE {oracle:.2f}\")\nprint(f\"discount bought by peeking  : {1 - oracle / honest:.0%}\")\n\nseasonal naive, every fold  : MASE 1.18\nbest model, chosen per fold : MASE 0.90\ndiscount bought by peeking  : 24%\n\n\n\nNo rule available before a fold produces the second number. It is the holdout leaking into the choice of model.\n\n\nRun this one live. The seasonal naive wins four folds and the STL route wins the other four, and swapping between them fold by fold takes the average from 1.18 to 0.90 - a 24% improvement bought entirely by knowing the answer first.\nAsk the room what rule they would have written in advance to make those swaps. There isn’t one. That is the whole definition of leakage: a number produced by a decision that could not have been made at forecast time.\nThis is also the honest version of what happened in lecture 1, where a single window crowned the STL route at 0.70."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#four-ways-an-honest-team-still-fools-itself",
+    "href": "slides/04_forecast_evaluation_and_cv.html#four-ways-an-honest-team-still-fools-itself",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "Four ways an honest team still fools itself",
+    "text": "Four ways an honest team still fools itself\n\nRegime changes: verify if old folds disagree with recent folds\nUnderpowered sample: evaluate over sufficient origins (\\(&gt;50\\) points)\nOverlapping folds: step_size &lt; h reuses points, so intervals read too narrow\nData gaps: verify timestamp continuity across all origins\n\n\nNone of these require anyone to be careless. Every one of them has shipped from a competent team.\nIf you have a war story, this is where it goes. If not, the honest version is the one this course just walked through: a single window crowned the STL route at 0.70 and eight windows handed it back."
+  },
+  {
+    "objectID": "slides/04_forecast_evaluation_and_cv.html#rightarrow-lab-d-score-them-honestly",
+    "href": "slides/04_forecast_evaluation_and_cv.html#rightarrow-lab-d-score-them-honestly",
+    "title": "Forecast Evaluation & Cross-Validation",
+    "section": "\\(\\rightarrow\\) Lab D · Score them honestly",
+    "text": "\\(\\rightarrow\\) Lab D · Score them honestly\nOpen labs/02_day2_toolbox_and_evaluation.ipynb\n\n\n\n2.4\nScoring, and the metric that lies\n10 min\n\n\n2.5\nThe harness\n19 min\n\n\n\n\n29 minutes. The notebook carries the instructions; work down it in order.\n\nSame notebook as Lab C, pick up at Exercise 2.4. 2.5 writes labs/leaderboard.csv, which every Day 3 model plugs into. Do not skip it."
   },
   {
     "objectID": "slides/04_forecast_evaluation_and_cv.html#day-2-summary",
     "href": "slides/04_forecast_evaluation_and_cv.html#day-2-summary",
     "title": "Forecast Evaluation & Cross-Validation",
     "section": "Day 2 Summary",
-    "text": "Day 2 Summary\n\nAlways start with the 4 baseline models\nDiagnose residuals (uncorrelated, zero-mean)\nReport prediction intervals (width scales with \\(\\sqrt{h}\\))\nEvaluate with MASE and Rolling-Origin CV\n\n\n\nYou now have a robust evaluation harness. Ready for Day 3 models!"
+    "text": "Day 2 Summary\n\nStart with the four benchmarks, then the decomposition route\nDiagnose residuals: uncorrelated, zero mean\nReport intervals, and know which assumption each one spends\nScore with MASE, scaled CRPS, over rolling origins\nOne window picks winners it cannot defend\n\n\n\nSeasonal naive, MASE 1.18, scaled CRPS 0.031. That is the number to beat. And its residuals are not white noise, so it is beatable. Day 3 starts there.\n\n\nClose on what is now on disk, and on what it does not do. The leaderboard is real: seasonal naive at MASE 1.18 and scaled CRPS 0.031 over eight folds, and every Day 3 model has to get past those numbers.\nAnd the floor is not finished. The seasonal naive’s residuals failed Ljung-Box at p about 1e-240, so there is signal in this series that nothing today captured. That is Day 3’s opening sentence."
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#eyeballing-cannot-be-tested-and-does-not-scale",
@@ -130,7 +172,7 @@
     "href": "slides/02_acf_decomposition_and_features.html#a-lag-plot-on-a-trending-series-only-shows-the-trend",
     "title": "ACF, Decomposition & Features",
     "section": "A lag plot on a trending series only shows the trend",
-    "text": "A lag plot on a trending series only shows the trend\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine())\n# Detrended with a 12-month centred moving average:\ndetrended = spine[\"y\"].to_numpy() - P.centred_ma(spine[\"y\"], 12)\n\nfig, axes = plt.subplots(2, 3, figsize=(10, 4.4))\nP.lag_plot_grid(spine[\"y\"], lags=(1, 6, 12), axes=axes[0])\nP.lag_plot_grid(pd.Series(detrended).dropna(), lags=(1, 6, 12), axes=axes[1])\naxes[0, 0].set_ylabel(\"raw turnover ($M)\", size=10)\naxes[1, 0].set_ylabel(\"trend removed ($M)\", size=10)\n\n\n\n\nRaw (top): every lag scores \\(r \\approx 0.98\\), which is the trend talking\nTrend removed (bottom): lag 12 jumps to \\(0.73\\), lag 6 turns negative\n\n\nThe trend is removed here with a 12-month moving average, which is segment 4. Do not teach it yet. The point is only that the raw lag plot cannot separate the two."
+    "text": "A lag plot on a trending series only shows the trend\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine())\n# Detrended with a 12-month centred moving average:\ndetrended = spine[\"y\"].to_numpy() - P.centred_ma(spine[\"y\"], 12)\n\nfig, axes = plt.subplots(2, 3, figsize=(10, 4))\nP.lag_plot_grid(spine[\"y\"], lags=(1, 6, 12), axes=axes[0])\nP.lag_plot_grid(pd.Series(detrended).dropna(), lags=(1, 6, 12), axes=axes[1])\naxes[0, 0].set_ylabel(\"raw turnover ($M)\", size=10)\naxes[1, 0].set_ylabel(\"trend removed ($M)\", size=10)\n\n\n\n\nRaw (top): every lag scores \\(r \\approx 0.98\\), which is the trend talking\nTrend removed (bottom): lag 12 jumps to \\(0.73\\), lag 6 turns negative\n\n\nThe trend is removed here with a 12-month moving average, which is segment 4. Do not teach it yet. The point is only that the raw lag plot cannot separate the two."
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#bounds-separate-real-correlation-from-luck",
@@ -151,28 +193,21 @@
     "href": "slides/02_acf_decomposition_and_features.html#each-component-has-its-own-acf-signature",
     "title": "ACF, Decomposition & Features",
     "section": "Each component has its own ACF signature",
-    "text": "Each component has its own ACF signature\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Datasets / Components:\n# 1. Trend only: trend_only = spine STL trend component\n# 2. Seasonality only: season_only = spine log-STL seasonal component\n# 3. Cycle: lynx = D.lynx() (Canadian lynx pelts)\n# 4. White noise: noise = D.white_noise(n=len(spine), seed=7)\n\nfig, axes = plt.subplots(2, 4, figsize=(11.5, 5.0))\n# Top row: Time series\nP.plot_series(trend_only, ax=axes[0, 0], title=\"Trend only\", ylabel=\"turnover ($M)\")\nP.plot_series(season_only, ax=axes[0, 1], title=\"Seasonality only\", color=P.BLUE, ylabel=\"seasonal swing\")\nP.plot_series(lynx, ax=axes[0, 2], title=\"Cycle (lynx)\", color=P.PINK, ylabel=\"pelts\")\nP.plot_series(noise, ax=axes[0, 3], title=\"White noise\", color=P.GREY, ylabel=\"z\")\n\n# Bottom row: Corresponding ACF correlograms\nP.acf_plot(trend_only[\"y\"], nlags=36, ax=axes[1, 0], title=\"Slow decay\")\nP.acf_plot(season_only[\"y\"], nlags=36, ax=axes[1, 1], highlight_every=12, color=P.BLUE, title=\"Spikes at 12, 24, 36\")\nP.acf_plot(lynx[\"y\"], nlags=30, ax=axes[1, 2], color=P.PINK, title=\"Oscillating wave\")\nP.acf_plot(noise[\"y\"], nlags=36, ax=axes[1, 3], color=P.GREY, title=\"All inside bounds\")\n\n\n\n\nThe first two panels were split out with STL, which is segment 4. Do not teach it yet. Read the figure column by column: top row is the series, bottom row is its ACF. The claim is only that each component leaves a different shape, and that you can go the other way. That is exactly what Exercise 1.3 asks for."
+    "text": "Each component has its own ACF signature\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Datasets / Components:\n# 1. Trend only: trend_only = spine STL trend component\n# 2. Seasonality only: season_only = spine log-STL seasonal component\n# 3. Cycle: lynx = D.lynx() (Canadian lynx pelts)\n# 4. White noise: noise = D.white_noise(n=len(spine), seed=7)\n\nfig, axes = plt.subplots(2, 4, figsize=(11.5, 5.0))\n# Top row: Time series\nP.plot_series(trend_only, ax=axes[0, 0], title=\"Trend only\", ylabel=\"turnover ($M)\")\nP.plot_series(season_only, ax=axes[0, 1], title=\"Seasonality only\", color=P.BLUE, ylabel=\"seasonal swing\")\nP.plot_series(lynx, ax=axes[0, 2], title=\"Cycle (lynx)\", color=P.PINK, ylabel=\"pelts\")\nP.plot_series(noise, ax=axes[0, 3], title=\"White noise\", color=P.GREY, ylabel=\"z\")\n\n# Bottom row: Corresponding ACF correlograms\nP.acf_plot(trend_only[\"y\"], nlags=36, ax=axes[1, 0], title=\"Slow decay\")\nP.acf_plot(season_only[\"y\"], nlags=36, ax=axes[1, 1], highlight_every=12, color=P.BLUE, title=\"Spikes at 12, 24, 36\")\nP.acf_plot(lynx[\"y\"], nlags=30, ax=axes[1, 2], color=P.PINK, title=\"Oscillating wave\")\nP.acf_plot(noise[\"y\"], nlags=36, ax=axes[1, 3], color=P.GREY, title=\"All inside bounds\")\n\n# Decade labels, plus a tick on every year, so the peak-to-peak gaps are countable\nP.year_xticks(axes[0, 2], step=10, minor=1, rotation=45)\n\n\n\n\nThe first two panels were split out with STL, which is segment 4. Do not teach it yet. Read the figure column by column: top row is the series, bottom row is its ACF. The claim is only that each component leaves a different shape, and that you can go the other way. That is exactly what Exercise 1.3 asks for."
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#reading-any-acf-in-five-shapes",
     "href": "slides/02_acf_decomposition_and_features.html#reading-any-acf-in-five-shapes",
     "title": "ACF, Decomposition & Features",
     "section": "Reading any ACF in five shapes",
-    "text": "Reading any ACF in five shapes\n\n\n\nVisual Pattern\nUnderlying Property\n\n\n\n\nSlow, smooth decay\nTrend\n\n\nRepeating peaks at \\(m, 2m, 3m\\)\nSeasonality (period \\(m\\))\n\n\nDecay + Seasonal peaks\nTrend + Seasonality\n\n\nAll spikes inside bounds\nWhite Noise (no remaining signal)\n\n\nSlow oscillating wave\nCycle (no fixed period)\n\n\n\n\n\nKey application: When model residuals are white noise, the model has captured all systematic structure."
+    "text": "Reading any ACF in five shapes\n\n\n\nVisual Pattern\nUnderlying Property\n\n\n\n\nSlow, smooth decay\nTrend\n\n\nRepeating peaks at \\(m, 2m, 3m\\)\nSeasonality (period \\(m\\))\n\n\nDecay + Seasonal peaks\nTrend + Seasonality\n\n\nAll spikes inside bounds\nWhite Noise (no remaining signal)\n\n\nSlow oscillating wave\nCycle (no fixed period)\n\n\n\n\n\nKey application: When the unexplained variation is white noise, the model has captured all systematic structure."
   },
   {
-    "objectID": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.3-read-the-correlogram",
-    "href": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.3-read-the-correlogram",
+    "objectID": "slides/02_acf_decomposition_and_features.html#a-log-transform-flattens-the-growing-swing",
+    "href": "slides/02_acf_decomposition_and_features.html#a-log-transform-flattens-the-growing-swing",
     "title": "ACF, Decomposition & Features",
-    "section": "\\(\\rightarrow\\) Exercise 1.3 · Read the correlogram",
-    "text": "\\(\\rightarrow\\) Exercise 1.3 · Read the correlogram\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nMatch four correlograms to four series\nCompute ACF for spine data vs. white noise\nIdentify statistically significant lags\n\n\n15 minutes."
-  },
-  {
-    "objectID": "slides/02_acf_decomposition_and_features.html#box-cox-flattens-the-growing-swing",
-    "href": "slides/02_acf_decomposition_and_features.html#box-cox-flattens-the-growing-swing",
-    "title": "ACF, Decomposition & Features",
-    "section": "Box-Cox flattens the growing swing",
-    "text": "Box-Cox flattens the growing swing\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine())\n# Box-Cox transformation with optimal log-likelihood lambda:\nlam = boxcox_lambda(spine[\"y\"].to_numpy(), method=\"loglik\")\nyt = boxcox(spine[\"y\"].to_numpy(), lam)\n\nfig, axes = plt.subplots(1, 2, figsize=(10, 3.8))\nP.plot_series(spine, ax=axes[0], title=\"Original: expanding swing\", ylabel=\"turnover ($M)\")\nP.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,\n              ylabel=\"transformed turnover\", title=rf\"Box-Cox ($\\lambda = {lam:.2f}$): constant swing\")\n\n\n\n\nWhen swing grows with level, transform before decomposing\n\\(\\lambda \\approx 0 \\implies\\) Use a standard log transform (\\(\\log y_t\\))\n\n\nLambda came out near zero, which is the log case. Worth saying that Box-Cox is a family with the log at one end, not a separate technique. Everything after this slide in the segment runs on the transformed series."
+    "section": "A log transform flattens the growing swing",
+    "text": "A log transform flattens the growing swing\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (spine = D.spine())\n# Log transform: a multiplicative series becomes additive on the log scale\nyt = np.log(spine[\"y\"].to_numpy())\n\nfig, axes = plt.subplots(1, 2, figsize=(10, 3.8))\nP.plot_series(spine, ax=axes[0], title=\"Original: expanding swing\", ylabel=\"turnover ($M)\")\nP.plot_series(spine.assign(y=yt), ax=axes[1], color=P.ORANGE,\n              ylabel=\"log turnover\", title=\"Log scale: constant swing\")\n\n\n\n\nWhen the swing grows with the level, take a log transform before decomposing\nOn the log scale a multiplicative series is additive: the swing stops growing\nForecasting on it? Back-transforming returns the median, not the mean (Ch 5.6)\n\n\nDeck 1 named the diagnosis: the swing grows with the level, so the series is multiplicative, and the fix is the log transform. This slide is that fix, applied: the annual swing is now a constant size, and the sixfold trend has become a near-straight climb. Everything after this slide in the segment runs on the log-transformed series.\nBox-Cox is the generalised version: a family of transforms indexed by lambda, with the log at lambda = 0. For this series the optimal lambda is about 0.07, so the log is the honest choice. Do not teach Box-Cox today; it comes back on Day 3 with ETS, where a fitted lambda is part of the model.\nThe median-vs-mean point is the one they will trip over in production: if a regional total is the sum of 40 back-transformed store forecasts, that total is biased low unless you correct it."
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#a-centred-moving-average-estimates-the-trend-cycle",
@@ -186,14 +221,21 @@
     "href": "slides/02_acf_decomposition_and_features.html#a-whole-cycle-window-cancels-the-season",
     "title": "ACF, Decomposition & Features",
     "section": "A whole-cycle window cancels the season",
-    "text": "A whole-cycle window cancels the season\nAveraging \\(m = 2k+1\\) terms of \\(y_t = T_t + S_t + R_t\\), centred on \\(t\\):\n\\[\\hat{T}_t = \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} T_{t+j}}_{\\text{trend}}\n            + \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} S_{t+j}}_{\\text{season}}\n            + \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} R_{t+j}}_{\\text{noise}}\\]\n\nSeason \\(= 0\\), exactly: the window spans one whole cycle\nTrend survives: a symmetric window is unbiased on a linear trend\nNoise shrinks by \\(1/m\\), damped but never removed\n\n\nTake the middle term first. One full cycle of a seasonal component sums to zero by definition, and the window is exactly one cycle, so that term is not small, it is zero. The trend term: with \\(T_{t+j}\\) locally linear the symmetric offsets cancel and you get \\(T_t\\) back. Everything left over is damped noise. That is the whole argument, and it is worth saying slowly because the rest of the segment rests on it."
+    "text": "A whole-cycle window cancels the season\nAveraging \\(m = 2k+1\\) terms of \\(y_t = T_t + S_t + R_t\\), centred on \\(t\\):\n\\[\\hat{T}_t = \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} T_{t+j}}_{\\text{trend}}\n            + \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} S_{t+j}}_{\\text{season}}\n            + \\underbrace{\\frac{1}{m}\\sum_{j=-k}^{k} R_{t+j}}_{\\text{noise}}\\]\n\nConstraint \\(\\sum_{j=1}^m S_j = 0\\): ensures pure swings around trend (any non-zero mean is unrecognizable trend)\nSeason \\(= 0\\), exactly: an \\(m\\)-window spans one whole cycle\nTrend survives: a symmetric window is unbiased on a linear trend\nNoise shrinks by \\(1/m\\), damped but never removed\n\n\nThe constraint sum(S_j) = 0 is essential: without it, decomposition is not unique. Any non-zero average in S is unrecognizable trend, so the seasonal component is defined only up to a constant and the split between trend and season is not. Because the window is exactly one cycle, the middle term sums to 0. Locally linear trend offsets cancel, leaving T_t plus damped noise.\nFor a multiplicative model the same idea multiplies instead: going through a full cycle, S1 x S2 x … x Sm = 1, so a geometric mean over the window removes the season."
+  },
+  {
+    "objectID": "slides/02_acf_decomposition_and_features.html#seasonal-terms-always-sum-to-zero-over-m-steps",
+    "href": "slides/02_acf_decomposition_and_features.html#seasonal-terms-always-sum-to-zero-over-m-steps",
+    "title": "ACF, Decomposition & Features",
+    "section": "Seasonal terms always sum to zero over \\(m\\) steps",
+    "text": "Seasonal terms always sum to zero over \\(m\\) steps\nPeriodicity (\\(S_{t+m} = S_t\\)) means any \\(m\\) consecutive terms span the full cycle:\n\\[\\{S_{t-k}, \\dots, S_{t+k}\\} = \\{S_1, \\dots, S_m\\} \\qquad (m = 2k + 1)\\]\n\nAveraging over window \\(m\\) cancels the season completely:\n\\[\\bar{S}_t = \\frac{1}{m}(S_{t-k} + \\dots + S_{t+k}) = \\frac{1}{m}(\\underbrace{S_1 + S_2 + \\dots + S_m}_{\\text{sums to } 0}) = \\frac{1}{m}(0) = \\mathbf{0}\\]\n\nBecause additive seasonality sums to zero across one cycle by construction, any window of length m captures each season exactly once and averages to 0, regardless of the starting month."
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#an-even-m-needs-the-2m-ma-to-stay-centred",
     "href": "slides/02_acf_decomposition_and_features.html#an-even-m-needs-the-2m-ma-to-stay-centred",
     "title": "ACF, Decomposition & Features",
     "section": "An even \\(m\\) needs the 2×\\(m\\)-MA to stay centred",
-    "text": "An even \\(m\\) needs the 2×\\(m\\)-MA to stay centred\nTwelve consecutive months have no middle month, so their average sits at \\(t + \\tfrac{1}{2}\\). Average two adjacent 12-MAs to land back on \\(t\\):\n\\[\\hat{T}_t = \\tfrac{1}{24}y_{t-6} + \\tfrac{1}{12}\\sum_{j=-5}^{5} y_{t+j}\n              + \\tfrac{1}{24}y_{t+6}\\]\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# 2x12 Centred Moving Average filter weights:\nfig, ax = plt.subplots(figsize=(7.5, 2.4))\nP.ma_weight_plot(12, ax=ax, title=\"13 weights, symmetric about $t$\")\n\n\n\n\n\\(y_{t-6}\\) and \\(y_{t+6}\\) are the same calendar month, so between them they carry \\(\\tfrac{1}{12}\\), like every other month. The season still cancels exactly.\n\n\nThe two half weights land on the same calendar month, six months either side of t. Between them that month still gets a full 1/12, like every other month, so the season still cancels exactly. That is the only reason the 2x12 form exists."
+    "text": "An even \\(m\\) needs the 2×\\(m\\)-MA to stay centred\nTwelve months have no middle month: their average sits at \\(t + \\tfrac{1}{2}\\). Average two adjacent 12-MAs to land back on \\(t\\):\n\\[\\hat{T}_t = \\tfrac{1}{24}y_{t-6} + \\tfrac{1}{12}\\sum_{j=-5}^{5} y_{t+j}\n              + \\tfrac{1}{24}y_{t+6}\\]\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# 2x12 Centred Moving Average filter weights:\nfig, ax = plt.subplots(figsize=(7.5, 1.7))\nP.ma_weight_plot(12, ax=ax, title=\"13 weights, symmetric about $t$\")\n\n\n\n\n\\(y_{t-6}\\) and \\(y_{t+6}\\) are the same calendar month, so between them it still gets \\(\\tfrac{1}{12}\\), like every other month. The season cancels exactly.\n\n\nThe two half weights land on the same calendar month, six months either side of t. Between them that month still gets a full 1/12, like every other month, so the season still cancels exactly. That is the only reason the 2x12 form exists."
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#classical-decomposition-is-averages-all-the-way-down",
@@ -214,7 +256,7 @@
     "href": "slides/02_acf_decomposition_and_features.html#stl-seasonal-trend-using-loess-splits-all-three",
     "title": "ACF, Decomposition & Features",
     "section": "STL (Seasonal-Trend using Loess) splits all three",
-    "text": "STL (Seasonal-Trend using Loess) splits all three\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Transformed spine turnover (yt = Box-Cox of D.spine())\nres = STL(yt, period=12, robust=True).fit()\ndcmp = spine.assign(\n    **{\"transformed turnover\": yt},\n    trend=np.asarray(res.trend),\n    seasonal=np.asarray(res.seasonal),\n    remainder=np.asarray(res.resid),\n)\nfig, axes = P.decomposition_plot(\n    dcmp, [\"transformed turnover\", \"trend\", \"seasonal\", \"remainder\"],\n    \"STL decomposition of the transformed spine\")"
+    "text": "STL (Seasonal-Trend using Loess) splits all three\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Log-transformed spine turnover (yt = np.log of D.spine()[\"y\"])\nres = STL(yt, period=12, robust=True).fit()\ndcmp = spine.assign(\n    **{\"transformed turnover\": yt},\n    trend=np.asarray(res.trend),\n    seasonal=np.asarray(res.seasonal),\n    remainder=np.asarray(res.resid),\n)\nfig, axes = P.decomposition_plot(\n    dcmp, [\"transformed turnover\", \"trend\", \"seasonal\", \"remainder\"],\n    \"STL decomposition of the transformed spine\")"
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#stl-bends-where-classical-decomposition-cannot",
@@ -229,13 +271,6 @@
     "title": "ACF, Decomposition & Features",
     "section": "Adjusting reveals the level shifts the season was hiding",
     "text": "Adjusting reveals the level shifts the season was hiding\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Transformed spine turnover (dcmp = STL components of transformed spine)\nfig, ax = plt.subplots(figsize=(9.5, 4.0))\nP.adjusted_plot(dcmp, dcmp[\"transformed turnover\"],\n                dcmp[\"transformed turnover\"] - dcmp[\"seasonal\"], ax=ax,\n                title=\"Observed vs. seasonally adjusted ($y_t - S_t$)\",\n                ylabel=\"transformed turnover\")\n\n\n\n\nThe step up in 2009 and the dip around 2000 are level shifts, not season. Both are much easier to see once the annual swing is gone."
-  },
-  {
-    "objectID": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.4-transform-and-decompose",
-    "href": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.4-transform-and-decompose",
-    "title": "ACF, Decomposition & Features",
-    "section": "\\(\\rightarrow\\) Exercise 1.4 · Transform and decompose",
-    "text": "\\(\\rightarrow\\) Exercise 1.4 · Transform and decompose\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nEstimate optimal Box-Cox \\(\\lambda\\)\nFit STL decomposition\nPlot components and produce seasonally adjusted series\n\n\n15 minutes."
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#one-row-per-series-makes-a-portfolio-tractable",
@@ -266,11 +301,11 @@
     "text": "Features route a portfolio to the right model\n\nTriage: focus manual attention on unusual series\nModel Routing: skip seasonal models if \\(F_S \\approx 0\\)\nAnomaly Detection: feature outliers often indicate data errors\nClustering: group similar series for global models\n\n\n\n\n\n\n\n\nGolden Rule\n\n\nWhen a point looks anomalous in feature space, always plot the raw series."
   },
   {
-    "objectID": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.5-features-across-a-portfolio",
-    "href": "slides/02_acf_decomposition_and_features.html#rightarrow-exercise-1.5-features-across-a-portfolio",
+    "objectID": "slides/02_acf_decomposition_and_features.html#rightarrow-lab-b-measure-what-you-saw",
+    "href": "slides/02_acf_decomposition_and_features.html#rightarrow-lab-b-measure-what-you-saw",
     "title": "ACF, Decomposition & Features",
-    "section": "\\(\\rightarrow\\) Exercise 1.5 · Features across a portfolio",
-    "text": "\\(\\rightarrow\\) Exercise 1.5 · Features across a portfolio\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nCompute \\(F_T\\) and \\(F_S\\) for all retail series\nRank series by seasonal strength\nPlot the most and least seasonal series\n\n\n15 minutes."
+    "section": "\\(\\rightarrow\\) Lab B · Measure what you saw",
+    "text": "\\(\\rightarrow\\) Lab B · Measure what you saw\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\n\n\n1.3\nRead the correlogram\n15 min\n\n\n1.4\nTransform and decompose\n15 min\n\n\n1.5\nFeatures across a portfolio\n15 min\n\n\n\n\n45 minutes. The notebook carries the instructions; work down it in order.\n\nSame notebook as Lab A. Pick up at Exercise 1.3."
   },
   {
     "objectID": "slides/02_acf_decomposition_and_features.html#day-1-summary",
@@ -284,7 +319,7 @@
     "href": "index.html",
     "title": "Time Series Analysis & Forecasting",
     "section": "",
-    "text": "Built on Forecasting: Principles and Practice, the Pythonic Way (Hyndman, Athanasopoulos, Garza, Challu, Mergenthaler & Olivares), using the statsforecast / utilsforecast stack.\nEach day runs three hours as five concept → exercise cycles: a short segment, then you do it while it is fresh."
+    "text": "Built on Forecasting: Principles and Practice, the Pythonic Way (Hyndman, Athanasopoulos, Garza, Challu, Mergenthaler & Olivares), using the statsforecast / utilsforecast stack.\nEach day runs three hours as two lecture → lab blocks: a deck taught straight through, then a lab where you do all of it while it is fresh."
   },
   {
     "objectID": "index.html#before-you-start",
@@ -298,21 +333,21 @@
     "href": "index.html#day-1-structure",
     "title": "Time Series Analysis & Forecasting",
     "section": "Day 1: Structure",
-    "text": "Day 1: Structure\nSeeing what is actually in a series.\n\n\n\nSegments 1–2\nGetting Started & Time Series Patterns\n\n\nSegments 3–5\nACF, Decomposition & Features\n\n\nExercises\nlabs/01_day1_structure_and_diagnostics.ipynb \n\n\n\nApplications and what can be forecast · the three model families · trend, seasonality and cycle · components · the golden rule · the four plots · autocorrelation and the correlogram · Box-Cox and STL · features across a whole portfolio."
+    "text": "Day 1: Structure\nSeeing what is actually in a series.\n\n\n\nLecture 1\nGetting Started & Time Series Patterns\n\n\nLecture 2\nACF, Decomposition & Features\n\n\nLabs A–B\nlabs/01_day1_structure_and_diagnostics.ipynb \n\n\n\nApplications and what can be forecast · the three model families · trend, seasonality and cycle · components · the golden rule · the four plots · autocorrelation and the correlogram · log transform and STL · features across a whole portfolio."
   },
   {
     "objectID": "index.html#day-2-toolbox-evaluation",
     "href": "index.html#day-2-toolbox-evaluation",
     "title": "Time Series Analysis & Forecasting",
     "section": "Day 2: Toolbox & evaluation",
-    "text": "Day 2: Toolbox & evaluation\nForecasting, and proving whether the forecast was any good.\n\n\n\nSegments 1–3\nBenchmarks, Residuals & Prediction Intervals\n\n\nSegments 4–5\nForecast Evaluation & Cross-Validation\n\n\nExercises\nlabs/02_day2_toolbox_and_evaluation.ipynb \n\n\n\nThe benchmark floor · fitted values and residuals · Ljung-Box · prediction intervals and why they widen · MAE, RMSE, MAPE and why MASE instead · rolling-origin cross-validation · leakage.\nDay 2 ends with an evaluation harness and the first rows of the course leaderboard."
+    "text": "Day 2: Toolbox & evaluation\nForecasting, and proving whether the forecast was any good.\n\n\n\nLecture 1\nBenchmarks, Residuals & Prediction Intervals\n\n\nLecture 2\nForecast Evaluation & Cross-Validation\n\n\nLabs C–D\nlabs/02_day2_toolbox_and_evaluation.ipynb \n\n\n\nThe benchmark floor · forecasting from a decomposition · fitted values and residuals · Ljung-Box · prediction intervals and why they widen · Gaussian, bootstrap and conformal intervals and what each one spends · MAE, RMSE, MAPE and why MASE instead · scaled CRPS, because coverage cannot rank · rolling-origin cross-validation · leakage.\nDay 2 ends with an evaluation harness and the first rows of the course leaderboard, and with a model that wins on one window and loses over eight. The floor to beat is a seasonal naive at MASE 1.18. Its residuals fail Ljung-Box at p about 1e-240, so there is signal in this series that nothing on Day 2 captured, and that is where Day 3 opens."
   },
   {
     "objectID": "index.html#day-3-models",
     "href": "index.html#day-3-models",
     "title": "Time Series Analysis & Forecasting",
     "section": "Day 3: Models",
-    "text": "Day 3: Models\nIn preparation. The mix is still being decided: ETS, ARIMA, dynamic regression, neural and foundation models. Whatever it turns out to be, every model gets plugged into the harness built on Day 2 and added to the same leaderboard."
+    "text": "Day 3: Models\nIn preparation. Exponential smoothing (ETS) first, with AutoARIMA closing Day 2’s white-noise question, then AutoGluon TimeSeries as the orchestrated layer over the same model zoo, and a closing map of the rest of the field. Every model gets plugged into the harness built on Day 2 and added to the same leaderboard."
   },
   {
     "objectID": "slides/01_getting_started_and_patterns.html#where-we-are-going",
@@ -347,7 +382,7 @@
     "href": "slides/01_getting_started_and_patterns.html#pure-time-series-models-require-no-future-drivers",
     "title": "Getting Started & Time Series Patterns",
     "section": "Pure time series models require no future drivers",
-    "text": "Pure time series models require no future drivers\nForecasting hourly electricity demand (ED) — three ways to write the same job:\n\n1. Explanatory — why is demand what it is? Every driver on the right needs its own forecast first.\n\\[\\small \\text{ED} = f(\\text{temperature},\\ \\text{economy},\\ \\text{population},\\ \\text{time of day},\\ \\text{day of week},\\ \\text{error})\\]\n\n\n2. Time series — what happened next last time? Everything on the right is already recorded.\n\\[\\small \\text{ED}_{t+1} = f(\\text{ED}_t,\\ \\text{ED}_{t-1},\\ \\text{ED}_{t-2},\\ \\text{ED}_{t-3},\\ \\ldots,\\ \\text{error})\\]\n\n\n3. Mixed — dynamic regression: past demand plus drivers, so the drivers’ forecast error rides along.\n\\[\\small \\text{ED}_{t+1} = f(\\text{ED}_t,\\ \\text{temperature}_{t+1},\\ \\text{time of day},\\ \\text{day of week},\\ \\text{error})\\]\n\nCourse focus: Days 1–2 stay on model 2. Day 3 goes further.\n\nThis is fpppy 1.4. The point is not that explanatory models are worse — it is that their right-hand side is unavailable at forecast time, so you end up forecasting the predictors too, and inherit that error."
+    "text": "Pure time series models require no future drivers\nForecasting hourly electricity demand (ED), three ways to write the same job:\n\n1. Explanatory — why is demand what it is? Every driver on the right needs its own forecast first.\n\\[\\small \\text{ED} = f(\\text{temperature},\\ \\text{economy},\\ \\text{population},\\ \\text{time of day},\\ \\text{day of week},\\ \\text{error})\\]\n\n\n2. Time series — what happened next last time? Everything on the right is already recorded.\n\\[\\small \\text{ED}_{t+1} = f(\\text{ED}_t,\\ \\text{ED}_{t-1},\\ \\text{ED}_{t-2},\\ \\text{ED}_{t-3},\\ \\ldots,\\ \\text{error})\\]\n\n\n3. Mixed — dynamic regression: past demand plus drivers, so the drivers’ forecast error rides along.\n\\[\\small \\text{ED}_{t+1} = f(\\text{ED}_t,\\ \\text{temperature}_{t+1},\\ \\text{time of day},\\ \\text{day of week},\\ \\text{error})\\]\n\nCourse focus: Days 1–2 stay on model 2. Day 3 goes further.\n\nThis is fpppy 1.4. The point is not that explanatory models are worse — it is that their right-hand side is unavailable at forecast time, so you end up forecasting the predictors too, and inherit that error."
   },
   {
     "objectID": "slides/01_getting_started_and_patterns.html#past-history-avoids-missing-future-predictors",
@@ -375,7 +410,7 @@
     "href": "slides/01_getting_started_and_patterns.html#four-series-show-four-distinct-temporal-patterns",
     "title": "Getting Started & Time Series Patterns",
     "section": "Four series show four distinct temporal patterns",
-    "text": "Four series show four distinct temporal patterns\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Datasets:\n# 1. Victorian retail takeaway turnover: spine = D.spine()\n# 2. Australian quarterly beer production: beer = D.beer()\n# 3. Canadian lynx pelts (annual): lynx = D.lynx()\n# 4. Simulated white noise: noise = D.white_noise(n=len(spine), seed=7)\n\nfig, axes = plt.subplots(2, 2, figsize=(10, 5.4))\nP.plot_series(spine, ax=axes[0, 0], title=\"Trend + seasonality (retail)\", ylabel=\"turnover ($M)\")\nP.plot_series(beer, ax=axes[0, 1], title=\"Seasonality + drifting trend (beer)\", color=P.BLUE, ylabel=\"megalitres\")\nP.plot_series(lynx, ax=axes[1, 0], title=\"Cycle, no fixed period (lynx)\", color=P.PINK, ylabel=\"pelts traded\")\nP.plot_series(noise, ax=axes[1, 1], title=\"No pattern (white noise)\", color=P.GREY, ylabel=\"z\")\n\n\n\n\nThe lynx peaks occur 8–11 years apart, never the exact same gap. This is a cycle, not seasonality."
+    "text": "Four series show four distinct temporal patterns\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Datasets:\n# 1. Victorian retail takeaway turnover: spine = D.spine()\n# 2. Australian quarterly beer production: beer = D.beer()\n# 3. Canadian lynx pelts (annual): lynx = D.lynx()\n# 4. Simulated white noise: noise = D.white_noise(n=len(spine), seed=7)\n\nfig, axes = plt.subplots(2, 2, figsize=(10, 5.4))\nP.plot_series(spine, ax=axes[0, 0], title=\"Trend + seasonality (retail)\", ylabel=\"turnover ($M)\")\nP.plot_series(beer, ax=axes[0, 1], title=\"Seasonality + drifting trend (beer)\", color=P.BLUE, ylabel=\"megalitres\")\nP.plot_series(lynx, ax=axes[1, 0], title=\"Cycle, no fixed period (lynx)\", color=P.PINK, ylabel=\"pelts traded\")\nP.plot_series(noise, ax=axes[1, 1], title=\"No pattern (white noise)\", color=P.GREY, ylabel=\"z\")\n\n# Decade labels, plus a tick on every year, so the peak-to-peak gaps are countable\nP.year_xticks(axes[1, 0], step=10, minor=1)\n\n\n\n\nThe lynx peaks occur 8–11 years apart, never the exact same gap. This is a cycle, not seasonality."
   },
   {
     "objectID": "slides/01_getting_started_and_patterns.html#time-series-split-into-trend-season-and-remainder",
@@ -406,18 +441,11 @@
     "text": "Same values, shuffled: every pattern is gone\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: spine = D.spine() (441 monthly observations)\nrng = np.random.default_rng(0)\ny = spine[\"y\"].to_numpy()\nshuffled = rng.permutation(y)\n\nfig, axes = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)\nP.plot_series(spine, ax=axes[0], color=P.BLACK, ylabel=\"turnover ($M)\",\n              title=\"Original: trend and season\")\nP.plot_series(spine.assign(y=shuffled), ax=axes[1], color=P.ORANGE,\n              title=\"Shuffled: same 441 values, new order\")\n\n\n\n\nSame mean, same variance, same histogram\nNothing left to forecast from: the order was the only structure\n\n\nAsk the room what a model could possibly learn from the right-hand panel. Nothing, and yet its summary statistics are identical to the left. Day 2 measures this properly."
   },
   {
-    "objectID": "slides/01_getting_started_and_patterns.html#rightarrow-exercise-1.1-name-the-pattern",
-    "href": "slides/01_getting_started_and_patterns.html#rightarrow-exercise-1.1-name-the-pattern",
-    "title": "Getting Started & Time Series Patterns",
-    "section": "\\(\\rightarrow\\) Exercise 1.1 · Name the pattern",
-    "text": "\\(\\rightarrow\\) Exercise 1.1 · Name the pattern\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nClassify six time series\nIdentify: Trend? Seasonality? Cycle?\nChoose: Additive or Multiplicative?\n\n\n10 minutes. Focus on visual diagnosis."
-  },
-  {
     "objectID": "slides/01_getting_started_and_patterns.html#four-plots-four-questions",
     "href": "slides/01_getting_started_and_patterns.html#four-plots-four-questions",
     "title": "Getting Started & Time Series Patterns",
     "section": "Four plots, four questions",
-    "text": "Four plots, four questions\n\n\n\nPlot\nCore Question\n\n\n\n\nTime plot\nWhat does the overall series look like?\n\n\nSeasonal plot\nWhat is the repeating annual shape?\n\n\nSubseries plot\nHow does each specific month/quarter evolve?\n\n\nLag plot\nIs \\(y_t\\) related to \\(y_{t-k}\\)? (segment 3)\n\n\n\n\n\n\n\n\n\n\nStart with the Time Plot\n\n\nAlways check the time plot first for outliers, gaps, and structural breaks."
+    "text": "Four plots, four questions\n\n\n\nPlot\nCore Question\n\n\n\n\nTime plot\nWhat does the overall series look like?\n\n\nSeasonal plot\nWhat is the repeating annual shape?\n\n\nSubseries plot\nHow does each specific month/quarter evolve?\n\n\nLag plot\nIs \\(y_t\\) related to \\(y_{t-k}\\)? (next deck)\n\n\n\n\n\n\n\n\n\n\nStart with the Time Plot\n\n\nAlways check the time plot first for outliers, gaps, and structural breaks."
   },
   {
     "objectID": "slides/01_getting_started_and_patterns.html#time-plots-reveal-long-term-trend-and-variance-growth",
@@ -445,7 +473,7 @@
     "href": "slides/01_getting_started_and_patterns.html#strong-trend-obscures-raw-month-to-month-means",
     "title": "Getting Started & Time Series Patterns",
     "section": "Strong trend obscures raw month-to-month means",
-    "text": "Strong trend obscures raw month-to-month means\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (D.spine(), 1982-2018):\n# sp = D.add_calendar(spine)\nfig, axes = P.subseries_plot(sp, \"month\", ylabel=\"turnover ($M)\",\n                             season_labels=P.MONTH_LABELS,\n                             title=\"Spine turnover by month, 1982 to 2018\")\n\n\n\n\n\n\n\n\n\nTrend Obscures Month-to-Month Means\n\n\nWhen trend growth is this large (6x), seasonal differences appear tiny until trend is removed with decomposition (segment 4).\n\n\n\n\nAsk the room which month is highest here. Nobody can tell. Then flip back two slides to the seasonal plot, where December is obvious. Same data, different subtraction."
+    "text": "Strong trend obscures raw month-to-month means\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (D.spine(), 1982-2018):\n# sp = D.add_calendar(spine)\nfig, axes = P.subseries_plot(sp, \"month\", ylabel=\"turnover ($M)\",\n                             season_labels=P.MONTH_LABELS,\n                             title=\"Spine turnover by month, 1982 to 2018\")\n\n\n\n\n\n\n\n\n\nTrend Obscures Month-to-Month Means\n\n\nWhen trend growth is this large (6x), seasonal differences appear tiny until trend is removed with decomposition (next deck).\n\n\n\n\nAsk the room which month is highest here. Nobody can tell. Then flip back two slides to the seasonal plot, where December is obvious. Same data, different subtraction."
   },
   {
     "objectID": "slides/01_getting_started_and_patterns.html#verify-timestamp-continuity-before-fitting-models",
@@ -455,11 +483,11 @@
     "text": "Verify timestamp continuity before fitting models\n\ngaps = spine[\"ds\"].diff().dt.days\nprint(\"Inferred frequency :\", pd.infer_freq(spine[\"ds\"]))\nprint(\"Duplicate stamps   :\", spine[\"ds\"].duplicated().sum())\nprint(\"Gaps &gt; 1 month     :\", int((gaps &gt; 32).sum()))\n\nInferred frequency : MS\nDuplicate stamps   : 0\nGaps &gt; 1 month     : 0\n\n\n\n\n\n\n\n\n\nSilent Gaps Break Models\n\n\nA missing row shifts every seasonal lag that follows. Always check frequency before modelling.\n\n\n\n\nRun this on every series before anything else. A missing month does not raise, it silently renumbers every seasonal lag after it, and you find out much later when a seasonal model quietly stops working. Exercise 1.2 has students break it on purpose."
   },
   {
-    "objectID": "slides/01_getting_started_and_patterns.html#rightarrow-exercise-1.2-load-verify-and-look",
-    "href": "slides/01_getting_started_and_patterns.html#rightarrow-exercise-1.2-load-verify-and-look",
+    "objectID": "slides/01_getting_started_and_patterns.html#rightarrow-lab-a-structure-and-patterns",
+    "href": "slides/01_getting_started_and_patterns.html#rightarrow-lab-a-structure-and-patterns",
     "title": "Getting Started & Time Series Patterns",
-    "section": "\\(\\rightarrow\\) Exercise 1.2 · Load, verify, and look",
-    "text": "\\(\\rightarrow\\) Exercise 1.2 · Load, verify, and look\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\nLoad the spine dataset\nVerify timestamp continuity\nGenerate Time, Seasonal, and Subseries plots\n\n\n15 minutes."
+    "section": "\\(\\rightarrow\\) Lab A · Structure and patterns",
+    "text": "\\(\\rightarrow\\) Lab A · Structure and patterns\nOpen labs/01_day1_structure_and_diagnostics.ipynb\n\n\n\n1.1\nName the pattern\n10 min\n\n\n1.2\nLoad, verify, and look\n15 min\n\n\n\n\n25 minutes. The notebook carries the instructions; work down it in order.\n\nVisual diagnosis first. No modelling yet."
   },
   {
     "objectID": "slides/01_getting_started_and_patterns.html#part-1-recap",
@@ -469,122 +497,220 @@
     "text": "Part 1 Recap\n\nForecasts exist to change decisions\nTrend, Seasonality, Cycle are distinct patterns\nMultiplicative swings become additive under a log transform\nOrder is the data: never shuffle\n\n\n\nNext: Autocorrelation (ACF) and Decomposition."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#todays-roadmap",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#todays-roadmap",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-day-2-plan",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-day-2-plan",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Today’s roadmap",
-    "text": "Today’s roadmap\n\nFour baseline models — the minimum floor any model must beat\nResidual diagnostics — testing whether the model captured all signal\nPrediction intervals — quantifying real forecast uncertainty\n\n\n\n\n\n\n\n\nGolden Rule\n\n\nA point forecast without an interval is an incomplete guess."
+    "section": "The Day 2 plan",
+    "text": "The Day 2 plan\nDay 1 found the spine’s signal is seasonality. Day 2 builds the floor a model must beat, and the way to prove a forecast is real.\n\nFour baseline models, plus the decomposition route: the floor to beat\nResidual diagnostics: has the model taken all the signal?\nPrediction intervals: the Gaussian formula, and why it fails here\nTwo repairs: resample the errors, then stop assuming a distribution\n\n\n\n\n\n\n\n\nA forecast without a range is half an answer\n\n\nA point forecast without an interval is an incomplete guess.\n\n\n\n\nOpen by picking Day 1 back up rather than restarting. Yesterday ended with the feature sweep: across 148 retail series trend strength was above 0.96 almost everywhere, so trend told you nothing, and seasonal strength was the feature that separated one series from another. That is the finding this whole day is built on. If seasonality is the signal, then the model to beat is the one that does nothing but repeat last year’s season - and that is where we start.\nSay out loud what the day produces: a leaderboard file with real numbers in it, which Day 3 has to beat. Nobody leaves with a model today. They leave with the scoreboard."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#four-essential-benchmarks",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#four-essential-benchmarks",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#four-benchmarks-set-the-floor-a-model-must-clear",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#four-benchmarks-set-the-floor-a-model-must-clear",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Four essential benchmarks",
-    "text": "Four essential benchmarks\n\nMean — Average of all historical observations\nNaive — Last observed value (\\(\\hat{y}_{T+h} = y_T\\))\nSeasonal Naive — Same season from previous year (\\(\\hat{y}_{T+h} = y_{T+h-m}\\))\nDrift — Last value plus average historical trend slope\n\n\n\nAlways fit these 4 first. On many series, Seasonal Naive is tough to beat."
+    "section": "Four benchmarks set the floor a model must clear",
+    "text": "Four benchmarks set the floor a model must clear\n\nMean: average of all historical observations\nNaive: last observed value (\\(\\hat{y}_{T+h} = y_T\\))\nSeasonal Naive: same season from previous year (\\(\\hat{y}_{T+h} = y_{T+h-m}\\))\nDrift: last value plus average historical trend slope\n\n\n\nAlways fit these 4 first. On many series, Seasonal Naive is tough to beat.\n\n\nDo not let these sound like toys. On a seasonal series a seasonal naive is a genuinely hard opponent, and by the end of today they will have watched it beat a decomposition model over eight folds.\nWorth saying which is which in plain language: the mean forgets time entirely, the naive remembers only yesterday, the seasonal naive remembers this month last year, and the drift draws a straight line through the first and last points. Ask the room which one they expect to win here before you show them."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-four-benchmarks-in-action",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-four-benchmarks-in-action",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#only-one-benchmark-has-the-shape-of-the-data",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#only-one-benchmark-has-the-shape-of-the-data",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "The four benchmarks in action",
-    "text": "The four benchmarks in action\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))\n# Models: StatsForecast(models=[HistoricAverage(), Naive(), SeasonalNaive(season_length=12), RandomWalkWithDrift()])\nfig, ax = plt.subplots(figsize=(10, 4.6))\nhist = train.tail(72)\nax.plot(hist[\"ds\"], hist[\"y\"], color=P.BLACK, lw=1.1, label=\"Observed\")\nax.plot(test[\"ds\"], test[\"y\"], color=P.GREY, lw=1.4, ls=\"--\", label=\"Actual Holdout\")\nfor m, c in zip(MODELS, [P.PINK, P.GREEN, P.ORANGE, P.BLUE]):\n    ax.plot(fc[\"ds\"], fc[m], lw=1.7, color=c, label=LABELS[m])\nax.set(title=f\"Spine — {H}-Month Benchmark Forecasts\")"
+    "section": "Only one benchmark has the shape of the data",
+    "text": "Only one benchmark has the shape of the data\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))\nsf = StatsForecast(freq=D.FREQ, n_jobs=1, models=[\n    HistoricAverage(), Naive(), SeasonalNaive(season_length=12),\n    RandomWalkWithDrift(),\n])\nfc = sf.forecast(df=train, h=H, level=[80, 95])\n\nP.forecast_overlay(train, fc, MODELS, labels=LABELS, actual=test, history_tail=72)\n\n\n\n\nPoint at the flat pink line first. That is the mean model, and on a series that has grown sixfold it is visibly hopeless - which is the point of showing it. The green naive line is flat too, but at the right level.\nThe orange seasonal naive is the only one with the shape of the data in it. Let the room see that before any number is quoted."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#why-benchmarks-are-non-negotiable",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#why-benchmarks-are-non-negotiable",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#a-benchmark-is-what-turns-a-score-into-evidence",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#a-benchmark-is-what-turns-a-score-into-evidence",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Why benchmarks are non-negotiable",
-    "text": "Why benchmarks are non-negotiable\n\nObjective Evidence — proves the complex model adds value\nSanity Check — catches complex ML models losing to naive rules\nScale Baseline — provides a standard denominator for errors (MASE)\nFast — takes just a few lines of code\n\n\n\n\n\n\n\n\nIn Every Review Ask:\n\n\n“What is the simple baseline, and by how much did we beat it?”"
+    "section": "A benchmark is what turns a score into evidence",
+    "text": "A benchmark is what turns a score into evidence\n\nObjective evidence: proves the complex model adds value\nSanity check: catches complex ML models losing to naive rules\nScale baseline: provides a standard denominator for errors (MASE)\nFast: takes just a few lines of code\n\n\n\n\n\n\n\n\nThe question to ask in every review\n\n\n“What is the simple baseline, and by how much did we beat it?”\n\n\n\n\nThis is the slide to slow down on if the room is senior. The question in the callout is the one to take back to work: it costs nothing to ask, and it is the single most effective check on a forecasting claim.\nThe MASE point is worth a sentence now because the metric arrives in lecture 2: the benchmark is not only a rival, it is also the denominator that makes errors comparable across series."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.1",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.1",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#decomposition-is-also-a-forecasting-method",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#decomposition-is-also-a-forecasting-method",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "\\(\\rightarrow\\) Exercise 2.1",
-    "text": "\\(\\rightarrow\\) Exercise 2.1\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nFit all four baselines on the training set\nPlot against the holdout set\nIdentify which method looks most realistic and why\n\n\n13 minutes."
+    "section": "Decomposition is also a forecasting method",
+    "text": "Decomposition is also a forecasting method\nCh 5.7 · You already built every step on Day 1\n\nSeries\\(y_t\\) STLsplits off the season Forecastdrift · seasonal naive Recombineone forecast\n\n\nThe forecast carries the growth from one part and the shape from the other:\n\\[\\hat{y}_{T+h} = \\hat{A}_{T+h} + \\hat{S}_{T+h}\\]\n\n\n\nMSTL(season_length=12, trend_forecaster=RandomWalkWithDrift()) is that whole chain in one object.\n\n\nCh 5.7. Every step is something they built yesterday: STL, the seasonally adjusted series, the seasonal component. The only new idea is that the two pieces can be forecast separately and added back.\nThe course pins trend_forecaster to drift on purpose: the default is AutoETS, which is Day 3’s material, and we do not want a Day 3 model quietly winning a Day 2 comparison."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#fitted-values-vs.-forecast-errors",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#fitted-values-vs.-forecast-errors",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#how-drift-and-seasonal-naive-combine-inside-stl",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#how-drift-and-seasonal-naive-combine-inside-stl",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Fitted values vs. Forecast errors",
-    "text": "Fitted values vs. Forecast errors\nResidual (\\(e_t\\)): Error on in-sample training data (one-step ahead)\n\\[e_t = y_t - \\hat{y}_{t|t-1}\\]\n\n\n\n\n\n\n\nCrucial Distinction\n\n\n\nResiduals = In-sample training errors (flattering)\nForecast Errors = Out-of-sample holdout errors (honest)"
+    "section": "How drift and seasonal naive combine inside STL",
+    "text": "How drift and seasonal naive combine inside STL\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# 1. Decompose into Seasonally Adjusted (A_t) and Seasonal (S_t)\n# 2. Forecast A_t with Drift:             y-hat_{T+h} = A_T + h * drift_slope\n# 3. Forecast S_t with Seasonal Naive:    y-hat_{T+h} = S_{T+h-m}\n# 4. Recombine:                           y-hat_{T+h} = A-hat_{T+h} + S-hat_{T+h}\n\nsf_stl = StatsForecast(\n    models=[MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())],\n    freq=D.FREQ, n_jobs=1,\n)\nfc_stl = sf_stl.forecast(df=train, h=24)\n\n\n\n\nWalk the three panels from top to bottom: 1. Top panel: Seasonally adjusted series A_t. Drift extends it with a growth line. 2. Middle panel: Seasonal component S_t. Seasonal naive repeats last year’s shape. 3. Bottom panel: Summing both yields the recombined MSTL forecast (sky blue)."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#properties-of-good-residuals",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#properties-of-good-residuals",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-decomposition-route-clears-the-floor",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-decomposition-route-clears-the-floor",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Properties of good residuals",
-    "text": "Properties of good residuals\n\n\n\nEssential\n\nUncorrelated (\\(r_k \\approx 0\\))\n\\(\\rightarrow\\) No signal left behind\nZero Mean (\\(\\bar{e} = 0\\))\n\\(\\rightarrow\\) Unbiased forecast\n\n\n\n\nFor Valid Intervals\n\nConstant Variance\n\\(\\rightarrow\\) Homoscedastic\nNormally Distributed\n\\(\\rightarrow\\) Gaussian intervals valid"
+    "section": "The decomposition route clears the floor",
+    "text": "The decomposition route clears the floor\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))\nsf_stl = StatsForecast(\n    models=[MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())],\n    freq=D.FREQ, n_jobs=1,\n)\nfc_stl = sf_stl.forecast(df=train, h=H, level=[80, 95])\n\nboth = fc[[\"ds\", \"SeasonalNaive\"]].merge(fc_stl[[\"ds\", \"MSTL\"]], on=\"ds\")\nP.forecast_overlay(train, both, [\"SeasonalNaive\", \"MSTL\"], actual=test)\n\n\n\n\nThe seasonal naive repeats last year’s level; STL lets drift carry the growth.\n\n\nDo not let this land as “STL wins”. It wins on THIS window. Lecture 2 scores it over eight rolling origins and the ordering flips. Flag that now, so the reversal reads as the lesson rather than as a contradiction."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#diagnosing-the-seasonal-naive",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#diagnosing-the-seasonal-naive",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#residuals-flatter-forecast-errors-do-not",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#residuals-flatter-forecast-errors-do-not",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Diagnosing the Seasonal Naive",
-    "text": "Diagnosing the Seasonal Naive\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover in-sample fitted values (fv = train merged with StatsForecast fitted values)\nresid = fv[\"y\"] - fv[\"SeasonalNaive\"]\nfig, axes = P.residual_diagnostics(resid, ds=fv[\"ds\"],\n                                   title=\"Seasonal Naive — Residual Diagnostics\")\n\n\n\n\nResiduals show expanding variance over time\nAutocorrelation spikes remain outside bounds \\(\\rightarrow\\) Signal left uncaptured"
+    "section": "Residuals flatter, forecast errors do not",
+    "text": "Residuals flatter, forecast errors do not\nResidual (\\(e_t\\)): Error on in-sample training data (one-step ahead)\n\\[e_t = y_t - \\hat{y}_{t|t-1}\\]\n\n\n\n\n\n\n\nTwo errors to keep straight\n\n\n\nResiduals = In-sample training errors (flattering)\nForecast Errors = Out-of-sample holdout errors (honest)\n\n\n\n\n\nThis distinction causes more confusion later than anything else in the day, so make it concrete: a residual is what the model got wrong on data it had already seen; a forecast error is what it got wrong on data it had not. Residuals flatter, forecast errors do not.\nEverything in segment B is residuals. Everything in lecture 2 is forecast errors. Say that now and it saves a question later."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-ljung-box-test",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-ljung-box-test",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#two-failures-mean-fix-the-model-two-mean-fix-the-band",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#two-failures-mean-fix-the-model-two-mean-fix-the-band",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "The Ljung-Box Test",
-    "text": "The Ljung-Box Test\nStatistically tests if the first \\(\\ell\\) autocorrelations are jointly zero:\n\\[Q = T(T+2)\\sum_{k=1}^{\\ell}\\frac{r_k^2}{T-k}\\]\n\nSmall \\(p\\)-value (\\(p &lt; 0.05\\)) \\(\\rightarrow\\) Significant autocorrelation \\(\\rightarrow\\) Model incomplete\nLarge \\(p\\)-value (\\(p \\ge 0.05\\)) \\(\\rightarrow\\) Residuals are indistinguishable from white noise\n\n\nRule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data."
+    "section": "Two failures mean fix the model, two mean fix the band",
+    "text": "Two failures mean fix the model, two mean fix the band\n\n\n\nEssential: fix the model\n\nUncorrelated (\\(r_k \\approx 0\\))\n\\(\\rightarrow\\) signal still on the table\nZero mean (\\(\\bar{e} = 0\\))\n\\(\\rightarrow\\) forecast runs high or low\n\n\n\n\nUseful: fix the interval\n\nConstant variance\n\\(\\rightarrow\\) one width for all eras\nNormally distributed\n\\(\\rightarrow\\) \\(1.28\\) is the wrong step\n\n\n\n\n\nA model can pass the left column and fail the right. The point forecast is fine; the band around it is not.\n\n\nSay the split as an instruction rather than as a taxonomy. A left-column failure is a message about the model: go back and change it. A right-column failure leaves the point forecast alone and tells you the band around it is wrong.\nPause on the dot before the bottom card and ask the room which column they expect the seasonal naive to fail. The next slide answers it.\nOne honest caveat if someone asks: uncorrelated appears on both sides. It is essential for the model, and it is also one of the three assumptions behind the Gaussian interval, which segment C spells out.\nSegments C, D and E are, in order, the three ways to stop relying on the right column."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.2",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.2",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-best-benchmark-here-fails-three-of-the-four",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-best-benchmark-here-fails-three-of-the-four",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "\\(\\rightarrow\\) Exercise 2.2",
-    "text": "\\(\\rightarrow\\) Exercise 2.2\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nRun residual diagnostics on Seasonal Naive & Drift\nTest autocorrelation with Ljung-Box\nEvaluate: Which properties pass? Which fail?\n\n\n13 minutes."
+    "section": "The best benchmark here fails three of the four",
+    "text": "The best benchmark here fails three of the four\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# fv = train merged with StatsForecast fitted values (sf.forecast(..., fitted=True))\nresid = fv[\"y\"] - fv[\"SeasonalNaive\"]\nP.residual_diagnostics(resid, ds=fv[\"ds\"])\n\n\n\n\nZero mean fails: mean residual \\(+7.9\\), so the forecast runs low\nConstant variance fails: SD \\(8.5\\) in the first decade, \\(26.2\\) in the last\nUncorrelated fails: ACF spikes stay outside the bounds\n\n\nThree panels, and the three bullets read straight off them.\nThe time plot sits above zero far more than below, which is the bias: a seasonal naive repeats last year on a series that grows about 6% a year, so it runs low every month. Mean residual +7.9 against a series in the hundreds.\nThe same panel fans out, so constant variance fails. The ACF spikes well outside the bounds, so uncorrelated fails.\nThe fourth property, normality, is not on this slide because it is segment C’s business. The histogram is already telling you the answer if you look at it.\nDo not treat any of this as a failure of the seasonal naive. It is the honest state of the best benchmark on this series, and every interval method later in this deck is a response to one of these lines."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#point-forecasts-vs.-range-forecasts",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#point-forecasts-vs.-range-forecasts",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#ljung-box-tests-all-the-lags-at-once",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#ljung-box-tests-all-the-lags-at-once",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Point forecasts vs. Range forecasts",
-    "text": "Point forecasts vs. Range forecasts\n\n\n\nPoint Forecast\n“Demand will be 340 units.” - Guaranteed to be wrong - Hides operational risk\n\n\n\nInterval Forecast\n“Demand: [300, 380] with 80% confidence.” - Actionable for safety stock - Slices uncertainty honestly\n\n\n\nDecisions like staffing buffers, warehouse capacity, and safety inventory depend directly on the interval width."
+    "section": "Ljung-Box tests all the lags at once",
+    "text": "Ljung-Box tests all the lags at once\n\\[Q = T(T+2)\\sum_{k=1}^{\\ell}\\frac{r_k^2}{T-k}\\]\n\n\\(p &lt; 0.05\\): autocorrelation is real, so the model is not finished\n\\(p \\ge 0.05\\): residuals are indistinguishable from white noise\n\n\nr = resid.dropna()\np = acorr_ljungbox(r, lags=[24], return_df=True)[\"lb_pvalue\"].iloc[0]\nprint(f\"{len(r)} residuals, lag 24:  p = {p:.1e}\")\n\n405 residuals, lag 24:  p = 8.6e-241\n\n\n\nRule of thumb: use lag l=10 for non-seasonal data, l=2m for seasonal data."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#interval-calculation",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#interval-calculation",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#a-range-is-what-a-decision-can-act-on",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#a-range-is-what-a-decision-can-act-on",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Interval calculation",
-    "text": "Interval calculation\nFor a 1-step forecast with residual standard deviation \\(\\hat{\\sigma}\\):\n\\[\\hat{y}_{T+1|T} \\pm c\\,\\hat{\\sigma} \\qquad (c = 1.28 \\text{ for } 80\\%,\\; 1.96 \\text{ for } 95\\%)\\]\n\nFor horizon \\(h\\), uncertainty accumulates:\n\\[\\hat{\\sigma}_h = \\hat{\\sigma}\\sqrt{h}\\]\n\n\n\n\n\n\nNote\n\n\nUncertainty widens with \\(\\sqrt{h}\\) — rapid growth early on, decelerating at longer horizons."
+    "section": "A range is what a decision can act on",
+    "text": "A range is what a decision can act on\n\n\n\nPoint forecast\n“Demand will be 340 units.”\n\nGuaranteed to be wrong\nHides the operational risk\n\n\n\n\nInterval forecast\n“Demand: [300, 380], 80% of the time.”\n\nSizes the safety stock\nStates the risk out loud\n\n\n\n\nDecisions like staffing buffers, warehouse capacity, and safety inventory depend directly on the interval width."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#fan-chart-visualising-uncertainty",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#fan-chart-visualising-uncertainty",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-future-is-a-range-not-a-point",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-future-is-a-range-not-a-point",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Fan Chart: Visualising uncertainty",
-    "text": "Fan Chart: Visualising uncertainty\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))\n# Model: SeasonalNaive with prediction intervals at 80% and 95% levels\nfig, ax = plt.subplots(figsize=(10, 4.6))\nP.fan_chart(train, as_fan(\"SeasonalNaive\"), levels=(80, 95), ax=ax,\n            actual=test, history_tail=72,\n            title=\"Seasonal Naive: 80% and 95% Prediction Intervals\")"
+    "section": "The future is a range, not a point",
+    "text": "The future is a range, not a point\nAt forecast origin \\(T\\), \\(Y_{T+h}\\) is still unknown:\n\\[Y_{T+h}\\mid \\mathcal{I}_T\\]\n\nForecast distribution: plausible future values, given what is known at \\(T\\)\nPoint forecast: one centre, usually a mean or median\n80% interval: 10th to 90th percentile\n95% interval: 2.5th to 97.5th percentile\n\n\n\nThe unknown future value, not the prediction, is represented by a distribution.\n\n\nStart with what is uncertain. We produce one point forecast, but we do not believe the future must equal that point. Before it is observed, we represent the future as plausible outcomes conditional on what we know now.\nThe point forecast is one summary. An interval takes two quantiles. The rest of the deck asks how to construct them: impose a Gaussian shape, simulate futures from empirical errors, or calibrate a set from past forecast errors."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#how-intervals-widen-with-horizon",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#how-intervals-widen-with-horizon",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#gaussian-intervals-impose-a-shape",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#gaussian-intervals-impose-a-shape",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "How intervals widen with horizon",
-    "text": "How intervals widen with horizon\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Benchmark forecasts on Victorian retail takeaway turnover (fc)\n# Compare interval width growth vs theoretical sqrt(h) expansion:\nfig, axes = plt.subplots(1, 2, figsize=(9.5, 3.7))\nwidth = fc[\"SeasonalNaive-hi-80\"] - fc[\"SeasonalNaive-lo-80\"]\nh = np.arange(1, len(width) + 1)\naxes[0].plot(h, width, color=P.BLUE, lw=2, label=\"Actual Width\")\naxes[0].plot(h, width.iloc[0] * np.sqrt(h), color=P.ORANGE, lw=1.4, ls=\"--\", label=r\"$\\text{Width}_1 \\times \\sqrt{h}$\")\n\nfor m, c in zip([\"Naive\", \"SeasonalNaive\", \"RWD\"], [P.GREEN, P.BLUE, P.PINK]):\n    w = fc[f\"{m}-hi-80\"] - fc[f\"{m}-lo-80\"]\n    axes[1].plot(h, w, color=c, lw=1.8, label=LABELS[m])"
+    "section": "Gaussian intervals impose a shape",
+    "text": "Gaussian intervals impose a shape\nEstimate the residual spread:\n\\[\\hat{\\sigma} = \\sqrt{\\frac{1}{T - K - M}\\sum_{t=1}^{T} e_t^2}\\]\nThen step out from the point forecast:\n\\[\\hat{y}_{T+1|T} \\pm c\\,\\hat{\\sigma}\\]\n\n\\(K\\) = estimated parameters; \\(M\\) = missing residuals\n\\(c = 1.28\\) for 80%; \\(c = 1.96\\) for 95%\n\n\nTwo things students trip on. The M term: a seasonal naive cannot produce a fitted value for its first twelve months, so twelve residuals are missing and the denominator has to know that. And c is a normal quantile - 1.28 and 1.96 are only right if the residuals are normal, which we just showed they are not.\nFlag that now. The rest of the deck is the repair."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#how-fast-the-range-widens-depends-on-the-method",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#how-fast-the-range-widens-depends-on-the-method",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "How fast the range widens depends on the method",
+    "text": "How fast the range widens depends on the method\n\n\n\n\n\n\n\nBenchmark\n\\(h\\)-step forecast standard deviation\n\n\n\n\nMean\n\\(\\hat{\\sigma}_h = \\hat{\\sigma}\\sqrt{1 + 1/T}\\)\n\n\nNaive\n\\(\\hat{\\sigma}_h = \\hat{\\sigma}\\sqrt{h}\\)\n\n\nSeasonal naive\n\\(\\hat{\\sigma}_h = \\hat{\\sigma}\\sqrt{k+1}\\),   \\(k = \\lfloor (h-1)/m \\rfloor\\)\n\n\nDrift\n\\(\\hat{\\sigma}_h = \\hat{\\sigma}\\sqrt{h\\left(1 + \\dfrac{h}{T-1}\\right)}\\)\n\n\n\n\n\n\n\n\n\n\n\\(\\sqrt{h}\\) is the naive case, not a law\n\n\nFor a seasonal naive the width is a staircase: flat inside a year, one step up per complete year crossed. \\(k\\) counts those years.\n\n\n\n\nAll four formulas assume the residuals are uncorrelated. That assumption is already known to be false here - segment B just rejected it at p ~ 1e-240."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-interval-is-the-forecast-the-line-is-its-middle",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-interval-is-the-forecast-the-line-is-its-middle",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "The interval is the forecast, the line is its middle",
+    "text": "The interval is the forecast, the line is its middle\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover (train, test = D.train_test(spine, h=24))\n# as_fan() renames one model's columns to ds / mean / lo-L / hi-L.\nfc = sf.forecast(df=train, h=H, level=[80, 95])\n\nP.fan_chart(train, as_fan(\"SeasonalNaive\"), levels=(80, 95), actual=test,\n            history_tail=72)\n\n\n\n\nMake the room read the dashed actual line against the bands rather than admiring the shading. Ask how many of the 24 points fall inside the 80% band. It looks excellent here, and lecture 2 shows that a single 24-point window cannot measure a coverage rate at all.\nIf you want one sentence for this slide: the interval is the forecast, and the line down the middle is just its most likely value."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-gaussian-interval-rests-on-three-assumptions",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-gaussian-interval-rests-on-three-assumptions",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "The Gaussian interval rests on three assumptions",
+    "text": "The Gaussian interval rests on three assumptions\n\nResiduals are uncorrelated: otherwise \\(\\hat{\\sigma}\\) understates the spread\nResiduals have constant variance: one \\(\\hat{\\sigma}\\) for the whole series\nResiduals are normally distributed: otherwise \\(c = 1.28\\) is the wrong multiplier\n\n\n\nOn this series all three fail. The next two methods each buy one of them back.\n\n\nCount them off on your fingers, because the next three segments buy them back one at a time and it helps if the room is counting with you. Bootstrap buys back normality. Conformal avoids specifying a distributional shape, but replaces those assumptions with exchangeability. Distribution-free never means assumption-free."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#resample-the-errors-you-actually-saw",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#resample-the-errors-you-actually-saw",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Resample the errors you actually saw",
+    "text": "Resample the errors you actually saw\nA one-step error is \\(e_t = y_t - \\hat{y}_{t|t-1}\\). For the naive method \\(\\hat{y}_{t|t-1} = y_{t-1}\\), so \\(y_t = y_{t-1} + e_t\\), and a future value can be simulated by drawing a past error:\n\\[y^*_{T+1} = y_T + e^*_{T+1}, \\qquad\n  y^*_{T+2} = y^*_{T+1} + e^*_{T+2}, \\qquad \\dots\\]\n\nFor the seasonal naive the same recursion runs on the seasonal lag:\n\\[y^*_{T+i} = y^*_{T+i-m} + e^*_{T+i}\\]\n\nThe star means “one possible future that could have occurred”, not the observed value. Run it 5000 times and you have 5000 possible futures."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-assumption-you-just-made",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-assumption-you-just-made",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "The assumption you just made",
+    "text": "The assumption you just made\n\nThe simple residual bootstrap assumes the residuals come from one common distribution \\(\\hat{F}\\) whose distributional characteristics do not change over time: i.i.d. draws from the pool of past errors.\n\n\nBought: normality. The interval is now whatever shape the errors are, and need not be symmetric.\nStill owed: independence, and identical distribution.\nOn this series the second one is false: the residual SD tripled.\n\n\nEvery interval method spends an assumption; the honest question is which one. The bootstrap trades normality for identical distribution, and on this series that trade is a bad one - the residual SD tripled, so 1980s errors are in the same draw pool as 2010s errors.\nThat is not a reason to avoid the bootstrap. It is a reason to know which knob you are turning, and the lab turns it: restricting the pool to recent residuals moves coverage from about 61% to about 87%."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#possible-futures",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#possible-futures",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "5000 possible futures",
+    "text": "5000 possible futures\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Dataset: Victorian retail takeaway turnover, seasonal naive residuals\nresid_sn = (fv[\"y\"] - fv[\"SeasonalNaive\"]).dropna()\n\nboot_paths = P.bootstrap_paths(train[\"y\"], resid_sn, h=24, season_length=12,\n                               n_paths=5000, seed=7)     # -&gt; (5000, 24)\nP.sim_paths_plot(train, fc[\"ds\"], boot_paths, n_show=8, actual=test)\n\n\n\n\nThe band is not the method. The paths are the method; the band is a percentile taken down each column.\n\n\nThis is the slide that fixes the most common misconception about the bootstrap. Students see the shaded band and assume the band is the method. It is not. The method is these paths; the band is a percentile taken down each column afterwards.\nTrace one path with your finger from the origin out to 24 months, and say: this is one possible future, drawn by taking last year’s value and adding a real error we actually observed at some point in the past."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#dropping-normality-buys-a-fifth-off-the-80-band",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#dropping-normality-buys-a-fifth-off-the-80-band",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Dropping normality buys a fifth off the 80% band",
+    "text": "Dropping normality buys a fifth off the 80% band\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# boot_fan = P.paths_to_fan(fc[\"ds\"], boot_paths, levels=(80, 95))\n#   -&gt; ds / mean / lo-80 / hi-80 / lo-95 / hi-95, from empirical percentiles\nP.fan_chart(train, as_fan(\"SeasonalNaive\"), levels=(80, 95), actual=test)\nP.fan_chart(train, boot_fan, levels=(80, 95), actual=test)\n\n\n\n\nMean 80% width: 59.7 Gaussian vs 46.4 bootstrap, a fifth narrower\nMean 95% width: 91.3 vs 90.1, the gap has closed\nSharp peak, fat tails. That is what excess kurtosis of 5.7 buys you\n\n\nSame model, same point forecast, same data. Only the assumption changed, and the 80% band got a fifth narrower.\nNotice the 95% bands barely differ. That is the shape of the residuals showing up exactly where you would expect it: the sharp peak makes the central 80% tighter, and the fat tails put the 95% back where the normal had it."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#name-the-error-first-e_tht",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#name-the-error-first-e_tht",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Name the error first: \\(e_{t+h|t}\\)",
+    "text": "Name the error first: \\(e_{t+h|t}\\)\n\\[e_{t+h|t} = y_{t+h} - \\hat{y}_{t+h|t}\\]\n\n\n\n\n\n\n\nSymbol\nMeaning\n\n\n\n\n\\(t\\)\nthe time the forecast was made: the forecast origin\n\n\n\\(h\\)\nthe forecast horizon\n\n\n\\(t+h\\)\nthe future time being predicted\n\n\n\\(y_{t+h}\\)\nwhat actually happened\n\n\n\\(\\hat{y}_{t+h\\,\\vert\\,t}\\)\nthe forecast made at time \\(t\\) for time \\(t+h\\)\n\n\n\n\n\n\n\n\n\nNote\n\n\nAt \\(h = 1\\) these are exactly the residuals from part B. For \\(h &gt; 1\\) they are a different, wider set of errors, and they must be collected, not fitted.\n\n\n\n\nNotation discipline pays off here. e_{t+h|t} carries two indices for a reason: which point is being forecast, and which origin it was forecast from. A 12-step error made in 2010 and a 12-step error made in 2016 are two members of the same calibration set.\nResiduals had one index because there was only ever one origin: yesterday."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#a-worked-example-of-e_tht",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#a-worked-example-of-e_tht",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "A worked example of \\(e_{t+h|t}\\)",
+    "text": "A worked example of \\(e_{t+h|t}\\)\n\nWalk-throughPlot\n\n\nYou hold \\(y_1, y_2, \\dots, y_{10}\\) and want a 3-step-ahead interval.\n\nStand at \\(t = 5\\). Pretend \\(y_6 \\dots y_{10}\\) do not exist yet.\nForecast three steps out: \\(\\hat{y}_{8|5}\\).\nNow look up what really happened: \\(y_8\\).\nRecord \\(e_{{8|5}} = y_8 - \\hat{{y}}_{{8|5}}\\), one 3-step-ahead error.\n\n. . .\nSlide the origin to \\(t = 6, 7, \\dots\\) and repeat. What you collect is the calibration set for \\(h = 3\\).\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWalk this by hand on the numbers. Stand at t=5, the naive forecast for t=8 is whatever y_5 was, then look up what actually happened at t=8 and subtract. That single number is one member of the calibration set.\nSlide the origin forward and you get another. Conformal prediction is nothing more elaborate than collecting those and taking a quantile of their absolute values."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#distribution-free-is-not-assumption-free",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#distribution-free-is-not-assumption-free",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Distribution-free is not assumption-free",
+    "text": "Distribution-free is not assumption-free\n\nCoverage requires the calibration errors and the next error to be exchangeable.\n\n\nShuffle their order: none should look as if it came from a different regime.\n\n\nUse an empirical quantile of the collected errors:\n\\[\\hat{y}_{T+h|T} \\pm Q_{1-\\alpha}(|e_{t+h|t}|)\\]\n\nOne quantile per horizon \\(h\\): widening with \\(h\\) is measured, not assumed\nNo \\(\\hat{\\sigma}\\), no \\(c\\), no parametric shape: hence distribution-free\n\n\nThis is the slide that earns the segment, so do not rush it.\nI.i.d. says every error is an independent draw from one fixed distribution. Exchangeability asks whether the calibration errors and the next error remain comparable when their order is shuffled. It can permit dependence that i.i.d. forbids, but it does not excuse a changing regime. If recent errors are systematically larger than old errors, their order carries information and exchangeability fails too.\nThen the payoff. Because the interval is an empirical quantile of errors the model actually made, there is no sigma-hat to estimate and no c to look up, and nothing assumes a parametric shape. This constructs a calibrated prediction interval; it does not necessarily estimate a complete forecast distribution. That is why it works on a model whose interval has no formula, which is most of what Day 3 covers."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#where-the-calibration-set-comes-from",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#where-the-calibration-set-comes-from",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Where the calibration set comes from",
+    "text": "Where the calibration set comes from\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Roll the origin backwards; keep the error at the horizon you care about.\ncs = sf.cross_validation(df=train, h=12, step_size=12, n_windows=4)\ncs12 = (cs[cs[\"ds\"] == cs[\"cutoff\"] + pd.DateOffset(months=12)]\n        .rename(columns={\"SeasonalNaive\": \"yhat\"})[[\"cutoff\", \"ds\", \"y\", \"yhat\"]])\nP.h_step_error_diagram(train.tail(84), cs12)\n\n\n\n\nstatsforecast does exactly this internally: n_windows rolling origins, the absolute error at each horizon, then the empirical quantile of those."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#any-model-at-all-can-be-given-a-conformal-interval",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#any-model-at-all-can-be-given-a-conformal-interval",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Any model at all can be given a conformal interval",
+    "text": "Any model at all can be given a conformal interval\nfrom statsforecast.utils import ConformalIntervals\n\nsf_conf = StatsForecast(\n    models=[SeasonalNaive(\n        season_length=12,\n        prediction_intervals=ConformalIntervals(n_windows=8, h=24),\n    )],\n    freq=\"MS\",\n)\nfc_conf = sf_conf.forecast(df=train, h=24, level=[80, 95])\n\nn_windows: how many rolling origins make up the calibration set\nNeeds at least \\(2h + 1\\) observations; more windows, steadier quantiles\nWith 8 windows only 16 scores sit behind each horizon, so the band is visibly jittery\n\n\nThis is the practical payoff of the whole segment and the thing a Day 3 author will need: any model that has no closed-form interval gets one from prediction_intervals=ConformalIntervals(…). Not every statsforecast model can produce intervals on its own; all of them can produce conformal ones.\nThe jitter warning is worth making concrete. With eight windows there are only sixteen scores behind each horizon, so the band wobbles. That is a small sample showing through, not a bug."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#one-point-forecast-three-different-bands",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#one-point-forecast-three-different-bands",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "One point forecast, three different bands",
+    "text": "One point forecast, three different bands\n\nPlotCode\n\n\n\n\n\n\n\n\n\n\n\n\n\n# One model, three interval methods, on the same axes.\n# fc       - Gaussian, from sf.forecast(..., level=[80, 95])\n# boot_fan - P.paths_to_fan(fc[\"ds\"], boot_paths)\n# fc_conf  - SeasonalNaive(prediction_intervals=ConformalIntervals(n_windows=8, h=24))\nBANDS = {\n    \"Gaussian\": (fc[\"SeasonalNaive-lo-80\"], fc[\"SeasonalNaive-hi-80\"]),\n    \"Bootstrap\": (boot_fan[\"lo-80\"], boot_fan[\"hi-80\"]),\n    \"Conformal\": (fc_conf[\"SeasonalNaive-lo-80\"], fc_conf[\"SeasonalNaive-hi-80\"]),\n}\nP.interval_bounds_plot(train, fc[\"ds\"], BANDS, actual=test)\n\n\n\n\n\n   method mean 80% width coverage (24 pts)\n Gaussian           59.7               96%\nBootstrap           46.4               88%\nConformal           59.2               96%\n\n\n\nOne point forecast, three bands. Left panel says they are not the same object; right panel says how they differ in shape. Gaussian is the staircase, bootstrap is narrow, conformal is jittery.\nThe printed numbers are the trap, so read them out and then say plainly where they came from: 24 points. The next slide is the arithmetic on why that cannot separate three methods."
+  },
+  {
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#every-interval-method-spends-an-assumption",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#every-interval-method-spends-an-assumption",
+    "title": "Benchmarks, Residuals & Prediction Intervals",
+    "section": "Every interval method spends an assumption",
+    "text": "Every interval method spends an assumption\n\n\n\n\n\n\n\n\nMethod\nAssumes\nGives\n\n\n\n\nGaussian\nuncorrelated · constant variance · normal\nclosed form\n\n\nBootstrap\nuncorrelated · i.i.d. from \\(\\hat{F}\\)\nany error shape\n\n\nConformal\nexchangeable \\(h\\)-step errors\nno parametric shape\n\n\n\n\n\n\n\n\n\nImportant\n\n\nPick by which assumption you can defend, not by the widths on the last slide.\n\n\n\n\nThe table is the takeaway. Each row is a trade, and the honest question when choosing is not “which is most accurate” but “which of these three assumptions am I willing to make about this series”.\nIf the room wants a default: conformal, because it assumes least, and because it is the one that generalises to models that have no formula. That is also why it is the one Day 3 will lean on. But say the qualification out loud: its interval is distribution-free, not assumption-free, and a changing error regime can break exchangeability."
   },
   {
     "objectID": "slides/03_benchmarks_residuals_and_intervals.html#why-one-test-window-is-misleading",
     "href": "slides/03_benchmarks_residuals_and_intervals.html#why-one-test-window-is-misleading",
     "title": "Benchmarks, Residuals & Prediction Intervals",
     "section": "Why one test window is misleading",
-    "text": "Why one test window is misleading\nOn a single small test set (\\(n = 24\\)), coverage error is large:\n\\[\\text{SE} = \\sqrt{\\frac{p(1-p)}{n}} = \\sqrt{\\frac{0.8 \\times 0.2}{24}} \\approx \\pm 8\\% \\quad (\\pm 16\\% \\text{ at } 95\\% \\text{ CI})\\]\n\n\nA nominal 80% interval could easily measure anywhere from 64% to 96% on a single 24-point holdout by chance alone.\n\n\nTo properly measure coverage, we must evaluate across multiple rolling test origins."
+    "text": "Why one test window is misleading\nOn a single small test set (\\(n = 24\\)), coverage error is large:\n\\[\\text{SE} = \\sqrt{\\frac{p(1-p)}{n}} = \\sqrt{\\frac{0.8 \\times 0.2}{24}} \\approx \\pm 8\\% \\quad (\\pm 16\\% \\text{ at } 95\\% \\text{ CI})\\]\n\n\nA nominal 80% interval could easily measure anywhere from 64% to 96% on a single 24-point holdout by chance alone.\n\n\n\nOver 8 rolling origins (96 scored points) they separate cleanly:\n\n\n80% coverage over 96 scored points:   Gaussian 77%   bootstrap 61%   conformal 83%\n\n\n\nThe bootstrap’s 61% is the identically-distributed assumption being punished: pooling 1980s residuals (SD 8.5) with 2010s residuals (SD 26) makes the draw pool far too tight for a forecast issued in 2016. Restricting the pool to the last 120 residuals takes it to about 87%; the last 60 push it to 91%. The assumption is the knob, and the lab turns it."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.3",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-exercise-2.3",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-lab-c-the-toolbox",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#rightarrow-lab-c-the-toolbox",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "\\(\\rightarrow\\) Exercise 2.3",
-    "text": "\\(\\rightarrow\\) Exercise 2.3\nOpen labs/02_day2_benchmarks_and_evaluation.ipynb\n\nCompute 80% and 95% prediction intervals\nVerify that interval width scales with \\(\\sqrt{h}\\)\nMeasure holdout coverage and explain estimation uncertainty\n\n\n15 minutes."
+    "section": "\\(\\rightarrow\\) Lab C · The toolbox",
+    "text": "\\(\\rightarrow\\) Lab C · The toolbox\nOpen labs/02_day2_toolbox_and_evaluation.ipynb\n\n\n\n2.1\nThe benchmark floor\n15 min\n\n\n2.2\nAre the residuals white noise?\n10 min\n\n\n2.3\nIntervals, and how much to believe them\n21 min\n\n\n\n\n46 minutes. The notebook carries the instructions; work down it in order.\n\n2.3 is the long one and it has three parts. If time runs short, part c is the one to leave for later."
   },
   {
-    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#part-2-recap",
-    "href": "slides/03_benchmarks_residuals_and_intervals.html#part-2-recap",
+    "objectID": "slides/03_benchmarks_residuals_and_intervals.html#the-floor-is-set-and-it-is-not-finished",
+    "href": "slides/03_benchmarks_residuals_and_intervals.html#the-floor-is-set-and-it-is-not-finished",
     "title": "Benchmarks, Residuals & Prediction Intervals",
-    "section": "Part 2 Recap",
-    "text": "Part 2 Recap\n\nAlways start with the 4 baseline models\nCheck that residuals are uncorrelated and zero-mean\nReport prediction intervals, not just single numbers\nRecognize that interval uncertainty grows with \\(\\sqrt{h}\\)\n\n\n\nNext: Forecast evaluation metrics and rolling-origin cross-validation."
+    "section": "The floor is set, and it is not finished",
+    "text": "The floor is set, and it is not finished\n\nAlways start with the 4 baseline models, then the decomposition route\nCheck that residuals are uncorrelated and zero-mean\nReport prediction intervals, not just single numbers\nKnow which assumption each interval method spends: normality, i.i.d., or exchangeability\n\n\n\nNext: Forecast evaluation metrics and rolling-origin cross-validation.\n\n\nThe through-line to name before the break: the seasonal naive is the number to beat, and its residuals are emphatically not white noise. Both halves of that matter. The first says today produces a floor; the second says the floor leaves a lot on the table, which is where Day 3 opens.\nBreak here. Lecture 2 is scoring, and it takes the STL result apart."
   }
 ]

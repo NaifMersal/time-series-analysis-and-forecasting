@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-08-25">
+  <meta name="dcterms.date" content="2026-08-26">
   <title>Getting Started &amp; Time Series Patterns</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -98,10 +98,12 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-ed47d27c72566660c43a8fce46721196.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
     .reveal div.sourceCode {
@@ -199,12 +201,12 @@
 
 <section id="title-slide" data-background-image="../slides_template/assets/anim.svg" data-background-opacity="0.15" data-background-size="cover" class="quarto-title-block center">
   <h1 class="title">Getting Started &amp; Time Series Patterns</h1>
-  <p class="subtitle">Day 1 · Segments 1–2 · fpppy Ch 1–2</p>
+  <p class="subtitle">Day 1 · Lecture 1 · fpppy Ch 1–2</p>
 
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-08-25</p>
+  <p class="date">2026-08-26</p>
 </section>
 <section id="where-we-are-going" class="slide level2">
 <h2>Where we are going</h2>
@@ -311,7 +313,7 @@
 </section>
 <section id="pure-time-series-models-require-no-future-drivers" class="slide level2 smaller">
 <h2>Pure time series models require no future drivers</h2>
-<p>Forecasting hourly <strong>electricity demand (ED)</strong> — three ways to write the same job:</p>
+<p>Forecasting hourly <strong>electricity demand (ED)</strong>, three ways to write the same job:</p>
 <div class="cardbox teal">
 <p><span class="card-title">1. Explanatory</span> — <em>why is demand what it is?</em> Every driver on the right needs its own forecast first.</p>
 <p><span class="math display">\[\small \text{ED} = f(\text{temperature},\ \text{economy},\ \text{population},\ \text{time of day},\ \text{day of week},\ \text{error})\]</span></p>
@@ -431,7 +433,7 @@
 <ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1">
-<div id="50a1ab55" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="6d555c59" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -452,7 +454,10 @@
 <span id="cb1-8"><a></a>P.plot_series(spine, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Trend + seasonality (retail)"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>)</span>
 <span id="cb1-9"><a></a>P.plot_series(beer, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">1</span>], title<span class="op">=</span><span class="st">"Seasonality + drifting trend (beer)"</span>, color<span class="op">=</span>P.BLUE, ylabel<span class="op">=</span><span class="st">"megalitres"</span>)</span>
 <span id="cb1-10"><a></a>P.plot_series(lynx, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Cycle, no fixed period (lynx)"</span>, color<span class="op">=</span>P.PINK, ylabel<span class="op">=</span><span class="st">"pelts traded"</span>)</span>
-<span id="cb1-11"><a></a>P.plot_series(noise, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">1</span>], title<span class="op">=</span><span class="st">"No pattern (white noise)"</span>, color<span class="op">=</span>P.GREY, ylabel<span class="op">=</span><span class="st">"z"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-11"><a></a>P.plot_series(noise, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">1</span>], title<span class="op">=</span><span class="st">"No pattern (white noise)"</span>, color<span class="op">=</span>P.GREY, ylabel<span class="op">=</span><span class="st">"z"</span>)</span>
+<span id="cb1-12"><a></a></span>
+<span id="cb1-13"><a></a><span class="co"># Decade labels, plus a tick on every year, so the peak-to-peak gaps are countable</span></span>
+<span id="cb1-14"><a></a>P.year_xticks(axes[<span class="dv">1</span>, <span class="dv">0</span>], step<span class="op">=</span><span class="dv">10</span>, minor<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -508,7 +513,7 @@
 <ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1">
-<div id="43513add" class="cell" data-fig-width="9.5" data-execution_count="3">
+<div id="5a79b3ef" class="cell" data-fig-width="9.5" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -583,7 +588,7 @@
 <ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1">
-<div id="14a7cab9" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="9c2b56d1" class="cell" data-fig-width="10" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -624,18 +629,6 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</section>
-<section id="rightarrow-exercise-1.1-name-the-pattern" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Exercise 1.1 · Name the pattern</h2>
-<p>Open <code>labs/01_day1_structure_and_diagnostics.ipynb</code></p>
-<ul>
-<li class="fragment">Classify six time series</li>
-<li class="fragment">Identify: Trend? Seasonality? Cycle?</li>
-<li class="fragment">Choose: Additive or Multiplicative?</li>
-</ul>
-<div class="fragment">
-<p><em>10 minutes. Focus on visual diagnosis.</em></p>
-</div>
 </section></section>
 <section>
 <section id="c.-seeing-the-patterns" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
@@ -666,7 +659,7 @@
 </tr>
 <tr class="even">
 <td><strong>Lag plot</strong></td>
-<td>Is <span class="math inline">\(y_t\)</span> related to <span class="math inline">\(y_{t-k}\)</span>? (segment 3)</td>
+<td>Is <span class="math inline">\(y_t\)</span> related to <span class="math inline">\(y_{t-k}\)</span>? (next deck)</td>
 </tr>
 </tbody>
 </table>
@@ -692,7 +685,7 @@
 <ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1">
-<div id="0bcf1439" class="cell" data-fig-width="9.5" data-execution_count="5">
+<div id="f8ad7c25" class="cell" data-fig-width="9.5" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -735,7 +728,7 @@
 <ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-5-1">
-<div id="007a2637" class="cell" data-fig-width="10" data-execution_count="6">
+<div id="a8562644" class="cell" data-fig-width="10" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -781,7 +774,7 @@
 <ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-6-1">
-<div id="a733b4f8" class="cell" data-fig-width="10" data-execution_count="7">
+<div id="24325e68" class="cell" data-fig-width="10" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -809,7 +802,7 @@
 <ul id="tabset-7" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-7-1">Plot</a></li><li><a href="#tabset-7-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-7-1">
-<div id="441ecea9" class="cell" data-fig-width="10" data-execution_count="8">
+<div id="80a7a3a7" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -837,7 +830,7 @@
 <p><strong>Trend Obscures Month-to-Month Means</strong></p>
 </div>
 <div class="callout-content">
-<p>When trend growth is this large (6x), seasonal differences appear tiny until trend is removed with <strong>decomposition</strong> (segment 4).</p>
+<p>When trend growth is this large (6x), seasonal differences appear tiny until trend is removed with <strong>decomposition</strong> (next deck).</p>
 </div>
 </div>
 </div>
@@ -857,7 +850,7 @@
 </section>
 <section id="verify-timestamp-continuity-before-fitting-models" class="slide level2">
 <h2>Verify timestamp continuity before fitting models</h2>
-<div id="2b64aa8f" class="cell" data-execution_count="9">
+<div id="ec469137" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a>gaps <span class="op">=</span> spine[<span class="st">"ds"</span>].diff().dt.days</span>
 <span id="cb8-2"><a></a><span class="bu">print</span>(<span class="st">"Inferred frequency :"</span>, pd.infer_freq(spine[<span class="st">"ds"</span>]))</span>
 <span id="cb8-3"><a></a><span class="bu">print</span>(<span class="st">"Duplicate stamps   :"</span>, spine[<span class="st">"ds"</span>].duplicated().<span class="bu">sum</span>())</span>
@@ -897,16 +890,28 @@ Gaps &gt; 1 month     : 0</code></pre>
       }</style></aside>
 </div>
 </section>
-<section id="rightarrow-exercise-1.2-load-verify-and-look" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Exercise 1.2 · Load, verify, and look</h2>
+<section id="rightarrow-lab-a-structure-and-patterns" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab A · Structure and patterns</h2>
 <p>Open <code>labs/01_day1_structure_and_diagnostics.ipynb</code></p>
-<ul>
-<li class="fragment">Load the spine dataset</li>
-<li class="fragment">Verify timestamp continuity</li>
-<li class="fragment">Generate Time, Seasonal, and Subseries plots</li>
-</ul>
+<table class="caption-top">
+<tbody>
+<tr class="odd">
+<td><strong>1.1</strong></td>
+<td>Name the pattern</td>
+<td>10 min</td>
+</tr>
+<tr class="even">
+<td><strong>1.2</strong></td>
+<td>Load, verify, and look</td>
+<td>15 min</td>
+</tr>
+</tbody>
+</table>
 <div class="fragment">
-<p><em>15 minutes.</em></p>
+<p><em>25 minutes. The notebook carries the instructions; work down it in order.</em></p>
+<div class="cardbox teal">
+<p>Visual diagnosis first. No modelling yet.</p>
+</div>
 </div>
 </section>
 <section id="part-1-recap" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
@@ -940,6 +945,7 @@ Gaps &gt; 1 month     : 0</code></pre>
   <script src="../site_libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
   <script src="../site_libs/revealjs/plugin/reveal-menu/menu.js"></script>
   <script src="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="../site_libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
   <script src="../site_libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
@@ -961,7 +967,8 @@ Gaps &gt; 1 month     : 0</code></pre>
 'autoAnimateDuration': 1,
 'autoAnimateUnmatched': true,
 'jumpToSlide': true,
-'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"8\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'chalkboard': {"buttons":true},
 'smaller': false,
  
         // Display controls in the bottom right corner
@@ -1132,7 +1139,7 @@ Gaps &gt; 1 month     : 0</code></pre>
         },
 
         // reveal.js plugins
-        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, RevealChalkboard, QuartoSupport,
 
           RevealMath,
           RevealNotes,
@@ -1211,7 +1218,7 @@ Gaps &gt; 1 month     : 0</code></pre>
         }
           var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
           var mailtoRegex = new RegExp(/^mailto:/);
-            var filterRegex = new RegExp('/' + window.location.host + '/');
+            var filterRegex = new RegExp("https:\/\/NaifMersal\.github\.io\/time-series-analysis-and-forecasting\/");
           var isInternal = (href) => {
               return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
           }

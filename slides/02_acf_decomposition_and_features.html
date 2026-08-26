@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-08-25">
+  <meta name="dcterms.date" content="2026-08-26">
   <title>ACF, Decomposition &amp; Features</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -98,10 +98,12 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-ed47d27c72566660c43a8fce46721196.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
     .reveal div.sourceCode {
@@ -199,12 +201,12 @@
 
 <section id="title-slide" data-background-image="../slides_template/assets/anim.svg" data-background-opacity="0.15" data-background-size="cover" class="quarto-title-block center">
   <h1 class="title">ACF, Decomposition &amp; Features</h1>
-  <p class="subtitle">Day 1 · Segments 3–5 · fpppy Ch 2.8–2.9, Ch 3, Ch 4</p>
+  <p class="subtitle">Day 1 · Lecture 2 · fpppy Ch 2.8–2.9, Ch 3, Ch 4</p>
 
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-08-25</p>
+  <p class="date">2026-08-26</p>
 </section>
 <section id="eyeballing-cannot-be-tested-and-does-not-scale" class="slide level2">
 <h2>Eyeballing cannot be tested, and does not scale</h2>
@@ -278,11 +280,11 @@
 <ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1">
-<div id="810bd91f" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="d3630064" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-3-output-1.png" width="1112" height="496"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-3-output-1.png" width="1112" height="452"></p>
 </figure>
 </div>
 </div>
@@ -293,7 +295,7 @@
 <span id="cb1-2"><a></a><span class="co"># Detrended with a 12-month centred moving average:</span></span>
 <span id="cb1-3"><a></a>detrended <span class="op">=</span> spine[<span class="st">"y"</span>].to_numpy() <span class="op">-</span> P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">12</span>)</span>
 <span id="cb1-4"><a></a></span>
-<span id="cb1-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">4.4</span>))</span>
+<span id="cb1-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
 <span id="cb1-6"><a></a>P.lag_plot_grid(spine[<span class="st">"y"</span>], lags<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">12</span>), axes<span class="op">=</span>axes[<span class="dv">0</span>])</span>
 <span id="cb1-7"><a></a>P.lag_plot_grid(pd.Series(detrended).dropna(), lags<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">12</span>), axes<span class="op">=</span>axes[<span class="dv">1</span>])</span>
 <span id="cb1-8"><a></a>axes[<span class="dv">0</span>, <span class="dv">0</span>].set_ylabel(<span class="st">"raw turnover ($M)"</span>, size<span class="op">=</span><span class="dv">10</span>)</span>
@@ -337,7 +339,7 @@
 <ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1">
-<div id="ee892545" class="cell" data-fig-width="9" data-execution_count="3">
+<div id="60c0f5ec" class="cell" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -379,7 +381,7 @@
 <ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1">
-<div id="9cde8c0a" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="b6221cd2" class="cell" data-fig-width="10" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -407,7 +409,10 @@
 <span id="cb3-15"><a></a>P.acf_plot(trend_only[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Slow decay"</span>)</span>
 <span id="cb3-16"><a></a>P.acf_plot(season_only[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">1</span>], highlight_every<span class="op">=</span><span class="dv">12</span>, color<span class="op">=</span>P.BLUE, title<span class="op">=</span><span class="st">"Spikes at 12, 24, 36"</span>)</span>
 <span id="cb3-17"><a></a>P.acf_plot(lynx[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">30</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">2</span>], color<span class="op">=</span>P.PINK, title<span class="op">=</span><span class="st">"Oscillating wave"</span>)</span>
-<span id="cb3-18"><a></a>P.acf_plot(noise[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">3</span>], color<span class="op">=</span>P.GREY, title<span class="op">=</span><span class="st">"All inside bounds"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-18"><a></a>P.acf_plot(noise[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">3</span>], color<span class="op">=</span>P.GREY, title<span class="op">=</span><span class="st">"All inside bounds"</span>)</span>
+<span id="cb3-19"><a></a></span>
+<span id="cb3-20"><a></a><span class="co"># Decade labels, plus a tick on every year, so the peak-to-peak gaps are countable</span></span>
+<span id="cb3-21"><a></a>P.year_xticks(axes[<span class="dv">0</span>, <span class="dv">2</span>], step<span class="op">=</span><span class="dv">10</span>, minor<span class="op">=</span><span class="dv">1</span>, rotation<span class="op">=</span><span class="dv">45</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -459,20 +464,8 @@
 </table>
 <div class="fragment">
 <div class="cardbox teal">
-<p><strong>Key application</strong>: When model residuals are white noise, the model has captured all systematic structure.</p>
+<p><strong>Key application</strong>: When the unexplained variation is white noise, the model has captured all systematic structure.</p>
 </div>
-</div>
-</section>
-<section id="rightarrow-exercise-1.3-read-the-correlogram" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Exercise 1.3 · Read the correlogram</h2>
-<p>Open <code>labs/01_day1_structure_and_diagnostics.ipynb</code></p>
-<ul>
-<li class="fragment">Match four correlograms to four series</li>
-<li class="fragment">Compute ACF for spine data vs.&nbsp;white noise</li>
-<li class="fragment">Identify statistically significant lags</li>
-</ul>
-<div class="fragment">
-<p><em>15 minutes.</em></p>
 </div>
 </section></section>
 <section>
@@ -480,13 +473,13 @@
 <h1>B. Decomposition</h1>
 <p>Ch 3 · Separating trend, season, and noise</p>
 </section>
-<section id="box-cox-flattens-the-growing-swing" class="slide level2">
-<h2>Box-Cox flattens the growing swing</h2>
+<section id="a-log-transform-flattens-the-growing-swing" class="slide level2">
+<h2>A log transform flattens the growing swing</h2>
 <div class="panel-tabset">
 <ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1">
-<div id="0873d6d5" class="cell" data-fig-width="10" data-execution_count="5">
+<div id="df3df358" class="cell" data-fig-width="10" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -498,23 +491,25 @@
 </div>
 <div id="tabset-4-2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine())</span></span>
-<span id="cb4-2"><a></a><span class="co"># Box-Cox transformation with optimal log-likelihood lambda:</span></span>
-<span id="cb4-3"><a></a>lam <span class="op">=</span> boxcox_lambda(spine[<span class="st">"y"</span>].to_numpy(), method<span class="op">=</span><span class="st">"loglik"</span>)</span>
-<span id="cb4-4"><a></a>yt <span class="op">=</span> boxcox(spine[<span class="st">"y"</span>].to_numpy(), lam)</span>
-<span id="cb4-5"><a></a></span>
-<span id="cb4-6"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.8</span>))</span>
-<span id="cb4-7"><a></a>P.plot_series(spine, ax<span class="op">=</span>axes[<span class="dv">0</span>], title<span class="op">=</span><span class="st">"Original: expanding swing"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>)</span>
-<span id="cb4-8"><a></a>P.plot_series(spine.assign(y<span class="op">=</span>yt), ax<span class="op">=</span>axes[<span class="dv">1</span>], color<span class="op">=</span>P.ORANGE,</span>
-<span id="cb4-9"><a></a>              ylabel<span class="op">=</span><span class="st">"transformed turnover"</span>, title<span class="op">=</span><span class="vs">rf"Box-Cox </span><span class="kw">(</span><span class="dv">$</span><span class="er">\</span><span class="vs">lambda = </span><span class="sc">{</span>lam<span class="sc">:.2f}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">: constant swing"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-2"><a></a><span class="co"># Log transform: a multiplicative series becomes additive on the log scale</span></span>
+<span id="cb4-3"><a></a>yt <span class="op">=</span> np.log(spine[<span class="st">"y"</span>].to_numpy())</span>
+<span id="cb4-4"><a></a></span>
+<span id="cb4-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.8</span>))</span>
+<span id="cb4-6"><a></a>P.plot_series(spine, ax<span class="op">=</span>axes[<span class="dv">0</span>], title<span class="op">=</span><span class="st">"Original: expanding swing"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>)</span>
+<span id="cb4-7"><a></a>P.plot_series(spine.assign(y<span class="op">=</span>yt), ax<span class="op">=</span>axes[<span class="dv">1</span>], color<span class="op">=</span>P.ORANGE,</span>
+<span id="cb4-8"><a></a>              ylabel<span class="op">=</span><span class="st">"log turnover"</span>, title<span class="op">=</span><span class="st">"Log scale: constant swing"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
 <ul>
-<li class="fragment">When swing grows with level, transform before decomposing</li>
-<li class="fragment"><span class="math inline">\(\lambda \approx 0 \implies\)</span> Use a standard <strong>log transform</strong> (<span class="math inline">\(\log y_t\)</span>)</li>
+<li class="fragment">When the swing grows with the level, take a <strong>log transform</strong> before decomposing</li>
+<li class="fragment">On the log scale a multiplicative series is <strong>additive</strong>: the swing stops growing</li>
+<li class="fragment">Forecasting on it? Back-transforming returns the <strong>median</strong>, not the mean (Ch 5.6)</li>
 </ul>
 <aside class="notes">
-<p>Lambda came out near zero, which is the log case. Worth saying that Box-Cox is a family with the log at one end, not a separate technique. Everything after this slide in the segment runs on the transformed series.</p>
+<p>Deck 1 named the diagnosis: the swing grows with the level, so the series is multiplicative, and the fix is the log transform. This slide is that fix, applied: the annual swing is now a constant size, and the sixfold trend has become a near-straight climb. Everything after this slide in the segment runs on the log-transformed series.</p>
+<p>Box-Cox is the generalised version: a family of transforms indexed by lambda, with the log at lambda = 0. For this series the optimal lambda is about 0.07, so the log is the honest choice. Do not teach Box-Cox today; it comes back on Day 3 with ETS, where a fitted lambda is part of the model.</p>
+<p>The median-vs-mean point is the one they will trip over in production: if a regional total is the sum of 40 back-transformed store forecasts, that total is biased low unless you correct it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -534,7 +529,7 @@
 <ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-5-1">
-<div id="2b6c0f7b" class="cell" data-fig-width="10" data-execution_count="6">
+<div id="ba411f1f" class="cell" data-fig-width="10" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -579,12 +574,14 @@
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} S_{t+j}}_{\text{season}}
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} R_{t+j}}_{\text{noise}}\]</span></p>
 <ul>
-<li class="fragment"><strong>Season <span class="math inline">\(= 0\)</span>, exactly</strong>: the window spans one whole cycle</li>
+<li class="fragment"><strong>Constraint <span class="math inline">\(\sum_{j=1}^m S_j = 0\)</span></strong>: ensures pure swings around trend (any non-zero mean is unrecognizable trend)</li>
+<li class="fragment"><strong>Season <span class="math inline">\(= 0\)</span>, exactly</strong>: an <span class="math inline">\(m\)</span>-window spans one whole cycle</li>
 <li class="fragment"><strong>Trend survives</strong>: a symmetric window is unbiased on a linear trend</li>
 <li class="fragment"><strong>Noise shrinks</strong> by <span class="math inline">\(1/m\)</span>, damped but never removed</li>
 </ul>
 <aside class="notes">
-<p>Take the middle term first. One full cycle of a seasonal component sums to zero by definition, and the window is exactly one cycle, so that term is not small, it is zero. The trend term: with <span class="math inline">\(T_{t+j}\)</span> locally linear the symmetric offsets cancel and you get <span class="math inline">\(T_t\)</span> back. Everything left over is damped noise. That is the whole argument, and it is worth saying slowly because the rest of the segment rests on it.</p>
+<p>The constraint sum(S_j) = 0 is essential: without it, decomposition is not unique. Any non-zero average in S is unrecognizable trend, so the seasonal component is defined only up to a constant and the split between trend and season is not. Because the window is exactly one cycle, the middle term sums to 0. Locally linear trend offsets cancel, leaving T_t plus damped noise.</p>
+<p>For a multiplicative model the same idea multiplies instead: going through a full cycle, S1 x S2 x … x Sm = 1, so a geometric mean over the window removes the season.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -597,20 +594,42 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="an-even-m-needs-the-2m-ma-to-stay-centred" class="slide level2">
+<section id="seasonal-terms-always-sum-to-zero-over-m-steps" class="slide level2">
+<h2>Seasonal terms always sum to zero over <span class="math inline">\(m\)</span> steps</h2>
+<p>Periodicity (<span class="math inline">\(S_{t+m} = S_t\)</span>) means any <span class="math inline">\(m\)</span> consecutive terms span the full cycle:</p>
+<p><span class="math display">\[\{S_{t-k}, \dots, S_{t+k}\} = \{S_1, \dots, S_m\} \qquad (m = 2k + 1)\]</span></p>
+<div class="fragment">
+<p>Averaging over window <span class="math inline">\(m\)</span> cancels the season completely:</p>
+<p><span class="math display">\[\bar{S}_t = \frac{1}{m}(S_{t-k} + \dots + S_{t+k}) = \frac{1}{m}(\underbrace{S_1 + S_2 + \dots + S_m}_{\text{sums to } 0}) = \frac{1}{m}(0) = \mathbf{0}\]</span></p>
+<aside class="notes">
+<p>Because additive seasonality sums to zero across one cycle by construction, any window of length m captures each season exactly once and averages to 0, regardless of the starting month.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="an-even-m-needs-the-2m-ma-to-stay-centred" class="slide level2 smaller">
 <h2>An even <span class="math inline">\(m\)</span> needs the 2×<span class="math inline">\(m\)</span>-MA to stay centred</h2>
-<p>Twelve consecutive months have <strong>no middle month</strong>, so their average sits at <span class="math inline">\(t + \tfrac{1}{2}\)</span>. Average two adjacent 12-MAs to land back on <span class="math inline">\(t\)</span>:</p>
+<p>Twelve months have <strong>no middle month</strong>: their average sits at <span class="math inline">\(t + \tfrac{1}{2}\)</span>. Average two adjacent 12-MAs to land back on <span class="math inline">\(t\)</span>:</p>
 <p><span class="math display">\[\hat{T}_t = \tfrac{1}{24}y_{t-6} + \tfrac{1}{12}\sum_{j=-5}^{5} y_{t+j}
               + \tfrac{1}{24}y_{t+6}\]</span></p>
 <div class="panel-tabset">
 <ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-6-1">
-<div id="d2fed7c6" class="cell" data-fig-width="7.5" data-execution_count="7">
+<div id="69fdfe56" class="cell" data-fig-width="7.5" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-8-output-1.png" width="837" height="276"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-8-output-1.png" width="837" height="199"></p>
 </figure>
 </div>
 </div>
@@ -618,13 +637,13 @@
 </div>
 <div id="tabset-6-2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a><span class="co"># 2x12 Centred Moving Average filter weights:</span></span>
-<span id="cb6-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">7.5</span>, <span class="fl">2.4</span>))</span>
+<span id="cb6-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">7.5</span>, <span class="fl">1.7</span>))</span>
 <span id="cb6-3"><a></a>P.ma_weight_plot(<span class="dv">12</span>, ax<span class="op">=</span>ax, title<span class="op">=</span><span class="st">"13 weights, symmetric about $t$"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
-<p><span class="math inline">\(y_{t-6}\)</span> and <span class="math inline">\(y_{t+6}\)</span> are the <strong>same calendar month</strong>, so between them they carry <span class="math inline">\(\tfrac{1}{12}\)</span>, like every other month. The season still cancels exactly.</p>
+<p><span class="math inline">\(y_{t-6}\)</span> and <span class="math inline">\(y_{t+6}\)</span> are the <strong>same calendar month</strong>, so between them it still gets <span class="math inline">\(\tfrac{1}{12}\)</span>, like every other month. The season cancels exactly.</p>
 </div>
 <aside class="notes">
 <p>The two half weights land on the same calendar month, six months either side of t. Between them that month still gets a full 1/12, like every other month, so the season still cancels exactly. That is the only reason the 2x12 form exists.</p>
@@ -673,7 +692,7 @@
 <ul id="tabset-7" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-7-1">Plot</a></li><li><a href="#tabset-7-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-7-1">
-<div id="4a7b9bfe" class="cell" data-fig-width="10" data-execution_count="8">
+<div id="184c6c31" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -717,7 +736,7 @@
 <ul id="tabset-8" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-8-1">Plot</a></li><li><a href="#tabset-8-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-8-1">
-<div id="164bb6dc" class="cell" data-fig-width="9" data-execution_count="9">
+<div id="65dfc4b5" class="cell" data-fig-width="9" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -728,7 +747,7 @@
 </div>
 </div>
 <div id="tabset-8-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a><span class="co"># Dataset: Transformed spine turnover (yt = Box-Cox of D.spine())</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a><span class="co"># Dataset: Log-transformed spine turnover (yt = np.log of D.spine()["y"])</span></span>
 <span id="cb8-2"><a></a>res <span class="op">=</span> STL(yt, period<span class="op">=</span><span class="dv">12</span>, robust<span class="op">=</span><span class="va">True</span>).fit()</span>
 <span id="cb8-3"><a></a>dcmp <span class="op">=</span> spine.assign(</span>
 <span id="cb8-4"><a></a>    <span class="op">**</span>{<span class="st">"transformed turnover"</span>: yt},</span>
@@ -771,7 +790,7 @@
 <ul id="tabset-9" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-9-1">Plot</a></li><li><a href="#tabset-9-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-9-1">
-<div id="f0ecb711" class="cell" data-fig-width="9.5" data-execution_count="10">
+<div id="440e388c" class="cell" data-fig-width="9.5" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -793,18 +812,6 @@
 </div>
 <div class="cardbox navy">
 <p>The step up in 2009 and the dip around 2000 are level shifts, not season. Both are much easier to see once the annual swing is gone.</p>
-</div>
-</section>
-<section id="rightarrow-exercise-1.4-transform-and-decompose" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Exercise 1.4 · Transform and decompose</h2>
-<p>Open <code>labs/01_day1_structure_and_diagnostics.ipynb</code></p>
-<ul>
-<li class="fragment">Estimate optimal Box-Cox <span class="math inline">\(\lambda\)</span></li>
-<li class="fragment">Fit STL decomposition</li>
-<li class="fragment">Plot components and produce seasonally adjusted series</li>
-</ul>
-<div class="fragment">
-<p><em>15 minutes.</em></p>
 </div>
 </section></section>
 <section>
@@ -866,7 +873,7 @@
 <ul id="tabset-10" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-10-1">Plot</a></li><li><a href="#tabset-10-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-10-1">
-<div id="68caea24" class="cell" data-fig-width="9.5" data-execution_count="11">
+<div id="a73f6529" class="cell" data-fig-width="9.5" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -937,16 +944,33 @@
 </div>
 </div>
 </section>
-<section id="rightarrow-exercise-1.5-features-across-a-portfolio" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Exercise 1.5 · Features across a portfolio</h2>
+<section id="rightarrow-lab-b-measure-what-you-saw" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab B · Measure what you saw</h2>
 <p>Open <code>labs/01_day1_structure_and_diagnostics.ipynb</code></p>
-<ul>
-<li class="fragment">Compute <span class="math inline">\(F_T\)</span> and <span class="math inline">\(F_S\)</span> for all retail series</li>
-<li class="fragment">Rank series by seasonal strength</li>
-<li class="fragment">Plot the most and least seasonal series</li>
-</ul>
+<table class="caption-top">
+<tbody>
+<tr class="odd">
+<td><strong>1.3</strong></td>
+<td>Read the correlogram</td>
+<td>15 min</td>
+</tr>
+<tr class="even">
+<td><strong>1.4</strong></td>
+<td>Transform and decompose</td>
+<td>15 min</td>
+</tr>
+<tr class="odd">
+<td><strong>1.5</strong></td>
+<td>Features across a portfolio</td>
+<td>15 min</td>
+</tr>
+</tbody>
+</table>
 <div class="fragment">
-<p><em>15 minutes.</em></p>
+<p><em>45 minutes. The notebook carries the instructions; work down it in order.</em></p>
+<div class="cardbox teal">
+<p>Same notebook as Lab A. Pick up at Exercise 1.3.</p>
+</div>
 </div>
 </section>
 <section id="day-1-summary" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
@@ -979,6 +1003,7 @@
   <script src="../site_libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
   <script src="../site_libs/revealjs/plugin/reveal-menu/menu.js"></script>
   <script src="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="../site_libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
   <script src="../site_libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
@@ -1000,7 +1025,8 @@
 'autoAnimateDuration': 1,
 'autoAnimateUnmatched': true,
 'jumpToSlide': true,
-'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"8\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'chalkboard': {"buttons":true},
 'smaller': false,
  
         // Display controls in the bottom right corner
@@ -1171,7 +1197,7 @@
         },
 
         // reveal.js plugins
-        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, RevealChalkboard, QuartoSupport,
 
           RevealMath,
           RevealNotes,
@@ -1250,7 +1276,7 @@
         }
           var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
           var mailtoRegex = new RegExp(/^mailto:/);
-            var filterRegex = new RegExp('/' + window.location.host + '/');
+            var filterRegex = new RegExp("https:\/\/NaifMersal\.github\.io\/time-series-analysis-and-forecasting\/");
           var isInternal = (href) => {
               return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
           }

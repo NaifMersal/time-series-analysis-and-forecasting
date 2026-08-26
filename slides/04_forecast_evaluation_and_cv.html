@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-08-25">
+  <meta name="dcterms.date" content="2026-08-26">
   <title>Forecast Evaluation &amp; Cross-Validation</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -98,10 +98,12 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-ed47d27c72566660c43a8fce46721196.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
     .reveal div.sourceCode {
@@ -199,18 +201,18 @@
 
 <section id="title-slide" data-background-image="../slides_template/assets/anim.svg" data-background-opacity="0.15" data-background-size="cover" class="quarto-title-block center">
   <h1 class="title">Forecast Evaluation &amp; Cross-Validation</h1>
-  <p class="subtitle">Day 2 · Segments 4–5 · fpppy Ch 5.8–5.10, Ch 13</p>
+  <p class="subtitle">Day 2 · Lecture 2 · fpppy Ch 5.8–5.10, Ch 13</p>
 
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-08-25</p>
+  <p class="date">2026-08-26</p>
 </section>
-<section id="you-have-4-forecasts.-which-is-best" class="slide level2">
-<h2>You have 4 forecasts. Which is best?</h2>
+<section id="you-have-5-forecasts.-which-is-best" class="slide level2">
+<h2>You have 5 forecasts. Which is best?</h2>
 <ul>
-<li class="fragment"><strong>Segment 4</strong> — How to score point forecasts fairly</li>
-<li class="fragment"><strong>Segment 5</strong> — Why 1 test split is not enough, and how rolling-origin CV fixes it</li>
+<li class="fragment"><strong>Part A</strong>: How to score point forecasts fairly</li>
+<li class="fragment"><strong>Part B</strong>: Why 1 test split is not enough, and how rolling-origin CV fixes it</li>
 </ul>
 <div class="fragment">
 <div class="callout callout-important callout-titled callout-style-default">
@@ -219,13 +221,29 @@
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>Deliverable</strong></p>
+<p><strong>The deliverable is a reusable evaluation harness</strong></p>
 </div>
 <div class="callout-content">
-<p>Build a standardized evaluation harness to benchmark any forecasting model.</p>
+<p>A standard way to score any forecasting model, built and used today.</p>
 </div>
 </div>
 </div>
+<aside class="notes">
+<p>Pick this up from lecture 1 rather than restarting. They left the room with five forecasts and one number each, measured on a single 24-month window, and the STL route on top at 0.70. This lecture asks whether that number means anything.</p>
+<p>The answer, twice over, is no: not with that metric, and not on that many windows.</p>
+<p>Say what leaves the room today. By the end of Exercise 2.5 there is a file, labs/leaderboard.csv, with one row per benchmark and four columns that matter: MASE, RMSSE, scaled CRPS, and 80% coverage. Day 3 appends to that same file.</p>
+<p>That framing is worth repeating at the end of every exercise in this lecture. The point of the harness is that adding a model to it is a few lines.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </div>
 </section>
 <section>
@@ -233,8 +251,8 @@
 <h1>A. Scoring a point forecast</h1>
 <p>Ch 5.8 · Point forecast metrics</p>
 </section>
-<section id="error-metric-summary" class="slide level2">
-<h2>Error metric summary</h2>
+<section id="only-a-scaled-metric-can-compare-across-series" class="slide level2">
+<h2>Only a scaled metric can compare across series</h2>
 <p>Forecast error: <span class="math inline">\(e_{T+h} = y_{T+h} - \hat{y}_{T+h|T}\)</span></p>
 <table class="caption-top">
 <colgroup>
@@ -253,22 +271,27 @@
 <tr class="odd">
 <td><strong>MAE</strong></td>
 <td>Easy to interpret</td>
-<td>Scale-dependent (cannot compare across series)</td>
+<td>Scale-dependent: cannot be pooled across series</td>
 </tr>
 <tr class="even">
 <td><strong>RMSE</strong></td>
-<td>Penalizes large errors</td>
+<td>Punishes large errors</td>
 <td>Scale-dependent</td>
 </tr>
 <tr class="odd">
 <td><strong>MAPE</strong></td>
-<td>Percentage error</td>
-<td>Explodes near zero; asymmetric</td>
+<td>Unit-free</td>
+<td>Explodes near zero, and asymmetric</td>
 </tr>
 <tr class="even">
 <td><strong>MASE</strong></td>
-<td><strong>Scale-free</strong> (relative to baseline)</td>
-<td>Requires seasonal period</td>
+<td><strong>Scaled</strong>: MAE over the benchmark’s</td>
+<td>Needs the seasonal period</td>
+</tr>
+<tr class="odd">
+<td><strong>RMSSE</strong></td>
+<td><strong>Scaled</strong>: RMSE over the benchmark’s</td>
+<td>Same, and still punishes outliers</td>
 </tr>
 </tbody>
 </table>
@@ -286,13 +309,45 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-flaw-with-mape" class="slide level2">
-<h2>The flaw with MAPE</h2>
+<section id="rescaling-the-data-moves-mae-but-not-mase" class="slide level2">
+<h2>Rescaling the data moves MAE but not MASE</h2>
+<p>Same series, new unit, with <span class="math inline">\(k &gt; 0\)</span>: <span class="math inline">\(y'_t = k\,y_t\)</span> and <span class="math inline">\(\hat{y}'_t = k\,\hat{y}_t\)</span>.</p>
+<div class="fragment">
+<p><span class="math display">\[\text{MAE}' = \frac{1}{n}\sum \lvert k y_t - k\hat{y}_t \rvert = k\,\text{MAE}
+\quad\text{(moves with the unit)}\]</span></p>
+</div>
+<div class="fragment">
+<p><span class="math display">\[PE'_t = \frac{k y_t - k\hat{y}_t}{k y_t} = PE_t
+\qquad
+\text{MASE}' = \frac{k\,\text{MAE}}{k\,Q} = \text{MASE}\]</span></p>
+<p>Now shift as well as scale, <span class="math inline">\(y'_t = k y_t + c\)</span>, which is what °C to °F is. Differences kill <span class="math inline">\(c\)</span>, so MASE holds. MAPE’s denominator keeps it.</p>
+<div class="cardbox">
+<p>MAPE cancelled <span class="math inline">\(k\)</span> and is still the worst metric in this deck. Cancelling is necessary, not sufficient.</p>
+</div>
+<aside class="notes">
+<p>Do this one at the board pace, not the slide pace. Ask what happens to each metric if the finance team reports the same series in thousands instead of dollars. Everyone knows MAE has to move. Then substitute.</p>
+<p>MAE picks up the k and moves with the unit. MAPE cancels it, top and bottom. MASE cancels it too, and the reason is worth saying out loud: Q is built from the same data, so the denominator scales by exactly the same k as the numerator. That cancellation is the licence for what Day 1 did when it pooled 148 retail series with different turnovers into one ranking.</p>
+<p>Then the sting. MAPE passed the test and is still the worst metric in this deck, so cancelling k is necessary and not sufficient. Add an offset and the two part company: every term in MASE is a difference, so c disappears, but MAPE divides by a level and the c rides along. That is the temperature objection, three slides early, and now it is a consequence rather than an assertion.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="mape-explodes-when-the-actual-is-near-zero" class="slide level2">
+<h2>MAPE explodes when the actual is near zero</h2>
 <div class="panel-tabset">
 <ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1">
-<div id="6181610c" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="d1e37fbc" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -303,70 +358,23 @@
 </div>
 </div>
 <div id="tabset-1-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="co"># Dataset: Simulated low-volume / intermittent demand series (Poisson)</span></span>
-<span id="cb1-2"><a></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">3</span>)</span>
-<span id="cb1-3"><a></a>n <span class="op">=</span> <span class="dv">48</span></span>
-<span id="cb1-4"><a></a>low <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb1-5"><a></a>    <span class="st">"unique_id"</span>: <span class="st">"spare parts"</span>,</span>
-<span id="cb1-6"><a></a>    <span class="st">"ds"</span>: pd.date_range(<span class="st">"2020-01-01"</span>, periods<span class="op">=</span>n, freq<span class="op">=</span><span class="st">"MS"</span>),</span>
-<span id="cb1-7"><a></a>    <span class="st">"y"</span>: np.clip(rng.poisson(<span class="fl">1.4</span>, n).astype(<span class="bu">float</span>), <span class="fl">0.2</span>, <span class="va">None</span>),</span>
-<span id="cb1-8"><a></a>})</span>
-<span id="cb1-9"><a></a>pred_hi <span class="op">=</span> low[<span class="st">"y"</span>] <span class="op">+</span> <span class="fl">2.0</span></span>
-<span id="cb1-10"><a></a>pred_lo <span class="op">=</span> low[<span class="st">"y"</span>] <span class="op">-</span> <span class="fl">0.15</span></span>
-<span id="cb1-11"><a></a></span>
-<span id="cb1-12"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.6</span>))</span>
-<span id="cb1-13"><a></a>ax.plot(low[<span class="st">"ds"</span>], low[<span class="st">"y"</span>], color<span class="op">=</span>P.BLACK, lw<span class="op">=</span><span class="fl">1.2</span>, label<span class="op">=</span><span class="st">"Actual (Low Volume)"</span>)</span>
-<span id="cb1-14"><a></a>ax.plot(low[<span class="st">"ds"</span>], pred_hi, color<span class="op">=</span>P.ORANGE, lw<span class="op">=</span><span class="fl">1.4</span>, label<span class="op">=</span><span class="st">"Forecast A (+2.0)"</span>)</span>
-<span id="cb1-15"><a></a>ax.plot(low[<span class="st">"ds"</span>], pred_lo, color<span class="op">=</span>P.BLUE, lw<span class="op">=</span><span class="fl">1.4</span>, label<span class="op">=</span><span class="st">"Forecast B (-0.15)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="co"># Dataset: simulated low-volume / intermittent demand (Poisson counts near zero)</span></span>
+<span id="cb1-2"><a></a>low <span class="op">=</span> D.low_volume_demand(n<span class="op">=</span><span class="dv">48</span>, seed<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb1-3"><a></a>preds <span class="op">=</span> low[[<span class="st">"ds"</span>]].assign(A<span class="op">=</span>low[<span class="st">"y"</span>] <span class="op">+</span> <span class="fl">2.0</span>,      <span class="co"># always 2 units too high</span></span>
+<span id="cb1-4"><a></a>                           B<span class="op">=</span>low[<span class="st">"y"</span>] <span class="op">-</span> <span class="fl">0.15</span>)     <span class="co"># always 0.15 too low</span></span>
+<span id="cb1-5"><a></a></span>
+<span id="cb1-6"><a></a>P.forecast_overlay(low, preds, [<span class="st">"A"</span>, <span class="st">"B"</span>], history_tail<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-7"><a></a>                   history_label<span class="op">=</span><span class="st">"actual (low volume)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
 <ul>
-<li class="fragment">Forecast A: MAE = 2.00, MAPE = <strong>184%</strong></li>
+<li class="fragment">Forecast A: MAE = 2.00, MAPE = <strong>304%</strong></li>
 <li class="fragment">Forecast B: MAE = 0.15, MAPE = <strong>23%</strong></li>
 </ul>
-</section>
-<section id="reasons-to-avoid-mape-for-model-selection" class="slide level2">
-<h2>3 reasons to avoid MAPE for model selection</h2>
-<ol type="1">
-<li class="fragment"><strong>Undefined at zero</strong> — explodes on intermittent / low-volume demand</li>
-<li class="fragment"><strong>Asymmetric</strong> — penalizes over-forecasting far more than under-forecasting</li>
-<li class="fragment"><strong>Fails without a true zero</strong> — invalid for temperature (°C)</li>
-</ol>
-<div class="fragment">
-<div class="cardbox">
-<p>Report MAPE to executives if required, but <strong>never optimize models using MAPE</strong>.</p>
-</div>
-</div>
-</section>
-<section id="scaled-errors-mase" class="slide level2">
-<h2>Scaled Errors: MASE</h2>
-<p>Error divided by the in-sample Seasonal Naive error (<span class="math inline">\(Q\)</span>):</p>
-<p><span class="math display">\[\text{MASE} = \frac{\text{MAE}}{Q}\]</span></p>
-<div class="fragment">
-<ul>
-<li class="fragment"><strong><span class="math inline">\(\text{MASE} &lt; 1\)</span></strong> <span class="math inline">\(\rightarrow\)</span> <strong>Better</strong> than the seasonal naive baseline</li>
-<li class="fragment"><strong><span class="math inline">\(\text{MASE} = 1\)</span></strong> <span class="math inline">\(\rightarrow\)</span> Exactly as good as seasonal naive</li>
-<li class="fragment"><strong><span class="math inline">\(\text{MASE} &gt; 1\)</span></strong> <span class="math inline">\(\rightarrow\)</span> <strong>Worse</strong> than simple baseline</li>
-</ul>
-</div>
-</section>
-<section id="benchmarks-scored-on-test-set" class="slide level2">
-<h2>Benchmarks scored on test set</h2>
-<div id="e1772e14" class="cell" data-fig-width="10" data-execution_count="3">
-<div class="cell-output cell-output-stdout">
-<pre><code>                   MAE    RMSE  MAPE %   MASE  RMSSE
-Mean            173.67  175.55   51.82  12.66   9.09
-Naive            37.07   42.46   11.64   2.70   2.20
-Seasonal naive   15.24   17.56    4.55   1.11   0.91
-Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
-</div>
-</div>
-<div class="cardbox teal">
-<p>Seasonal Naive wins across all metrics (<span class="math inline">\(\text{MASE} = 1.11\)</span>).</p>
-</div>
 <aside class="notes">
-<p>MASE &gt; 1.0 because forecasting 24 months ahead is harder than in-sample 1-step naive errors.</p>
+<p>Read the two forecasts off the chart before quoting the numbers, and let the room commit. Forecast A is two units too high everywhere; forecast B is fifteen hundredths too low everywhere. Everyone picks B, and everyone is right.</p>
+<p>Then show the MAPE column: A scores 304%, B scores 23%. MAPE agrees here. Now ask what happens when the actual is 0.2 and you are two units out - the percentage error is a thousand percent, and it is the denominator doing that, not the forecast.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -379,25 +387,99 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
           display:block!important;
       }</style></aside>
 </section>
-<section id="rightarrow-exercise-2.4" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Exercise 2.4</h2>
-<p>Open <code>labs/02_day2_benchmarks_and_evaluation.ipynb</code></p>
-<ul>
-<li class="fragment">Compute MAE, RMSE, MAPE, and MASE for all baselines</li>
-<li class="fragment">Construct a scenario where MAPE produces misleading rankings</li>
-<li class="fragment">Defend the top-ranked model using MASE</li>
-</ul>
+<section id="three-reasons-mape-cannot-select-a-model" class="slide level2">
+<h2>Three reasons MAPE cannot select a model</h2>
+<ol type="1">
+<li class="fragment"><strong>Undefined at zero</strong>: explodes on intermittent / low-volume demand</li>
+<li class="fragment"><strong>Asymmetric</strong>: penalizes over-forecasting far more than under-forecasting</li>
+<li class="fragment"><strong>Fails without a true zero</strong>: the offset never cancels, so °C breaks it</li>
+</ol>
+<aside class="notes">
+<p>The second one surprises people, so make it concrete. Forecast 100 when the actual is 50 and MAPE charges you 100%. Forecast 50 when the actual is 100 and it charges you 50%. The same 50-unit error, twice the penalty for being high. A team that selects on MAPE learns to under-forecast, and in an inventory setting that means stocking out.</p>
+<p>The third is the one people argue with, and the rescaling slide already answered it. MAPE needs a meaningful zero to divide by, and 0 degrees Celsius is not “no temperature”, it is a point on a scale somebody chose. Convert to Fahrenheit and the offset survives in the denominator, so the same forecast scores differently in the two units. MASE, built from differences, does not care.</p>
+<p>None of this makes MAPE useless. It reports well to a business audience. It just cannot be the thing you select a model on.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 <div class="fragment">
-<p><em>12 minutes.</em></p>
+<div class="cardbox">
+<p>Report MAPE to executives if required, but <strong>never optimize models using MAPE</strong>.</p>
 </div>
+</div>
+</section>
+<section id="dividing-by-the-benchmark-makes-errors-comparable" class="slide level2">
+<h2>Dividing by the benchmark makes errors comparable</h2>
+<p>Error divided by the in-sample Seasonal Naive error (<span class="math inline">\(Q\)</span>):</p>
+<p><span class="math display">\[\text{MASE} = \frac{\text{MAE}}{Q},
+\qquad Q = \frac{1}{T-m}\sum_{t=m+1}^{T} \lvert y_t - y_{t-m} \rvert\]</span></p>
+<p><span class="math inline">\(Q\)</span> is measured in the units of the data, which is what cancelled the <span class="math inline">\(k\)</span>.</p>
+<div class="fragment">
+<ul>
+<li class="fragment"><strong><span class="math inline">\(\text{MASE} &lt; 1\)</span></strong> <span class="math inline">\(\rightarrow\)</span> <strong>Better</strong> than the seasonal naive baseline</li>
+<li class="fragment"><strong><span class="math inline">\(\text{MASE} = 1\)</span></strong> <span class="math inline">\(\rightarrow\)</span> Exactly as good as seasonal naive</li>
+<li class="fragment"><strong><span class="math inline">\(\text{MASE} &gt; 1\)</span></strong> <span class="math inline">\(\rightarrow\)</span> <strong>Worse</strong> than simple baseline</li>
+</ul>
+<aside class="notes">
+<p>The denominator is the whole idea: divide by the in-sample one-step seasonal naive error, and the metric becomes scale-free and readable. MASE below 1 beats the benchmark, above 1 loses to it.</p>
+<p>Warn them the seasonal naive will score above 1 on this data, and that this is not a contradiction: forecasting 24 months out is harder than the one-step in-sample errors sitting in the denominator.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="on-this-one-window-the-stl-route-wins-every-metric" class="slide level2">
+<h2>On this one window the STL route wins every metric</h2>
+<div id="36850b4b" class="cell" data-fig-width="10" data-execution_count="3">
+<div class="cell-output cell-output-stdout">
+<pre><code>                   MAE    RMSE  MAPE %   MASE  RMSSE
+Mean            173.67  175.55   51.82  12.66   9.09
+Naive            37.07   42.46   11.64   2.70   2.20
+Seasonal naive   15.24   17.56    4.55   1.11   0.91
+Drift            44.35   49.02   13.86   3.23   2.54
+STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
+</div>
+</div>
+<div class="cardbox coral">
+<p>On <strong>this window</strong> the STL route wins on every metric (<span class="math inline">\(\text{MASE} = 0.70\)</span>), with the seasonal naive second at <span class="math inline">\(1.11\)</span>. Hold that thought until part B.</p>
+</div>
+<aside class="notes">
+<p>Resist declaring a winner here. The seasonal naive’s MASE &gt; 1.0 because forecasting 24 months ahead is harder than the in-sample one-step naive errors in the denominator. The STL route’s 0.70 is the number that gets a model promoted on one lucky year, and part B of this deck takes it back.</p>
+<p>RMSSE is the same idea as MASE with squared errors, which is why the two columns agree on the ranking here and why both end up on the leaderboard.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section></section>
 <section>
 <section id="b.-one-split-is-not-evidence" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
 <h1>B. One split is not evidence</h1>
 <p>Ch 5.10 · Rolling-origin cross-validation</p>
 </section>
-<section id="why-a-single-traintest-split-fails" class="slide level2">
-<h2>Why a single train/test split fails</h2>
+<section id="one-split-gives-a-number-with-no-error-bar" class="slide level2">
+<h2>One split gives a number with no error bar</h2>
 <ul>
 <li class="fragment">A single 24-month split is just <strong>one sample point</strong></li>
 <li class="fragment">Score depends heavily on economic conditions during that window</li>
@@ -408,87 +490,51 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
 <div class="cardbox navy">
 <p>Time series cannot use standard k-fold. We need <strong>rolling origins</strong>.</p>
 </div>
+<aside class="notes">
+<p>This is the hinge of the day. One split gives one number, and one number has no error bar, so it cannot support a ranking.</p>
+<p>Ask the room how confident they would be in a drug trial with one patient. Same objection, same fix: more origins.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </div>
 </section>
-<section id="rolling-origin-cross-validation" class="slide level2">
-<h2>Rolling-Origin Cross-Validation</h2>
+<section id="rolling-the-origin-turns-one-score-into-a-distribution" class="slide level2">
+<h2>Rolling the origin turns one score into a distribution</h2>
 <div class="panel-tabset">
 <ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1">
-<div id="29e0da61" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="9ce32d20" class="cell" data-fig-width="9" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-5-output-1.png" width="1112" height="496"></p>
+<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-5-output-1.png" width="1002" height="453"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
 <div id="tabset-2-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a><span class="co"># Diagram: Rolling-origin cross-validation splits (expanding window)</span></span>
-<span id="cb3-2"><a></a><span class="co"># 96 total periods, initial train size 48, horizon 12, step size 12</span></span>
-<span id="cb3-3"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">4.4</span>))</span>
-<span id="cb3-4"><a></a>P.cv_staircase(n_obs<span class="op">=</span><span class="dv">96</span>, initial<span class="op">=</span><span class="dv">48</span>, horizon<span class="op">=</span><span class="dv">12</span>, step<span class="op">=</span><span class="dv">12</span>, ax<span class="op">=</span>ax,</span>
-<span id="cb3-5"><a></a>               title<span class="op">=</span><span class="st">"Expanding Training Window Across Origins"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a><span class="co"># Diagram: the eight folds this deck scores on, drawn to scale.</span></span>
+<span id="cb3-2"><a></a><span class="co"># 144 periods, initial train 48, horizon 12, step 12 -&gt; 8 origins.</span></span>
+<span id="cb3-3"><a></a>P.cv_staircase(n_obs<span class="op">=</span><span class="dv">144</span>, initial<span class="op">=</span><span class="dv">48</span>, horizon<span class="op">=</span><span class="dv">12</span>, step<span class="op">=</span><span class="dv">12</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
 <p>Each fold trains only on past data. <strong>No fold ever peeks into its future</strong>.</p>
 </div>
-</section>
-<section id="key-cv-parameters" class="slide level2">
-<h2>Key CV parameters</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="co"># Cross-validation setup with StatsForecast on Victorian takeaway turnover (spine):</span></span>
-<span id="cb4-2"><a></a>cv <span class="op">=</span> sf.cross_validation(</span>
-<span id="cb4-3"><a></a>    df<span class="op">=</span>spine,</span>
-<span id="cb4-4"><a></a>    h<span class="op">=</span><span class="dv">12</span>,          <span class="co"># Forecast horizon matched to business need</span></span>
-<span id="cb4-5"><a></a>    step_size<span class="op">=</span><span class="dv">12</span>,  <span class="co"># Steps between successive origins</span></span>
-<span id="cb4-6"><a></a>    n_windows<span class="op">=</span><span class="dv">8</span>,   <span class="co"># Number of evaluation folds</span></span>
-<span id="cb4-7"><a></a>    level<span class="op">=</span>[<span class="dv">80</span>],</span>
-<span id="cb4-8"><a></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ul>
-<li class="fragment"><strong><code>h</code></strong> — match the true operational planning horizon</li>
-<li class="fragment"><strong><code>step_size</code></strong> — frequency of forecast production</li>
-<li class="fragment"><strong><code>n_windows</code></strong> — number of independent test origins</li>
-</ul>
-</section>
-<section id="cross-validation-results-across-8-folds" class="slide level2">
-<h2>Cross-validation results across 8 folds</h2>
-<div class="panel-tabset">
-<ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-3-1">
-<div id="8f231fbd" class="cell" data-fig-width="10" data-execution_count="5">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-6-output-1.png" width="1112" height="452"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-3-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a><span class="co"># Dataset: Victorian takeaway food turnover (cv = sf.cross_validation(spine, n_windows=8))</span></span>
-<span id="cb5-2"><a></a><span class="co"># Left: Single 24-month split vs Mean across 8 CV origins</span></span>
-<span id="cb5-3"><a></a><span class="co"># Right: Distribution of MASE across individual CV folds</span></span>
-<span id="cb5-4"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">4.0</span>))</span>
-<span id="cb5-5"><a></a></span>
-<span id="cb5-6"><a></a>single <span class="op">=</span> mase(merged, models<span class="op">=</span>MODELS, seasonality<span class="op">=</span><span class="dv">12</span>, train_df<span class="op">=</span>train)[MODELS].iloc[<span class="dv">0</span>]</span>
-<span id="cb5-7"><a></a>x <span class="op">=</span> np.arange(<span class="bu">len</span>(MODELS))</span>
-<span id="cb5-8"><a></a>axes[<span class="dv">0</span>].bar(x <span class="op">-</span> <span class="fl">0.2</span>, single.values, width<span class="op">=</span><span class="fl">0.4</span>, color<span class="op">=</span>P.GREY, label<span class="op">=</span><span class="st">"Single Split"</span>)</span>
-<span id="cb5-9"><a></a>axes[<span class="dv">0</span>].bar(x <span class="op">+</span> <span class="fl">0.2</span>, per_window.mean().values, width<span class="op">=</span><span class="fl">0.4</span>, color<span class="op">=</span>P.BLUE, label<span class="op">=</span><span class="ss">f"Mean of </span><span class="sc">{</span>N_WINDOWS<span class="sc">}</span><span class="ss"> Folds"</span>)</span>
-<span id="cb5-10"><a></a></span>
-<span id="cb5-11"><a></a><span class="cf">for</span> i, m <span class="kw">in</span> <span class="bu">enumerate</span>(MODELS):</span>
-<span id="cb5-12"><a></a>    axes[<span class="dv">1</span>].scatter(np.full(<span class="bu">len</span>(per_window), i), per_window[m], s<span class="op">=</span><span class="dv">40</span>, color<span class="op">=</span>P.ORANGE, alpha<span class="op">=</span><span class="fl">0.75</span>, zorder<span class="op">=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
 <aside class="notes">
-<p>Notice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky/unlucky, but the average is robust.</p>
+<p>Walk the diagram fold by fold. Blue is what the model saw, orange is what it was scored on, grey is the future it was not allowed to know about. Every row moves the boundary forward and never backwards.</p>
+<p>Say explicitly why k-fold is wrong here: shuffling puts future rows in the training set, which is leakage, and the last slide of this deck comes back to it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -501,13 +547,90 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
           display:block!important;
       }</style></aside>
 </section>
-<section id="interval-coverage-across-all-8-folds" class="slide level2">
-<h2>Interval coverage across all 8 folds</h2>
+<section id="three-knobs-control-the-cv-h-step_size-n_windows" class="slide level2">
+<h2>Three knobs control the CV: h, step_size, n_windows</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="co"># Rolling-origin CV on the spine:</span></span>
+<span id="cb4-2"><a></a>cv <span class="op">=</span> sf.cross_validation(</span>
+<span id="cb4-3"><a></a>    df<span class="op">=</span>spine,</span>
+<span id="cb4-4"><a></a>    h<span class="op">=</span><span class="dv">12</span>,          <span class="co"># Forecast horizon matched to business need</span></span>
+<span id="cb4-5"><a></a>    step_size<span class="op">=</span><span class="dv">12</span>,  <span class="co"># Steps between successive origins</span></span>
+<span id="cb4-6"><a></a>    n_windows<span class="op">=</span><span class="dv">8</span>,   <span class="co"># Number of evaluation folds</span></span>
+<span id="cb4-7"><a></a>    level<span class="op">=</span>[<span class="dv">80</span>],</span>
+<span id="cb4-8"><a></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li class="fragment"><strong><code>h</code></strong>: match the true operational planning horizon</li>
+<li class="fragment"><strong><code>step_size</code></strong>: frequency of forecast production</li>
+<li class="fragment"><strong><code>n_windows</code></strong>: number of independent test origins</li>
+</ul>
+<aside class="notes">
+<p>Pick h from the decision, not from the data. If the plan is quarterly, h is three, and a model that wins at h=12 is not the one you want.</p>
+<p>The trade in n_windows is honest: more windows is a steadier estimate and a shorter first training set. Eight is what this series affords.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="eight-folds-keep-the-ranking-and-move-the-winner" class="slide level2">
+<h2>Eight folds keep the ranking and move the winner</h2>
+<div class="panel-tabset">
+<ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
+<div class="tab-content">
+<div id="tabset-3-1">
+<div id="3d39a963" class="cell" data-fig-width="10" data-execution_count="5">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-6-output-1.png" width="1077" height="337"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-3-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a><span class="co"># Score EVERY fold separately, each against its own training history: a fold's</span></span>
+<span id="cb5-2"><a></a><span class="co"># MASE denominator must come from data that fold was allowed to see.</span></span>
+<span id="cb5-3"><a></a>per_window <span class="op">=</span> pd.DataFrame([</span>
+<span id="cb5-4"><a></a>    mase(g.drop(columns<span class="op">=</span>[<span class="st">"cutoff"</span>]), models<span class="op">=</span>MODELS, seasonality<span class="op">=</span><span class="dv">12</span>,</span>
+<span id="cb5-5"><a></a>         train_df<span class="op">=</span>spine[spine[<span class="st">"ds"</span>] <span class="op">&lt;=</span> cut])[MODELS].iloc[<span class="dv">0</span>]</span>
+<span id="cb5-6"><a></a>    <span class="cf">for</span> cut, g <span class="kw">in</span> cv.groupby(<span class="st">"cutoff"</span>)</span>
+<span id="cb5-7"><a></a>])</span>
+<span id="cb5-8"><a></a></span>
+<span id="cb5-9"><a></a>single <span class="op">=</span> mase(merged, models<span class="op">=</span>MODELS, seasonality<span class="op">=</span><span class="dv">12</span>, train_df<span class="op">=</span>train)[MODELS].iloc[<span class="dv">0</span>]</span>
+<span id="cb5-10"><a></a>P.single_vs_cv_plot(single, per_window[MODELS], labels<span class="op">=</span>LABELS)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+<aside class="notes">
+<p>Notice the right plot: for Seasonal Naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky or unlucky; the 8-fold average is what to trust.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+<div class="cardbox coral">
+<p>One window crowned <strong>STL + drift</strong> at 0.70. Eight folds hand it back, 1.18 to 1.22.</p>
+</div>
+</section>
+<section id="only-the-seasonal-naives-band-is-close-to-honest" class="slide level2">
+<h2>Only the seasonal naive’s band is close to honest</h2>
 <div class="panel-tabset">
 <ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1">
-<div id="db13dccf" class="cell" data-fig-width="9" data-execution_count="6">
+<div id="f7b25685" class="cell" data-fig-width="9" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -519,87 +642,21 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
 </div>
 <div id="tabset-4-2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a><span class="co"># Dataset: Victorian takeaway food turnover (cv across 8 origins x 12 horizon = 96 points)</span></span>
-<span id="cb6-2"><a></a><span class="co"># Coverage = percentage of holdout points falling between 80% lo/hi bounds</span></span>
-<span id="cb6-3"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.4</span>))</span>
-<span id="cb6-4"><a></a>names <span class="op">=</span> [LABELS[m] <span class="cf">for</span> m <span class="kw">in</span> MODELS]</span>
-<span id="cb6-5"><a></a>vals <span class="op">=</span> [coverage[m] <span class="cf">for</span> m <span class="kw">in</span> MODELS]</span>
-<span id="cb6-6"><a></a>cols <span class="op">=</span> [P.BLUE <span class="cf">if</span> <span class="bu">abs</span>(v <span class="op">-</span> <span class="fl">0.8</span>) <span class="op">&lt;</span> <span class="fl">0.1</span> <span class="cf">else</span> P.ORANGE <span class="cf">for</span> v <span class="kw">in</span> vals]</span>
-<span id="cb6-7"><a></a>ax.barh(names, vals, color<span class="op">=</span>cols, height<span class="op">=</span><span class="fl">0.6</span>)</span>
-<span id="cb6-8"><a></a>ax.axvline(<span class="fl">0.8</span>, color<span class="op">=</span>P.BLACK, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">1.4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-2"><a></a><span class="co"># Coverage = share of holdout points falling between the 80% lo/hi bounds.</span></span>
+<span id="cb6-3"><a></a>coverage <span class="op">=</span> {m: <span class="bu">float</span>(((cv[<span class="st">"y"</span>] <span class="op">&gt;=</span> cv[<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-lo-80"</span>])</span>
+<span id="cb6-4"><a></a>                      <span class="op">&amp;</span> (cv[<span class="st">"y"</span>] <span class="op">&lt;=</span> cv[<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-hi-80"</span>])).mean()) <span class="cf">for</span> m <span class="kw">in</span> MODELS}</span>
+<span id="cb6-5"><a></a></span>
+<span id="cb6-6"><a></a>P.coverage_bars(coverage, nominal<span class="op">=</span><span class="fl">0.8</span>, labels<span class="op">=</span>LABELS)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
 <ul>
-<li class="fragment"><strong>Seasonal Naive</strong>: 77% coverage (near nominal 80%)</li>
-<li class="fragment"><strong>Mean Model</strong>: 0% coverage (fails on trending data)</li>
+<li class="fragment"><strong>Seasonal naive</strong>: 77% coverage, near the nominal 80%</li>
+<li class="fragment"><strong>Mean model</strong>: 0% coverage, on a series that grew sixfold</li>
 </ul>
-</section>
-<section id="information-leakage-risks" class="slide level2">
-<h2>Information leakage risks</h2>
-<div class="cell" data-fig-width="9.5" data-layout-align="default">
-<div class="cell-output-display">
-<div>
-<p></p><figure class=""><p></p>
-<div>
-<svg width="912" height="480" viewbox="0.00 0.00 308.28 166.80" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" style="; max-width: none; max-height: none; display: block; margin: auto auto auto auto">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 162.8)">
-<title>G</title>
-<!-- A -->
-<g id="node1" class="node">
-<title>A</title>
-<path fill="#e96852" stroke="#1c355e" stroke-width="2" d="M123.79,-158.7C123.79,-158.7 17.83,-158.7 17.83,-158.7 11.83,-158.7 5.83,-152.7 5.83,-146.7 5.83,-146.7 5.83,-130.1 5.83,-130.1 5.83,-124.1 11.83,-118.1 17.83,-118.1 17.83,-118.1 123.79,-118.1 123.79,-118.1 129.79,-118.1 135.79,-124.1 135.79,-130.1 135.79,-130.1 135.79,-146.7 135.79,-146.7 135.79,-152.7 129.79,-158.7 123.79,-158.7"></path>
-<text text-anchor="middle" x="70.81" y="-142" font-family="Noto Sans" font-size="12.00" fill="white">Scaling / Normalizing</text>
-<text text-anchor="middle" x="70.81" y="-127.6" font-family="Noto Sans" font-size="12.00" fill="white">on the full series</text>
-</g>
-<!-- L -->
-<g id="node4" class="node">
-<title>L</title>
-<path fill="#1c355e" stroke="#1c355e" stroke-width="2" d="M288.1,-107.1C288.1,-107.1 189.79,-107.1 189.79,-107.1 183.79,-107.1 177.79,-101.1 177.79,-95.1 177.79,-95.1 177.79,-63.7 177.79,-63.7 177.79,-57.7 183.79,-51.7 189.79,-51.7 189.79,-51.7 288.1,-51.7 288.1,-51.7 294.1,-51.7 300.1,-57.7 300.1,-63.7 300.1,-63.7 300.1,-95.1 300.1,-95.1 300.1,-101.1 294.1,-107.1 288.1,-107.1"></path>
-<text text-anchor="middle" x="238.95" y="-90.2" font-family="Noto Sans" font-size="12.00" fill="white">Data Leakage</text>
-<text text-anchor="middle" x="238.95" y="-75.8" font-family="Noto Sans" font-size="12.00" fill="white">Over-optimistic CV,</text>
-<text text-anchor="middle" x="238.95" y="-61.4" font-family="Noto Sans" font-size="12.00" fill="white">poor production</text>
-</g>
-<!-- A&#45;&gt;L -->
-<g id="edge1" class="edge">
-<title>A-&gt;L</title>
-<path fill="none" stroke="#5b6678" stroke-width="1.6" d="M128.99,-118.1C141.48,-113.66 154.84,-108.92 167.77,-104.32"></path>
-<polygon fill="#5b6678" stroke="#5b6678" stroke-width="1.6" points="169.3,-107.49 177.55,-100.85 166.96,-100.9 169.3,-107.49"></polygon>
-</g>
-<!-- B -->
-<g id="node2" class="node">
-<title>B</title>
-<path fill="#e96852" stroke="#1c355e" stroke-width="2" d="M110.45,-99.7C110.45,-99.7 31.17,-99.7 31.17,-99.7 25.17,-99.7 19.17,-93.7 19.17,-87.7 19.17,-87.7 19.17,-71.1 19.17,-71.1 19.17,-65.1 25.17,-59.1 31.17,-59.1 31.17,-59.1 110.45,-59.1 110.45,-59.1 116.45,-59.1 122.45,-65.1 122.45,-71.1 122.45,-71.1 122.45,-87.7 122.45,-87.7 122.45,-93.7 116.45,-99.7 110.45,-99.7"></path>
-<text text-anchor="middle" x="70.81" y="-83" font-family="Noto Sans" font-size="12.00" fill="white">Centered rolling</text>
-<text text-anchor="middle" x="70.81" y="-68.6" font-family="Noto Sans" font-size="12.00" fill="white">window features</text>
-</g>
-<!-- B&#45;&gt;L -->
-<g id="edge2" class="edge">
-<title>B-&gt;L</title>
-<path fill="none" stroke="#5b6678" stroke-width="1.6" d="M122.56,-79.4C136.67,-79.4 152.26,-79.4 167.29,-79.4"></path>
-<polygon fill="#5b6678" stroke="#5b6678" stroke-width="1.6" points="167.58,-82.9 177.58,-79.4 167.58,-75.9 167.58,-82.9"></polygon>
-</g>
-<!-- C -->
-<g id="node3" class="node">
-<title>C</title>
-<path fill="#e96852" stroke="#1c355e" stroke-width="2" d="M129.43,-40.7C129.43,-40.7 12.19,-40.7 12.19,-40.7 6.19,-40.7 0.19,-34.7 0.19,-28.7 0.19,-28.7 0.19,-12.1 0.19,-12.1 0.19,-6.1 6.19,-0.1 12.19,-0.1 12.19,-0.1 129.43,-0.1 129.43,-0.1 135.43,-0.1 141.43,-6.1 141.43,-12.1 141.43,-12.1 141.43,-28.7 141.43,-28.7 141.43,-34.7 135.43,-40.7 129.43,-40.7"></path>
-<text text-anchor="middle" x="70.81" y="-24" font-family="Noto Sans" font-size="12.00" fill="white">Tuning hyperparameters</text>
-<text text-anchor="middle" x="70.81" y="-9.6" font-family="Noto Sans" font-size="12.00" fill="white">on the test set</text>
-</g>
-<!-- C&#45;&gt;L -->
-<g id="edge3" class="edge">
-<title>C-&gt;L</title>
-<path fill="none" stroke="#5b6678" stroke-width="1.6" d="M128.99,-40.7C141.48,-45.14 154.84,-49.88 167.77,-54.48"></path>
-<polygon fill="#5b6678" stroke="#5b6678" stroke-width="1.6" points="166.96,-57.9 177.55,-57.95 169.3,-51.31 166.96,-57.9"></polygon>
-</g>
-</g>
-</svg>
-</div>
-<p></p></figure><p></p>
-</div>
-</div>
-</div>
 <aside class="notes">
-<p>Always fit scalers, imputers, and feature engineering strictly on each fold’s training history.</p>
+<p>The mean model scores exactly 0%. Not “poorly” - zero. On a series that grew sixfold, an interval centred on the historical average never touches the last few years at all, and that is worth pausing on: a model can be so wrong that its uncertainty estimate is not even wrong in an interesting way.</p>
+<p>The seasonal naive’s 77% against a nominal 80% is the honest result here, and 96% on the single window in lecture 1 is the same interval measured badly.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -612,39 +669,324 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
           display:block!important;
       }</style></aside>
 </section>
-<section id="evaluation-pitfalls-to-avoid" class="slide level2">
-<h2>Evaluation pitfalls to avoid</h2>
+<section id="coverage-checks-the-band.-it-cannot-rank." class="slide level2">
+<h2>Coverage checks the band. It cannot rank.</h2>
+<p>Ch 5.9 · Scoring the whole distribution</p>
 <ul>
-<li class="fragment"><strong>Regime changes</strong> — verify if old folds disagree with recent folds</li>
-<li class="fragment"><strong>Underpowered sample</strong> — evaluate over sufficient origins (<span class="math inline">\(&gt;50\)</span> points)</li>
-<li class="fragment"><strong>Overlapping folds</strong> — beware overly narrow confidence intervals when <code>step_size &lt; h</code></li>
-<li class="fragment"><strong>Data gaps</strong> — verify timestamp continuity across all origins</li>
-</ul>
-</section>
-<section id="rightarrow-exercise-2.5" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Exercise 2.5</h2>
-<p>Open <code>labs/02_day2_benchmarks_and_evaluation.ipynb</code></p>
-<ul>
-<li class="fragment">Run rolling-origin cross-validation on 4 baselines</li>
-<li class="fragment">Compute MASE, RMSSE, and 80% coverage</li>
-<li class="fragment">Build the baseline leaderboard for Day 3 models</li>
+<li class="fragment">Coverage answers one question: <strong>is the 80% band honest?</strong></li>
+<li class="fragment">It says nothing about <strong>width</strong>: an interval of <span class="math inline">\(\pm\infty\)</span> covers 100%</li>
+<li class="fragment">Two models at 80% coverage can be worlds apart in usefulness</li>
+<li class="fragment">A <strong>proper score</strong> charges you for width <em>and</em> for misses, in one number</li>
 </ul>
 <div class="fragment">
-<p><em>17 minutes.</em></p>
+<div class="cardbox teal">
+<p>To score a distribution, we start by scoring a single quantile.</p>
+</div>
+<aside class="notes">
+<p>The infinity example lands immediately: an interval of plus or minus infinity has 100% coverage and zero value. Coverage is a pass/fail check on honesty, not a ranking metric. To rank models, we need a score that prices both width and misses fairly.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="quantile-loss-generalizes-mae-to-any-level" class="slide level2">
+<h2>Quantile loss generalizes MAE to any level</h2>
+<p>A quantile forecast can miss low (<span class="math inline">\(y &gt; \hat{q}_\alpha\)</span>) or miss high (<span class="math inline">\(y &lt; \hat{q}_\alpha\)</span>). At <span class="math inline">\(\alpha = 0.9\)</span> the two must not cost the same.</p>
+<div class="panel-tabset">
+<ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Formula</a></li></ul>
+<div class="tab-content">
+<div id="tabset-5-1">
+<div id="89d360b1" class="cell" data-fig-width="8.5" data-execution_count="7">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-8-output-1.png" width="947" height="309"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-5-2">
+<p><span class="math display">\[L_\alpha(\hat{q}, y) = \begin{cases}
+\alpha \, (y - \hat{q}) &amp; \text{if } y \ge \hat{q} \quad \text{(underestimated)} \\
+(1 - \alpha) \, (\hat{q} - y) &amp; \text{if } y &lt; \hat{q} \quad \text{(overestimated)}
+\end{cases}\]</span></p>
+</div>
+</div>
+</div>
+<div class="fragment">
+<div class="cardbox teal">
+<p>At <span class="math inline">\(\alpha = 0.5\)</span> both slopes are <span class="math inline">\(0.5\)</span>: MAE was quantile loss all along.</p>
+</div>
+<aside class="notes">
+<p>Ask the room first: if you forecast the 90th percentile, how often should the actual value come in below your forecast? Ninety percent of the time! So being higher than actual is not a failure, it is the job. The penalty must reflect that expected asymmetry.</p>
+<p>Then notice the slopes on the chart: at alpha=0.5, both sides rise at rate 0.5. That is plain absolute error divided by 2. When you minimize MAE, you are finding the median forecast.</p>
+<p>At alpha=0.9, the slope to the right is 0.9 and to the left is 0.1. Setting the expected derivative to zero gives P(Y &lt;= q) = alpha.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="winkler-score-combines-two-quantiles-into-an-interval" class="slide level2">
+<h2>Winkler score combines two quantiles into an interval</h2>
+<p>An <span class="math inline">\(80\%\)</span> prediction interval <span class="math inline">\([\ell_{0.2}, u_{0.2}]\)</span> is bounded by the <span class="math inline">\(10\%\)</span> and <span class="math inline">\(90\%\)</span> quantiles.</p>
+<p><span class="math display">\[\text{Winkler}([\ell, u], y) = \frac{L_{0.1}(\ell, y) + L_{0.9}(u, y)}{0.1}\]</span></p>
+<div class="fragment">
+<p>Expanding the pinball losses gives a simple, intuitive charge:</p>
+<p><span class="math display">\[\text{Winkler} = \begin{cases}
+(u - \ell) &amp; \text{inside the band} \\
+(u - \ell) + \frac{2}{\alpha} (\ell - y) &amp; \text{missed low } (y &lt; \ell) \\
+(u - \ell) + \frac{2}{\alpha} (y - u) &amp; \text{missed high } (y &gt; u)
+\end{cases}\]</span></p>
+</div>
+<div class="fragment">
+<div class="cardbox navy">
+<p><strong>Winkler prices the trade:</strong> narrow intervals win inside the band, but pay a heavy linear fine for every unit outside.</p>
+</div>
+<aside class="notes">
+<p>The Winkler score is not a new ad-hoc formula. It is literally the sum of the two bounding quantile losses divided by alpha. When the actual observation falls inside the band, the score is simply the interval width (u - l). If it falls outside, the penalty is proportional to the distance of the miss.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="scaled-crps-averages-quantile-loss-across-all-levels" class="slide level2">
+<h2>Scaled CRPS averages quantile loss across all levels</h2>
+<ul>
+<li class="fragment"><strong>Quantile loss</strong>: scores a single quantile <span class="math inline">\(\hat{q}_\alpha\)</span></li>
+<li class="fragment"><strong>Winkler score</strong>: scores an interval <span class="math inline">\([\ell_\alpha, u_\alpha]\)</span> (a pair of quantiles)</li>
+<li class="fragment"><strong>CRPS</strong>: scores the <strong>whole distribution</strong> by averaging quantile loss over all <span class="math inline">\(\alpha \in (0, 1)\)</span></li>
+</ul>
+<div class="fragment">
+<p><span class="math display">\[\text{CRPS} = \int_0^1 2 \, L_\alpha(\hat{q}_\alpha, y) \, d\alpha \quad \approx \quad \frac{1}{|\text{levels}|} \sum_{\alpha} 2 \, L_\alpha(\hat{q}_\alpha, y)\]</span></p>
+</div>
+<div class="fragment">
+<div class="cardbox teal">
+<p><strong>Scaled CRPS</strong> divides by the seasonal naive benchmark error, making it scale-free and sortable across the entire portfolio.</p>
+</div>
+<aside class="notes">
+<p>This completes the arc from point forecast to distribution: MAE -&gt; Quantile Loss -&gt; Winkler Score -&gt; CRPS -&gt; Scaled CRPS. Now the room understands why LEVELS in scoring.py has a ladder of five levels (20, 40, 60, 80, 95): it provides 10 quantiles to approximate this integral.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="narrow-is-not-the-same-as-good" class="slide level2">
+<h2>Narrow is not the same as good</h2>
+<div class="panel-tabset">
+<ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
+<div class="tab-content">
+<div id="tabset-6-1">
+<div id="aafe7e00" class="cell" data-fig-width="10" data-execution_count="8">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-9-output-1.png" width="1095" height="362"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-6-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a></a><span class="co"># Dataset: Victorian takeaway food turnover, 8 rolling origins x 12 months</span></span>
+<span id="cb7-2"><a></a><span class="im">from</span> utilsforecast.losses <span class="im">import</span> scaled_crps</span>
+<span id="cb7-3"><a></a></span>
+<span id="cb7-4"><a></a>QCOLS <span class="op">=</span> [<span class="st">"lo-95"</span>, <span class="st">"lo-80"</span>, <span class="st">"lo-60"</span>, <span class="st">"lo-40"</span>, <span class="st">"lo-20"</span>,</span>
+<span id="cb7-5"><a></a>         <span class="st">"hi-20"</span>, <span class="st">"hi-40"</span>, <span class="st">"hi-60"</span>, <span class="st">"hi-80"</span>, <span class="st">"hi-95"</span>]</span>
+<span id="cb7-6"><a></a>QUANTILES <span class="op">=</span> np.array([<span class="fl">0.025</span>, <span class="fl">0.10</span>, <span class="fl">0.20</span>, <span class="fl">0.30</span>, <span class="fl">0.40</span>, <span class="fl">0.60</span>, <span class="fl">0.70</span>, <span class="fl">0.80</span>, <span class="fl">0.90</span>, <span class="fl">0.975</span>])</span>
+<span id="cb7-7"><a></a></span>
+<span id="cb7-8"><a></a>crps <span class="op">=</span> {m: scaled_crps(cv.drop(columns<span class="op">=</span>[<span class="st">"cutoff"</span>]),</span>
+<span id="cb7-9"><a></a>                       models<span class="op">=</span>{m: [<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> c <span class="kw">in</span> QCOLS]},</span>
+<span id="cb7-10"><a></a>                       quantiles<span class="op">=</span>QUANTILES)[m].iloc[<span class="dv">0</span>] <span class="cf">for</span> m <span class="kw">in</span> MODELS}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+<div class="cardbox coral">
+<p>The STL route’s intervals are the <strong>narrowest</strong> here, and it still loses on CRPS. Narrowness that is not earned gets charged for.</p>
+</div>
+<aside class="notes">
+<p>This is the Ch 5.9 payoff, so give it the time. It is the slide that stops “my intervals are tighter” from being an argument.</p>
+<p>The STL route has the narrower 80% band - about 40 units against the seasonal naive’s 49 - and it loses on CRPS, 0.034 to 0.031, because those narrow bands miss more often: 61% coverage against 77%. Tighter is only better if you were right, and CRPS is what prices that trade in one number.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="leakage-is-a-model-seeing-its-own-future" class="slide level2">
+<h2>Leakage is a model seeing its own future</h2>
+<div class="flowconv">
+<div class="flowcauses">
+<p><span class="flownode coral"><span class="flowtitle">Scale on the whole series</span><code>scaler.fit(spine)</code> <span class="flownote">the holdout sets the scale</span></span> <span class="flownode coral"><span class="flowtitle">Centred rolling features</span><code>rolling(12, center=True)</code> <span class="flownote">month <span class="math inline">\(t\)</span> has already seen <span class="math inline">\(y_{t+6}\)</span></span></span> <span class="flownode coral"><span class="flowtitle">Tune on the test set</span><span class="flownote">keep trying until the score improves</span></span></p>
+</div>
+<p><span class="flownode navy"><span class="flowtitle">The answer is in the input</span><span class="flownote">CV flatters, production does not</span></span></p>
+</div>
+<div class="fragment">
+<div class="cardbox coral">
+<p>The third one is the next slide, run live.</p>
+</div>
+<aside class="notes">
+<p>Always fit scalers, imputers, and feature engineering strictly on each fold’s training history. The third cause is the one that gets past code review, because nobody wrote a line that looks wrong - they just kept trying models until the test score improved. The next slide runs that one, and the lab’s stretch exercise prices the leak the students can see: a 24% discount bought by choosing the winner fold by fold.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="choosing-per-fold-with-the-answer-in-hand-buys-24" class="slide level2">
+<h2>Choosing per fold with the answer in hand buys 24%</h2>
+<div id="7da5ad8b" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a><span class="co"># one rule fixed in advance, against the best model in each fold</span></span>
+<span id="cb8-2"><a></a>honest <span class="op">=</span> per_window[<span class="st">"SeasonalNaive"</span>].mean()</span>
+<span id="cb8-3"><a></a>oracle <span class="op">=</span> per_window[MODELS].<span class="bu">min</span>(axis<span class="op">=</span><span class="dv">1</span>).mean()</span>
+<span id="cb8-4"><a></a></span>
+<span id="cb8-5"><a></a><span class="bu">print</span>(<span class="ss">f"seasonal naive, every fold  : MASE </span><span class="sc">{</span>honest<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb8-6"><a></a><span class="bu">print</span>(<span class="ss">f"best model, chosen per fold : MASE </span><span class="sc">{</span>oracle<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb8-7"><a></a><span class="bu">print</span>(<span class="ss">f"discount bought by peeking  : </span><span class="sc">{</span><span class="dv">1</span> <span class="op">-</span> oracle <span class="op">/</span> honest<span class="sc">:.0%}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>seasonal naive, every fold  : MASE 1.18
+best model, chosen per fold : MASE 0.90
+discount bought by peeking  : 24%</code></pre>
+</div>
+</div>
+<div class="cardbox coral">
+<p>No rule available <em>before</em> a fold produces the second number. It is the holdout leaking into the choice of model.</p>
+</div>
+<aside class="notes">
+<p>Run this one live. The seasonal naive wins four folds and the STL route wins the other four, and swapping between them fold by fold takes the average from 1.18 to 0.90 - a 24% improvement bought entirely by knowing the answer first.</p>
+<p>Ask the room what rule they would have written in advance to make those swaps. There isn’t one. That is the whole definition of leakage: a number produced by a decision that could not have been made at forecast time.</p>
+<p>This is also the honest version of what happened in lecture 1, where a single window crowned the STL route at 0.70.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="four-ways-an-honest-team-still-fools-itself" class="slide level2">
+<h2>Four ways an honest team still fools itself</h2>
+<ul>
+<li class="fragment"><strong>Regime changes</strong>: verify if old folds disagree with recent folds</li>
+<li class="fragment"><strong>Underpowered sample</strong>: evaluate over sufficient origins (<span class="math inline">\(&gt;50\)</span> points)</li>
+<li class="fragment"><strong>Overlapping folds</strong>: <code>step_size &lt; h</code> reuses points, so intervals read too narrow</li>
+<li class="fragment"><strong>Data gaps</strong>: verify timestamp continuity across all origins</li>
+</ul>
+<aside class="notes">
+<p>None of these require anyone to be careless. Every one of them has shipped from a competent team.</p>
+<p>If you have a war story, this is where it goes. If not, the honest version is the one this course just walked through: a single window crowned the STL route at 0.70 and eight windows handed it back.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="rightarrow-lab-d-score-them-honestly" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab D · Score them honestly</h2>
+<p>Open <code>labs/02_day2_toolbox_and_evaluation.ipynb</code></p>
+<table class="caption-top">
+<tbody>
+<tr class="odd">
+<td><strong>2.4</strong></td>
+<td>Scoring, and the metric that lies</td>
+<td>10 min</td>
+</tr>
+<tr class="even">
+<td><strong>2.5</strong></td>
+<td>The harness</td>
+<td>19 min</td>
+</tr>
+</tbody>
+</table>
+<div class="fragment">
+<p><em>29 minutes. The notebook carries the instructions; work down it in order.</em></p>
+<div class="cardbox teal">
+<p>Same notebook as Lab C, pick up at Exercise 2.4. <strong>2.5 writes <code>labs/leaderboard.csv</code></strong>, which every Day 3 model plugs into. Do not skip it.</p>
+</div>
 </div>
 </section>
 <section id="day-2-summary" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
 <h2>Day 2 Summary</h2>
 <ul>
-<li class="fragment">Always start with the <strong>4 baseline models</strong></li>
-<li class="fragment">Diagnose <strong>residuals</strong> (uncorrelated, zero-mean)</li>
-<li class="fragment">Report <strong>prediction intervals</strong> (width scales with <span class="math inline">\(\sqrt{h}\)</span>)</li>
-<li class="fragment">Evaluate with <strong>MASE</strong> and <strong>Rolling-Origin CV</strong></li>
+<li class="fragment">Start with the <strong>four benchmarks</strong>, then the <strong>decomposition route</strong></li>
+<li class="fragment">Diagnose <strong>residuals</strong>: uncorrelated, zero mean</li>
+<li class="fragment">Report <strong>intervals</strong>, and know which assumption each one spends</li>
+<li class="fragment">Score with <strong>MASE</strong>, <strong>scaled CRPS</strong>, over <strong>rolling origins</strong></li>
+<li class="fragment">One window picks winners it cannot defend</li>
 </ul>
 <div class="fragment">
-<div class="cardbox teal">
-<p>You now have a robust evaluation harness. Ready for Day 3 models!</p>
+<div class="cardbox navy">
+<p><strong>Seasonal naive, MASE 1.18, scaled CRPS 0.031.</strong> That is the number to beat. And its residuals are not white noise, so it is beatable. Day 3 starts there.</p>
 </div>
+<aside class="notes">
+<p>Close on what is now on disk, and on what it does not do. The leaderboard is real: seasonal naive at MASE 1.18 and scaled CRPS 0.031 over eight folds, and every Day 3 model has to get past those numbers.</p>
+<p>And the floor is not finished. The seasonal naive’s residuals failed Ljung-Box at p about 1e-240, so there is signal in this series that nothing today captured. That is Day 3’s opening sentence.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 
 
 </div>
@@ -664,6 +1006,7 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
   <script src="../site_libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
   <script src="../site_libs/revealjs/plugin/reveal-menu/menu.js"></script>
   <script src="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="../site_libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
   <script src="../site_libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
@@ -685,7 +1028,8 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
 'autoAnimateDuration': 1,
 'autoAnimateUnmatched': true,
 'jumpToSlide': true,
-'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"8\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'chalkboard': {"buttons":true},
 'smaller': false,
  
         // Display controls in the bottom right corner
@@ -856,7 +1200,7 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
         },
 
         // reveal.js plugins
-        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, RevealChalkboard, QuartoSupport,
 
           RevealMath,
           RevealNotes,
@@ -935,7 +1279,7 @@ Drift            44.35   49.02   13.86   3.23   2.54</code></pre>
         }
           var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
           var mailtoRegex = new RegExp(/^mailto:/);
-            var filterRegex = new RegExp('/' + window.location.host + '/');
+            var filterRegex = new RegExp("https:\/\/NaifMersal\.github\.io\/time-series-analysis-and-forecasting\/");
           var isInternal = (href) => {
               return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
           }

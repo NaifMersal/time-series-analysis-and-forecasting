@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://NaifMersal.github.io/time-series-analysis-and-forecasting/slides/04_forecast_evaluation_and_cv.html</loc>
+    <lastmod>2026-08-26T02:44:35.779Z</lastmod>
+  </url>
+  <url>
+    <loc>https://NaifMersal.github.io/time-series-analysis-and-forecasting/slides/02_acf_decomposition_and_features.html</loc>
+    <lastmod>2026-08-25T22:56:44.824Z</lastmod>
+  </url>
+  <url>
+    <loc>https://NaifMersal.github.io/time-series-analysis-and-forecasting/index.html</loc>
+    <lastmod>2026-08-26T02:20:57.567Z</lastmod>
+  </url>
+  <url>
+    <loc>https://NaifMersal.github.io/time-series-analysis-and-forecasting/slides/01_getting_started_and_patterns.html</loc>
+    <lastmod>2026-08-25T18:57:51.025Z</lastmod>
+  </url>
+  <url>
+    <loc>https://NaifMersal.github.io/time-series-analysis-and-forecasting/slides/03_benchmarks_residuals_and_intervals.html</loc>
+    <lastmod>2026-08-26T06:51:57.246Z</lastmod>
+  </url>
+</urlset>
