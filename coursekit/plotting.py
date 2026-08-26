@@ -502,7 +502,9 @@ def fan_chart(history, forecast, levels=(80, 95), ax=None, title="",
     hist = history.tail(history_tail) if history_tail else history
     ax.plot(hist["ds"], hist["y"], color=BLACK, lw=1.1, label="observed")
 
-    shades = np.linspace(0.30, 0.13, len(levels))
+    # The outermost band cannot fade below about 0.2: its legend swatch is a
+    # small square on white, and at 0.13 nobody can tell what colour it is.
+    shades = np.linspace(0.34, 0.20, len(levels))
     for lvl, alpha in zip(sorted(levels), shades):
         ax.fill_between(forecast["ds"], forecast[f"lo-{lvl}"],
                         forecast[f"hi-{lvl}"], color=color, alpha=float(alpha),
@@ -765,17 +767,25 @@ def interval_width_plot(forecast, model="SeasonalNaive", models=(), labels=None,
                  label="actual width")
     axes[0].plot(h, width[0] * np.sqrt(k + 1), color=BLACK, lw=2.0,
                  dashes=(6, 4), label=r"$\sqrt{k+1}$ (correct)")
-    axes[0].plot(h, width[0] * np.sqrt(h), color=GREY, lw=1.6, ls=":",
+    # The curve the slide argues against has to be as visible as the one it
+    # argues for, or a projector quietly wins the argument.
+    axes[0].plot(h, width[0] * np.sqrt(h), color=PINK, lw=2.4, dashes=(2, 2.5),
                  label=r"$\sqrt{h}$ (wrong method)")
     axes[0].set(xlabel="horizon h", ylabel=f"{level}% interval width", title=t[0])
     axes[0].legend(frameon=False)
 
     labels = dict(labels or {})
     palette = list(colors) if colors is not None else MODEL_COLORS[1:]
+    # Two benchmarks can share a width curve almost exactly, and one solid
+    # line then hides the other completely; alternating the dash pattern lets
+    # the one underneath show through.
+    strokes = [(None, None), (5, 3), (1.5, 2), (7, 2, 1.5, 2)]
     for i, m in enumerate(models):
         w = forecast[f"{m}-hi-{level}"] - forecast[f"{m}-lo-{level}"]
-        axes[1].plot(h, w, color=palette[i % len(palette)], lw=1.8,
-                     label=labels.get(m, m))
+        dashes = strokes[i % len(strokes)]
+        style = {} if dashes[0] is None else {"dashes": dashes}
+        axes[1].plot(h, w, color=palette[i % len(palette)], lw=2.0,
+                     label=labels.get(m, m), **style)
     axes[1].set(xlabel="horizon h", title=t[1])
     axes[1].legend(frameon=False)
     fig.tight_layout()
@@ -923,9 +933,13 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
     one = np.array([float(single[m]) for m in models])
     many = np.array([float(folds[m].mean()) for m in models])
     palette = MODEL_COLORS
-    span = float(max(one.max(), many.max()) - min(one.min(), many.min())) or 1.0
-    left_y = _spread_labels(one, span * 0.055)
-    right_y = _spread_labels(many, span * 0.055)
+    # The gap has to be measured against the axis, not the data: with an
+    # explicit ylim the drawn range is wider than the values, so a gap sized
+    # from the values alone comes out smaller on screen than the text is tall.
+    span = (float(ylim[1] - ylim[0]) if ylim else
+            float(max(one.max(), many.max()) - min(one.min(), many.min())) or 1.0)
+    left_y = _spread_labels(one, span * 0.075)
+    right_y = _spread_labels(many, span * 0.075)
     for i, (m, name) in enumerate(zip(models, names)):
         color = palette[i % len(palette)]
         axes[0].plot([0, 1], [one[i], many[i]], color=color, lw=2.2,
@@ -943,8 +957,8 @@ def single_vs_cv_plot(single, folds, labels=None, figsize=(10, 3.5),
     axes[0].grid(axis="x", visible=False)
 
     if note:
-        axes[0].annotate(note, xy=(0.5, -0.30), xycoords="axes fraction",
-                         ha="center", size=8, color=GREY)
+        axes[0].annotate(note, xy=(0.5, -0.34), xycoords="axes fraction",
+                         ha="center", size=10, color=BLACK)
 
     for i, m in enumerate(models):
         axes[1].scatter(np.full(len(folds), i), folds[m], s=40, color=ORANGE,
@@ -976,7 +990,13 @@ def coverage_bars(coverage, nominal=0.8, labels=None, ax=None, figsize=(9, 3.4),
     ax.axvline(nominal, color=BLACK, ls="--", lw=1.4)
     ax.text(nominal, -0.75, f" nominal {nominal:.0%}", size=10)
     for i, v in enumerate(vals):
-        ax.text(v, i, f" {v:.0%}", va="center", size=10)
+        if abs(v - nominal) < 0.04:
+            # The label would land on top of the dashed nominal line, so it
+            # goes inside the bar end instead of outside it.
+            ax.text(v, i, f"{v:.0%} ", va="center", ha="right", size=10,
+                    color="white", weight="bold")
+        else:
+            ax.text(v, i, f" {v:.0%}", va="center", size=10)
     ax.set(xlim=(0, 1.05), title=title)
     ax.invert_yaxis()
     ax.grid(axis="y", visible=False)
