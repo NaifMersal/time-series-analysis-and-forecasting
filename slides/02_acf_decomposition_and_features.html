@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-08-26">
+  <meta name="dcterms.date" content="2026-08-27">
   <title>ACF, Decomposition &amp; Features</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -206,7 +206,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-08-26</p>
+  <p class="date">2026-08-27</p>
 </section>
 <section id="eyeballing-cannot-be-tested-and-does-not-scale" class="slide level2">
 <h2>Eyeballing cannot be tested, and does not scale</h2>
@@ -280,7 +280,7 @@
 <ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1">
-<div id="d3630064" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="952e0a55" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -339,7 +339,7 @@
 <ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1">
-<div id="60c0f5ec" class="cell" data-fig-width="9" data-execution_count="3">
+<div id="9fb3df3d" class="cell" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -381,7 +381,7 @@
 <ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1">
-<div id="b6221cd2" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="e004af67" class="cell" data-fig-width="10" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -479,7 +479,7 @@
 <ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1">
-<div id="df3df358" class="cell" data-fig-width="10" data-execution_count="5">
+<div id="e90da23f" class="cell" data-fig-width="10" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -529,7 +529,7 @@
 <ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-5-1">
-<div id="ba411f1f" class="cell" data-fig-width="10" data-execution_count="6">
+<div id="bff599b7" class="cell" data-fig-width="10" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -567,20 +567,23 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="a-whole-cycle-window-cancels-the-season" class="slide level2">
+<section id="a-whole-cycle-window-cancels-the-season" class="slide level2 smaller">
 <h2>A whole-cycle window cancels the season</h2>
-<p>Averaging <span class="math inline">\(m = 2k+1\)</span> terms of <span class="math inline">\(y_t = T_t + S_t + R_t\)</span>, centred on <span class="math inline">\(t\)</span>:</p>
+<p>Add up <span class="math inline">\(m = 2k+1\)</span> terms of <span class="math inline">\(y_t = T_t + S_t + R_t\)</span>, centred on <span class="math inline">\(t\)</span>:</p>
+<p><span class="math display">\[\sum_{j=-k}^{k} y_{t+j} \;=\; \sum_{j=-k}^{k} T_{t+j} \;+\; \sum_{j=-k}^{k} S_{t+j} \;+\; \sum_{j=-k}^{k} R_{t+j}\]</span></p>
+<div class="fragment">
+<p>Divide by <span class="math inline">\(m\)</span> and each component gets its own average:</p>
 <p><span class="math display">\[\hat{T}_t = \underbrace{\frac{1}{m}\sum_{j=-k}^{k} T_{t+j}}_{\text{trend}}
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} S_{t+j}}_{\text{season}}
             + \underbrace{\frac{1}{m}\sum_{j=-k}^{k} R_{t+j}}_{\text{noise}}\]</span></p>
 <ul>
-<li class="fragment"><strong>Constraint <span class="math inline">\(\sum_{j=1}^m S_j = 0\)</span></strong>: ensures pure swings around trend (any non-zero mean is unrecognizable trend)</li>
-<li class="fragment"><strong>Season <span class="math inline">\(= 0\)</span>, exactly</strong>: an <span class="math inline">\(m\)</span>-window spans one whole cycle</li>
-<li class="fragment"><strong>Trend survives</strong>: a symmetric window is unbiased on a linear trend</li>
+<li class="fragment"><strong>Trend survives</strong>: a symmetric window is unbiased on a locally linear trend</li>
+<li class="fragment"><strong>Season is exactly 0</strong>: the window spans one whole cycle (next slide)</li>
 <li class="fragment"><strong>Noise shrinks</strong> by <span class="math inline">\(1/m\)</span>, damped but never removed</li>
 </ul>
 <aside class="notes">
-<p>The constraint sum(S_j) = 0 is essential: without it, decomposition is not unique. Any non-zero average in S is unrecognizable trend, so the seasonal component is defined only up to a constant and the split between trend and season is not. Because the window is exactly one cycle, the middle term sums to 0. Locally linear trend offsets cancel, leaving T_t plus damped noise.</p>
+<p>Work left to right. The moving average is a sum, and a sum passes straight through the additive model, so the window average of y is the window average of T plus that of S plus that of R. Nothing has been assumed yet.</p>
+<p>Then read the three terms. The trend term: over a window this short the trend is close to a straight line, and a symmetric window of a straight line averages to its midpoint, so this term is about T_t. The noise term: m independent draws averaged, so its spread is smaller by root m, damped but never gone. The season term is the interesting one and gets the next slide.</p>
 <p>For a multiplicative model the same idea multiplies instead: going through a full cycle, S1 x S2 x … x Sm = 1, so a geometric mean over the window removes the season.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -593,16 +596,25 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
+</div>
 </section>
-<section id="seasonal-terms-always-sum-to-zero-over-m-steps" class="slide level2">
+<section id="seasonal-terms-always-sum-to-zero-over-m-steps" class="slide level2 smaller">
 <h2>Seasonal terms always sum to zero over <span class="math inline">\(m\)</span> steps</h2>
-<p>Periodicity (<span class="math inline">\(S_{t+m} = S_t\)</span>) means any <span class="math inline">\(m\)</span> consecutive terms span the full cycle:</p>
-<p><span class="math display">\[\{S_{t-k}, \dots, S_{t+k}\} = \{S_1, \dots, S_m\} \qquad (m = 2k + 1)\]</span></p>
+<p><strong>By construction.</strong> A seasonal component is <em>defined</em> to average to zero across one cycle:</p>
+<p><span class="math display">\[S_1 + S_2 + \dots + S_m = 0\]</span></p>
+<ul>
+<li class="fragment">Without it the split is not unique: any constant inside <span class="math inline">\(S\)</span> really belongs to <span class="math inline">\(T\)</span></li>
+<li class="fragment">With it, <span class="math inline">\(S\)</span> is a pure swing and <span class="math inline">\(T\)</span> alone carries the level</li>
+</ul>
 <div class="fragment">
-<p>Averaging over window <span class="math inline">\(m\)</span> cancels the season completely:</p>
-<p><span class="math display">\[\bar{S}_t = \frac{1}{m}(S_{t-k} + \dots + S_{t+k}) = \frac{1}{m}(\underbrace{S_1 + S_2 + \dots + S_m}_{\text{sums to } 0}) = \frac{1}{m}(0) = \mathbf{0}\]</span></p>
+<p><strong>By periodicity</strong> (<span class="math inline">\(S_{t+m} = S_t\)</span>), any <span class="math inline">\(m\)</span> consecutive terms are that same full set:</p>
+<p><span class="math display">\[\frac{1}{m}\sum_{j=-k}^{k} S_{t+j} = \frac{1}{m}(\underbrace{S_1 + S_2 + \dots + S_m}_{\text{sums to } 0}) = \mathbf{0}\]</span></p>
+<div class="cardbox teal">
+<p>True at every <span class="math inline">\(t\)</span>, whatever month the window happens to start on.</p>
+</div>
 <aside class="notes">
-<p>Because additive seasonality sums to zero across one cycle by construction, any window of length m captures each season exactly once and averages to 0, regardless of the starting month.</p>
+<p>Two separate facts, and students conflate them. The first is a convention we impose to make the decomposition identifiable: shift 5 out of S and into T and the fit is unchanged, so the seasonal component is pinned down only once we demand it average to zero over a cycle. Classical decomposition enforces it explicitly, in the centring step of stage 3.</p>
+<p>The second is arithmetic: periodicity means a window of length m sees each of the m seasonal values exactly once, in some rotated order, and a sum does not care about order. So the window sum is S1 + … + Sm, which the constraint makes 0. Ask what happens if the window is 11 months or 13 instead: one month gets counted twice, the sum is no longer 0, and a residue of the season leaks into the trend estimate.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -625,7 +637,7 @@
 <ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-6-1">
-<div id="69fdfe56" class="cell" data-fig-width="7.5" data-execution_count="7">
+<div id="cfe882ed" class="cell" data-fig-width="7.5" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -692,7 +704,7 @@
 <ul id="tabset-7" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-7-1">Plot</a></li><li><a href="#tabset-7-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-7-1">
-<div id="184c6c31" class="cell" data-fig-width="10" data-execution_count="8">
+<div id="0594449a" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -736,7 +748,7 @@
 <ul id="tabset-8" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-8-1">Plot</a></li><li><a href="#tabset-8-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-8-1">
-<div id="65dfc4b5" class="cell" data-fig-width="9" data-execution_count="9">
+<div id="9a4cf2eb" class="cell" data-fig-width="9" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -790,7 +802,7 @@
 <ul id="tabset-9" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-9-1">Plot</a></li><li><a href="#tabset-9-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-9-1">
-<div id="440e388c" class="cell" data-fig-width="9.5" data-execution_count="10">
+<div id="f1885124" class="cell" data-fig-width="9.5" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -873,7 +885,7 @@
 <ul id="tabset-10" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-10-1">Plot</a></li><li><a href="#tabset-10-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-10-1">
-<div id="a73f6529" class="cell" data-fig-width="9.5" data-execution_count="11">
+<div id="cdcf675d" class="cell" data-fig-width="9.5" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>

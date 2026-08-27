@@ -1,4 +1,4 @@
-# Time series cheat sheet: Days 1 & 2
+# Time series cheat sheet: Days 1, 2 & 3
 
 One page. Print it. It covers everything you need to diagnose a series and prove whether
 a forecast is any good.
@@ -257,6 +257,11 @@ you are spending.
 
 ## Metrics
 
+$e_t = y_t - \hat{y}_t$ is the forecast error. **MAE** is the mean of $|e_t|$,
+**RMSE** the root of the mean of $e_t^2$, **MAPE** the mean of $|e_t / y_t|$.
+**MASE** and **RMSSE** divide those by the seasonal naive's in-sample values of
+the same; **scaled CRPS** divides CRPS the same way.
+
 | | Scale-free? | Safe near zero? | Use it? |
 |---|---|---|---|
 | MAE | no | yes | within one series |
@@ -266,8 +271,17 @@ you are spending.
 | **RMSSE** | **yes** | **yes** | default, squared-error flavour |
 | **scaled CRPS** | **yes** | **yes** | **default for the whole distribution** |
 
-$$\text{MASE}=\frac{\text{mean}(|e_t|)}{Q},\qquad
+Scale each error by the in-sample one-step seasonal naive error,
+$q_j = e_j / Q$, then average:
+
+$$\text{MASE}=\text{mean}(|q_j|)=\frac{\text{mean}(|e_t|)}{Q},\qquad
 Q=\frac{1}{T-m}\sum_{t=m+1}^{T}|y_t-y_{t-m}|$$
+
+$$\text{RMSSE}=\sqrt{\text{mean}(q_j^2)},\qquad
+q_j^2=\frac{e_j^2}{\frac{1}{T-m}\sum_{t=m+1}^{T}(y_t-y_{t-m})^2}$$
+
+Nothing here is seasonal by nature: set $m=1$ and the denominator becomes the
+plain naive's error, which is the non-seasonal version of both metrics.
 
 **Why scale-free is not a slogan.** Re-measure the series in another unit,
 $y'_t = k y_t$ and $\hat{y}'_t = k \hat{y}_t$ with $k>0$. Then
@@ -355,6 +369,141 @@ eight origins.
 
 Also watch for: regime change making old folds irrelevant, too few scored points to
 separate two models, and silent calendar gaps.
+
+---
+
+## ETS: exponential smoothing (Day 3)
+
+One update rule, applied to level, then slope, then season. Every parameter is
+**fitted**, not chosen.
+
+```python
+from statsforecast.models import AutoETS
+
+sf = StatsForecast(models=[AutoETS(season_length=12)], freq="MS")
+sf.fit(df=spine)
+ets = sf.fitted_[0, 0].model_          # the fitted model, as a dict
+
+ets["method"]      # 'ETS(M,N,A)'  -- error, trend, season
+ets["components"]  # 'MNAN'        -- the 4th letter is the damped flag
+ets["par"]         # [alpha, beta, gamma, phi, l0, s0...]
+ets["aicc"]        # what the search minimised
+```
+
+**The three letters** are (Error, Trend, Season), each `A`dditive, `M`ultiplicative
+or `N`one, with an optional `d` for a damped trend.
+
+| letter | means |
+|---|---|
+| $lpha$ | how fast the **level** re-estimates |
+| $eta$ | how fast the **slope** re-estimates |
+| $\gamma$ | how fast the **season** re-estimates |
+| $\phi$ | how fast a trend **damps** toward flat |
+
+`P.ets_states(ets, spine["ds"])` returns the fitted states as `level` / `trend` /
+`season` columns, the same panel vocabulary STL used on Day 1.
+
+On the spine `AutoETS` picks **ETS(M,N,A)**: no trend state at all. The trend is
+carried by the level, which re-estimates every month; a trend *state* is a slope
+that keeps being applied after the data runs out, and AICc decides it is not
+worth two extra parameters.
+
+Pin a member of the family by hand with `AutoETS(model="AAN", damped=True)`.
+
+---
+
+## Scoring any model at all
+
+The whole point of the Day 2 harness: a new model is four lines, whatever it is.
+
+```python
+from coursekit import scoring
+
+sf = StatsForecast(models=[AutoTheta(season_length=12)], freq="MS")
+cv = sf.cross_validation(df=spine, h=12, step_size=12, n_windows=8,
+                         level=scoring.LEVELS)
+scoring.score_cv(cv, "AutoTheta", spine)   # mase, rmsse, crps, coverage_80,
+                                           # mase_min, mase_max
+```
+
+**A model with no closed-form interval** raises *"You must pass
+`prediction_intervals`"* the moment you ask `cross_validation` for a level. Give it
+a conformal one:
+
+```python
+WindowAverage(window_size=12,
+              prediction_intervals=ConformalIntervals(n_windows=4, h=12))
+```
+
+---
+
+## Where everything landed, 8 rolling folds
+
+| model | MASE | CRPS | cov-80 |
+|---|---|---|---|
+| **Theta** | **1.025** | **0.0288** | 70% |
+| Seasonal naive | 1.183 | 0.0306 | 77% |
+| ETS | 1.176 | 0.0329 | 87.5% |
+| STL + drift | 1.225 | 0.0339 | 61% |
+
+**ETS over-covers** (87.5% on an 80% band). Bands too wide. That is not caution:
+every decision sized off them is hedged more than the evidence justifies, and
+scaled CRPS charges for it. ETS ties the seasonal naive on MASE and loses to it
+on CRPS, which is the result to remember - neither sharpness nor coverage ranks a
+forecast on its own, and a proper score does.
+
+Theta is the only model in the course that beat the floor on CRPS, and it got no
+lecture at all.
+
+---
+
+## AutoGluon: reading a framework's leaderboard
+
+| | this course | AutoGluon |
+|---|---|---|
+| series id | `unique_id` | `item_id` |
+| timestamp | `ds` | `timestamp` |
+| value | `y` | `target` |
+| container | `pd.DataFrame` | `TimeSeriesDataFrame` |
+| score sign | lower is better | **higher** is better (negated) |
+| validation | rolling origins, several | one internal split |
+
+```python
+from autogluon.timeseries import TimeSeriesDataFrame, TimeSeriesPredictor
+
+ag_long = spine.rename(columns={"unique_id": "item_id", "ds": "timestamp"})
+tsdf = TimeSeriesDataFrame.from_data_frame(
+    ag_long, id_column="item_id", timestamp_column="timestamp")
+
+predictor = TimeSeriesPredictor(prediction_length=12, target="y",
+                                eval_metric="MASE", freq="MS")
+predictor.fit(tsdf.slice_by_timestep(None, -12),
+              hyperparameters={"Naive": {}, "SeasonalNaive": {}, "AutoETS": {},
+                               "AutoARIMA": {}, "Theta": {}},
+              time_limit=120)
+predictor.leaderboard(tsdf)
+```
+
+When a framework's ranking disagrees with yours, **check the sign first**, then
+check what it validated on.
+
+---
+
+## The map: what this course did not teach
+
+| family | when it earns its place |
+|---|---|
+| Theta | simple, fast, strong. Try it early |
+| ARIMA (Ch 9) | the other classical family; where the residual autocorrelation lives |
+| Dynamic regression (Ch 7+10) | you have price, promotions, holidays |
+| Hierarchical (Ch 11) | regions must sum to the national total |
+| Lag-feature ML (`mlforecast`) | tabular framing, gradient boosting |
+| Neural (DeepAR, Transformer) | many related series, lots of data |
+| Foundation (Chronos, Moirai, TimeGPT) | zero-shot, no fitting |
+| Ensembles | cheapest reliable win; combine forecasts |
+
+Choosing, in practice: **how many series**, **how related**, and **do you have
+anything to regress on**. Then score them all the same way.
 
 ---
 

@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.9.38">
 
   <meta name="dcterms.date" content="2026-08-27">
-  <title>Forecast Evaluation &amp; Cross-Validation</title>
+  <title>Exponential Smoothing &amp; ETS</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -200,20 +200,20 @@
     <div class="slides">
 
 <section id="title-slide" data-background-image="../slides_template/assets/anim.svg" data-background-opacity="0.15" data-background-size="cover" class="quarto-title-block center">
-  <h1 class="title">Forecast Evaluation &amp; Cross-Validation</h1>
-  <p class="subtitle">Day 2 · Lecture 2 · fpppy Ch 5.8–5.10, Ch 13</p>
+  <h1 class="title">Exponential Smoothing &amp; ETS</h1>
+  <p class="subtitle">Day 3 · Lecture 1 · fpppy Ch 8</p>
 
 <div class="quarto-title-authors">
 </div>
 
   <p class="date">2026-08-27</p>
 </section>
-<section id="you-have-5-forecasts.-which-is-best" class="slide level2">
-<h2>You have 5 forecasts. Which is best?</h2>
+<section id="day-2-ended-with-a-floor.-today-we-go-after-it" class="slide level2">
+<h2>Day 2 ended with a floor. Today we go after it</h2>
 <ul>
-<li class="fragment">Lecture 1 built five: mean, naive, seasonal naive, drift, and the STL route</li>
-<li class="fragment">Every one of them produced a number for every future month</li>
-<li class="fragment">Nothing so far says which number to plan on</li>
+<li class="fragment"><strong>Parts A to C</strong>: one model, built in three steps, on states you already know</li>
+<li class="fragment"><strong>Part D</strong>: the family those three steps belong to, and how it picks a member</li>
+<li class="fragment"><strong>Part E</strong>: the same harness Day 2 built, pointed at a model it has never seen</li>
 </ul>
 <div class="fragment">
 <div class="callout callout-important callout-titled callout-style-default">
@@ -222,17 +222,17 @@
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>The deliverable is a reusable evaluation harness</strong></p>
+<p><strong>The floor to beat</strong></p>
 </div>
 <div class="callout-content">
-<p>Not “which model won today” but the code that answers it again next quarter, on a series nobody has seen yet.</p>
+<p>Seasonal naive, <strong>MASE 1.18</strong>, <strong>scaled CRPS 0.031</strong>, over eight rolling folds. Its residuals fail Ljung-Box at <span class="math inline">\(p \approx 10^{-240}\)</span>, so it is beatable.</p>
 </div>
 </div>
 </div>
 <aside class="notes">
-<p>Yesterday ended with five forecast lines on one chart and no way to choose between them. Eyeballing a chart is not a method: the eye rewards the line that looks smooth, and smoothness is not accuracy.</p>
-<p>This lecture builds the thing that chooses, in five steps. A score for a point forecast, then enough test windows to trust the score, then a check on the band, then a score for the whole distribution rather than the point, and finally the ways a careful team still fools itself.</p>
-<p>The harness is the deliverable, and say so now: Lab D writes it, and every model on Day 3 is scored by it without a line of new plumbing.</p>
+<p>Open by putting yesterday’s last slide back up in words. They left with a a scoring harness they wrote themselves and a seasonal naive on top of everything it measured, at MASE 1.18 and scaled CRPS 0.031. And they left with the reason to keep going: those residuals are nowhere near white noise, so there is structure in this series that none of the five benchmarks captured.</p>
+<p>Today is one model, taught properly, and then one framework that runs a dozen of them for you. The order matters: by the time the framework appears this afternoon, every model inside it is one they have either built or watched get built.</p>
+<p>Set the expectation about the result honestly, because it is coming in Part E and it is not a landslide. ETS will beat the floor on the point forecast by about half a percent and lose to it on the distribution. That is a normal result in this field, and diagnosing it is the whole exercise.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -247,28 +247,21 @@
 </div>
 </section>
 <section>
-<section id="a.-scoring-a-point-forecast" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
-<h1>A. Scoring a point forecast</h1>
-<p>Ch 5.8 · Point forecast metrics</p>
+<section id="a.-a-forecast-is-a-weighted-average" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>A. A forecast is a weighted average</h1>
+<p>Ch 8.1 · Simple exponential smoothing</p>
 </section>
-<section id="every-score-starts-from-the-same-error" class="slide level2">
-<h2>Every score starts from the same error</h2>
-<p><span class="math display">\[e_t = y_t - \hat{y}_t \qquad\text{(actual minus forecast)}\]</span></p>
-<div class="fragment">
-<p>Three ways to average the same errors:</p>
-<p><span class="math display">\[\text{MAE} = \text{mean}\lvert e_t \rvert
-\qquad
-\text{RMSE} = \sqrt{\text{mean}\left(e_t^2\right)}
-\qquad
-\text{MAPE} = \text{mean}\left\lvert \frac{100\,e_t}{y_t} \right\rvert\]</span></p>
-<div class="cardbox navy">
-<p>MAE and RMSE are in the units of the series. MAPE divides those units away. Whether that makes it safe is the next two slides.</p>
+<section id="your-benchmarks-are-two-ends-of-one-dial" class="slide level2">
+<h2>Your benchmarks are two ends of one dial</h2>
+<div class="flowrow">
+<p><span class="flownode coral"><span class="flowtitle">Naive</span><span class="flownote">all the weight on <span class="math inline">\(y_T\)</span></span></span> <span class="flownode teal"><span class="flowtitle">somewhere in between</span><span class="flownote">recent counts more, old still counts</span></span> <span class="flownode purple"><span class="flowtitle">Mean</span><span class="flownote">equal weight on every <span class="math inline">\(y_t\)</span></span></span></p>
 </div>
+<div class="fragment">
+<p>The naive forecast says the last observation is all that matters. The mean says a point from start of the series matters exactly as much as last point.</p>
 <aside class="notes">
-<p>Start from the error itself, because every metric in this lecture is one average of this one quantity. Actual minus forecast, per period, signed.</p>
-<p>MAE is the mean of the absolute errors: the typical miss, in dollars of turnover. RMSE squares first, so a single large miss moves it more than several small ones. Both are in the units of the series.</p>
-<p>MAPE divides each error by the actual value that period and reads as a percentage, which is why it is the metric every business audience already knows. That division is the whole subject of the next two slides, and it does not survive them.</p>
-<p>Do not rank anything yet. Nothing on this slide can compare two series.</p>
+<p>This is the slide that makes exponential smoothing feel inevitable rather than invented. Both of yesterday’s simplest benchmarks are weighted averages of the history. They just sit at opposite extremes of the same dial.</p>
+<p>Ask the room which one is closer to right for the takeaway food series. Most will say the naive, and they are right, which is exactly why the seasonal naive was yesterday’s best benchmark. But nobody actually believes that only December 2018 carries information about December 2019.</p>
+<p>The obvious repair is a weighted average where recent observations count more and the weight fades as you go back. That is the whole idea, and it has a name.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -282,25 +275,23 @@
       }</style></aside>
 </div>
 </section>
-<section id="rescaling-moves-mae-and-shifting-breaks-mape" class="slide level2">
-<h2>Rescaling moves MAE, and shifting breaks MAPE</h2>
-<p>Re-express the series in any unit: <span class="math inline">\(z_t = a\,y_t + b\)</span>, with <span class="math inline">\(a &gt; 0\)</span>.</p>
-<p><span class="math display">\[e^z_t \;=\; z_t - \hat{z}_t \;=\; (a\,y_t + b) - (a\,\hat{y}_t + b) \;=\; a\,e_t\]</span></p>
-<p>The offset is gone before any metric sees it.</p>
+<section id="simple-exponential-smoothing-is-the-dial-between-them" class="slide level2">
+<h2>Simple exponential smoothing is the dial between them</h2>
+<p><span class="math display">\[\hat{y}_{T+1|T} = \alpha y_T + \alpha(1-\alpha) y_{T-1} + \alpha(1-\alpha)^2 y_{T-2} + \cdots\]</span></p>
+<p>The weights shrink geometrically as you go back.</p>
 <div class="fragment">
-<p><span class="math display">\[\begin{aligned}
-\text{MAE}_z &amp;= \text{mean}\lvert a\,e_t \rvert = a\,\text{MAE} \\
-\text{MAPE}_z &amp;= \text{mean}\left\lvert \frac{100\,a\,e_t}{a\,y_t + b} \right\rvert
-= \text{mean}\left\lvert \frac{100\,e_t}{y_t + b/a} \right\rvert
-\end{aligned}\]</span></p>
-<div class="cardbox coral">
-<p>The <span class="math inline">\(a\)</span> divides out of MAPE. The offset does not: it survives as <span class="math inline">\(b/a\)</span>, and <span class="math inline">\(b\)</span> is what °C to °F adds, so the same forecast scores differently in each unit.</p>
-</div>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong><span class="math inline">\(\alpha\)</span> near 1</strong></p>
+<p>Fast to react. Almost the naive forecast.</p>
+</div><div class="column" style="width:50%;">
+<p><strong><span class="math inline">\(\alpha\)</span> near 0</strong></p>
+<p>Slow and smooth. Approaches the mean.</p>
+</div></div>
 <aside class="notes">
-<p>Do this one at the board pace, not the slide pace. Ask what happens to each metric if the finance team reports the same series in thousands instead of dollars, then substitute.</p>
-<p>Start with the error line, because it does most of the work. Subtract two transformed numbers and the b cancels, leaving a times the original error. So every metric downstream sees errors that are a times too big.</p>
-<p>MAE therefore moves with the unit: report in thousands and the MAE drops by a factor of a thousand while the forecast is identical. That is what scale-dependent means, and it is why Day 1 could not have pooled 148 retail series with different turnovers on MAE.</p>
-<p>MAPE is the row to slow down on, because it looks like the cure. Divide top and bottom by a and watch what is left: the unit is gone, and the offset is still there as b over a. Do that second equals sign at the board. Same forecast, Celsius or Fahrenheit, two different scores, because b over a is not zero. Cancelling the unit is necessary and not sufficient.</p>
+<p>One parameter, alpha, between 0 and 1. It is the smoothing parameter, and it sets how fast the weight decays as you walk backwards through the history.</p>
+<p>Point at the two columns and connect them to the previous slide: alpha equal to 1 puts a weight of exactly 1 on the last observation and zero on everything else, which is the naive forecast. Push alpha towards 0 and the weights flatten out towards the mean.</p>
+<p>The word “exponential” in the name is the geometric decay, nothing more exotic. If anyone asks why the weights sum to 1, that is the geometric series alpha times the sum of (1 minus alpha) to the j, which is exactly 1.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -314,147 +305,80 @@
       }</style></aside>
 </div>
 </section>
-<section id="a-denominator-that-is-a-level-breaks-three-ways" class="slide level2">
-<h2>A denominator that is a level breaks three ways</h2>
-<p>The offset survived because MAPE divides by a <strong>level</strong>, <span class="math inline">\(y_t\)</span>, and a level is not an error. Forecast <span class="math inline">\(\hat{y} = 100\)</span>, missed by <span class="math inline">\(20\)</span> each way:</p>
-<table class="caption-top">
-<thead>
-<tr class="header">
-<th>actual <span class="math inline">\(y\)</span></th>
-<th>error</th>
-<th>absolute percentage error</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">\(80\)</span>, forecast too high</td>
-<td><span class="math inline">\(20\)</span></td>
-<td><span class="math inline">\(20 / 80 = 25.0\%\)</span></td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(120\)</span>, forecast too low</td>
-<td><span class="math inline">\(20\)</span></td>
-<td><span class="math inline">\(20 / 120 = 16.7\%\)</span></td>
-</tr>
-</tbody>
-</table>
-<div class="fragment">
-<p>A level can also sit <strong>near zero</strong>: an actual of <span class="math inline">\(0.2\)</span> and a one-unit miss scores <span class="math inline">\(500\%\)</span>. And it must have a <strong>true zero</strong>, which <span class="math inline">\(0\)</span>°C does not.</p>
-<div class="cardbox coral">
-<p>Report it if asked. <strong>Never select a model with it.</strong></p>
-</div>
-<aside class="notes">
-<p>One fault, seen three ways, and the arithmetic in the table is the argument.</p>
-<p>Put the table on the board. Forecast 100, and be wrong by 20 either way. Actual 80: the miss is 20 over 80, 25%. Actual 120: the same 20, now over 120, 16.7%. One error, two prices, and the expensive one is always the over-forecast, because a low actual is a small denominator. A team that selects on MAPE therefore learns to under-forecast, and in an inventory setting that means stocking out.</p>
-<p>The near-zero case is the same denominator taken to its limit: on intermittent or low-volume demand the actual is small often enough that the percentage stops describing the miss. Exercise 2.4 hands them that series and they compute it themselves, so do not spend a chart on it here.</p>
-<p>The true-zero case is the b from the last slide, restated in words: a percentage assumes zero means none of the thing. 0 degrees Celsius is not “no temperature”, it is a point on a scale somebody chose. Turnover in dollars does have a true zero; plenty of series do not.</p>
-<p>All three are the same fault: the denominator is a level. That is the sentence the next slide picks up.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="the-fix-is-one-denominator-and-it-is-a-difference" class="slide level2">
-<h2>The fix is one denominator, and it is a difference</h2>
-<p>Divide instead by <span class="math inline">\(Q\)</span>, one number for the whole series, built out of differences.</p>
-<p><span class="math display">\[Q = \frac{1}{T-1}\sum_{t=2}^{T} \lvert y_t - y_{t-1} \rvert,
-\qquad q_j = \frac{e_j}{Q},
-\qquad \text{MASE} = \text{mean}(\lvert q_j \rvert)\]</span></p>
-<p><span class="math inline">\(t\)</span> indexes the training history, <span class="math inline">\(j\)</span> the forecast points being scored.</p>
+<section id="the-same-model-written-as-a-state-you-update" class="slide level2">
+<h2>The same model, written as a state you update</h2>
+<p>Two lines, and the first one is the whole model:</p>
+<p><span class="math display">\[\ell_t = \alpha y_t + (1-\alpha)\ell_{t-1} \qquad\text{(level)}\]</span> <span class="math display">\[\hat{y}_{t+h|t} = \ell_t \qquad\text{(forecast)}\]</span></p>
 <div class="fragment">
 <p><span class="math display">\[\begin{aligned}
-z_t - z_{t-1} &amp;= (a\,y_t + b) - (a\,y_{t-1} + b) = a\,(y_t - y_{t-1})
-&amp;&amp; \Longrightarrow \; Q_z = a\,Q \\
-\text{MASE}_z &amp;= \frac{\text{mean}\lvert a\,e_t \rvert}{a\,Q} = \text{MASE}
+\ell_t &amp;= \alpha y_t + (1-\alpha)\,\ell_{t-1} \\
+       &amp;= \alpha y_t + \alpha(1-\alpha)\,y_{t-1} + (1-\alpha)^2\,\ell_{t-2} \\
+       &amp;= \alpha y_t + \alpha(1-\alpha)\,y_{t-1} + \alpha(1-\alpha)^2 y_{t-2}
+          + (1-\alpha)^3\,\ell_{t-3}
 \end{aligned}\]</span></p>
-<div class="cardbox teal">
-<p>Every term of <span class="math inline">\(Q\)</span> is a difference, so no offset reaches it.</p>
-<p><span class="math inline">\(Q\)</span> is a training-set average, so it is near zero only if the series never moves.</p>
 </div>
-<aside class="notes">
-<p>One divisor for the series, not one per point. MAPE picks its divisor fresh every month and takes whatever the series happened to do; Q is an average over the whole training set, so it is stable and it cannot go near zero unless the series is flat.</p>
-<p>Then rescale it, the same substitution as two slides back. Q is built from differences, so the b cancels inside every term exactly as it did in the error, and what is left is a times Q. Now both floors of the fraction carry the same a: the numerator because errors do, the denominator because it is an error too. An error over an error, and neither a nor b ever reaches the score. That is the licence for what Day 1 did when it pooled 148 retail series with different turnovers into one ranking.</p>
-<p>The card’s two lines answer the two faults from the last slide in order: the offset, and the near-zero denominator.</p>
-<p>Hyndman and Koehler proposed this in 2006 precisely as the replacement for the percentage errors.</p>
-<p>Do not explain what Q is yet beyond “differences”. The next slide is what that denominator turns out to be.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="that-denominator-is-a-forecast-so-mase-is-a-ratio" class="slide level2">
-<h2>That denominator is a forecast, so MASE is a ratio</h2>
-<p><span class="math inline">\(Q\)</span> is not an arbitrary normaliser. Every term in it is an error the <strong>naive</strong> forecast makes in-sample: last value carried forward, one step at a time.</p>
-<p><span class="math display">\[\text{MASE} \;=\; \frac{\text{your MAE}}{\text{the naive forecast's own MAE}}\]</span></p>
-<div class="cardbox teal">
-<p>Below <span class="math inline">\(1\)</span> beats the benchmark. Exactly <span class="math inline">\(1\)</span> ties it.</p>
-</div>
-<aside class="notes">
-<p>This is the slide that makes MASE readable rather than just well-behaved. The absolute lag-one differences in Q are exactly the errors the naive forecast makes on the training set, so the ratio has a meaning you can say out loud, and 1.0 is the line.</p>
-<p>Warn them the seasonal naive will score above 1 on this data, and that this is not a contradiction: forecasting 24 months out is harder than the one-step in-sample errors sitting in the denominator.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="this-course-scores-against-the-seasonal-naive" class="slide level2">
-<h2>This course scores against the seasonal naive</h2>
-<p>Step back a whole season instead of one period:</p>
-<p><span class="math display">\[Q_m = \frac{1}{T-m}\sum_{t=m+1}^{T} \lvert y_t - y_{t-m} \rvert,
-\qquad m = 12\]</span></p>
-<div class="cardbox teal">
-<p>Set <span class="math inline">\(m = 1\)</span> and this is the <span class="math inline">\(Q\)</span> from the last slide. <strong>One definition, not two.</strong></p>
-</div>
-<aside class="notes">
-<p>Nothing about MASE is seasonal. The seasonal naive is just the strongest free benchmark when the series has a period, so every mase() call in the labs passes seasonality=12 and this is the Q they all use.</p>
-<p>Make the m equals 1 point at the board rather than reading the card: the sum collapses to the lag-one differences from two slides back, so the room is looking at one definition with a knob on it, not a second metric to remember.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="squaring-the-same-ratio-gives-rmsse" class="slide level2">
-<h2>Squaring the same ratio gives RMSSE</h2>
-<p><span class="math display">\[\text{RMSSE} = \sqrt{\text{mean}(q_j^2)},
-\qquad q_j^2 = \frac{e_j^2}{\dfrac{1}{T-m}\sum_{t=m+1}^{T} (y_t - y_{t-m})^2}\]</span></p>
-<p>Same benchmark, same cancellation, squared throughout.</p>
 <div class="fragment">
 <div class="cardbox teal">
-<p>MASE reports the typical miss in benchmark units. RMSSE reports the same with the worst months weighted heaviest, so a model can win one and lose the other.</p>
+<p><span class="math inline">\(\ell_t\)</span> is the <strong>state</strong>: what the model believes the series is worth right now.</p>
+</div>
+</div>
+</section>
+<section id="alpha-is-fitted" class="slide level2">
+<h2><span class="math inline">\(\alpha\)</span> is fitted</h2>
+<p>Pick the <span class="math inline">\(\alpha\)</span> and the starting level <span class="math inline">\(\ell_0\)</span> that minimize the sum of squared one-step errors on the training data:</p>
+<p><span class="math display">\[\text{SSE} = \sum_{t=1}^{T}\left(y_t - \hat{y}_{t|t-1}\right)^2\]</span></p>
+<div class="fragment">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="im">from</span> statsforecast.models <span class="im">import</span> SimpleExponentialSmoothingOptimized</span>
+<span id="cb1-2"><a></a>StatsForecast(models<span class="op">=</span>[SimpleExponentialSmoothingOptimized()], freq<span class="op">=</span><span class="st">"MS"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>On the spine the optimizer lands on <span class="math inline">\(\alpha \approx 0\.52\)</span>.</p>
+</div>
+</section>
+<section id="ses-on-its-own-gives-you-a-flat-line" class="slide level2">
+<h2>SES on its own gives you a flat line</h2>
+<div id="b8ee9ec2" class="cell" data-fig-width="10" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-3-output-1.png" width="1112" height="386"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox coral">
+<p>One state, and it is a level. There is nothing in this model that knows the series is growing.</p>
+</div>
+</section></section>
+<section>
+<section id="b.-trend-a-second-state" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
+<h1>B. Trend: a second state</h1>
+<p>Ch 8.2 · Holt’s linear trend, and damping it</p>
+</section>
+<section id="holt-keeps-two-numbers" class="slide level2">
+<h2>Holt keeps two numbers</h2>
+<p>Think of Holt as maintaining two pieces of information:</p>
+<p><span class="math display">\[\boxed{\text{What is the series worth right now?}} \;\longrightarrow\; \ell_t\]</span></p>
+<p><span class="math display">\[\boxed{\text{How fast is it changing?}} \;\longrightarrow\; b_t\]</span></p>
+<div class="fragment">
+<p><span class="math display">\[\text{future value} \;\approx\; \text{current value} + (\text{rate of change}) \times (\text{time ahead})\]</span></p>
+</div>
+</section>
+<section id="a-second-state-gives-the-forecast-a-slope" class="slide level2">
+<h2>A second state gives the forecast a slope</h2>
+<p><span class="math display">\[\ell_t = \alpha y_t + (1-\alpha)\;\boxed{\,\ell_{t-1} + b_{t-1}\,} \qquad\text{(level)}\]</span> <span class="math display">\[b_t = \beta^*(\ell_t - \ell_{t-1}) + (1-\beta^*) b_{t-1} \qquad\text{(slope)}\]</span> <span class="math display">\[\hat{y}_{t+h|t} = \ell_t + h b_t \qquad\text{(forecast)}\]</span></p>
+<div class="fragment">
+<p>Put <span class="math inline">\(h = 1\)</span> in the last line, one step earlier: the boxed term is the forecast Holt already made for <span class="math inline">\(y_t\)</span>.</p>
+<p><span class="math display">\[\hat{y}_{t|t-1} = \ell_{t-1} + b_{t-1}
+\qquad\Longrightarrow\qquad
+\ell_t = \alpha\,y_t + (1-\alpha)\,\hat{y}_{t|t-1}\]</span></p>
+<div class="cardbox teal">
+<p>That is the SES level equation unchanged: step from what you predicted towards what you saw. Only the prediction learned a slope.</p>
 </div>
 <aside class="notes">
-<p>Keep this short: it is one slide because it is one idea already taught, run through a square. Point at the denominator and note it is now a root mean square of the benchmark’s errors rather than a mean absolute one, so the cancellation argument two slides back goes through unchanged.</p>
-<p>Both columns ship on the leaderboard, because the choice between them is a business question, not a statistical one: RMSSE is the one to watch when a single large miss costs more than several small ones, which is why the M5 competition ranked on it. If the two ever disagree on this course’s leaderboard, that is worth stopping on, and on the spine they do not.</p>
+<p>Read the three lines in order and point at what changed. The level update now starts from where the trend said it would be rather than from where it was, and that box is the only difference from SES. The second line is the level equation’s twin, applied to the slope: a step from the old slope towards the slope the level just revealed. Then the last line spends them, and it is no longer flat, because h has something to multiply.</p>
+<p>Then do the box properly, because it is the sentence the whole family is built on. Take the forecast line, set h to 1, and rewind it one month: the forecast Holt made last month for this month is l minus one plus b minus one, which is exactly what is in the box. So the level equation reads alpha times what you saw plus one minus alpha times what you had predicted.</p>
+<p>That is word for word the SES level equation, because in SES the one-step forecast was just the level. Nothing about the update changed when the trend arrived; the prediction inside it got better. Say that out loud, because Part C adds seasonality and the level equation will survive that too.</p>
+<p>Beta-star is a second smoothing parameter with the same meaning as alpha: how fast does the model revise its belief about the slope when the data disagrees. It is fitted alongside alpha and the two initial states.</p>
+<p>The pattern is the thing to notice. Every state in this family is updated by the same move: a weighted step from what you believed towards what you just saw.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -468,53 +392,359 @@ z_t - z_{t-1} &amp;= (a\,y_t + b) - (a\,y_{t-1} + b) = a\,(y_t - y_{t-1})
       }</style></aside>
 </div>
 </section>
-<section id="only-two-of-the-five-can-be-pooled" class="slide level2">
-<h2>Only two of the five can be pooled</h2>
+<section id="holt-adds-a-slope-but-not-a-december" class="slide level2">
+<h2>Holt adds a slope but not a December</h2>
+<div id="0cbb7b16" class="cell" data-fig-width="10" data-execution_count="3">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-4-output-1.png" width="1112" height="386"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox coral">
+<p>Better, and still wrong in an obvious way.</p>
+</div>
+<aside class="notes">
+<p>The line now rises, which is progress you can see. Over 24 months it climbs from about 356 to about 373, which is roughly the right slope for this series.</p>
+<p>And it is still a straight line through a series that visibly swings by 30 percent between February and December. The residuals from this model would fail every diagnostic in yesterday’s lecture, for a reason the picture already gives away.</p>
+<p>Two states means two things remembered. Nothing here knows what month it is.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="extrapolate-a-straight-line-far-enough-and-it-lies" class="slide level2">
+<h2>Extrapolate a straight line far enough and it lies</h2>
+<div id="eba49349" class="cell" data-fig-width="10" data-execution_count="4">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-5-output-1.png" width="1112" height="386"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>At <span class="math inline">\(h = 60\)</span> the two disagree by about 38 units, on a series whose last observation was 393.</p>
+<aside class="notes">
+<p>Empirically, forecasts that extrapolate a constant slope forever are too optimistic at long horizons. Hyndman’s damped trend is the standard repair and it is one extra parameter.</p>
+<p>The damping parameter phi sits between 0 and 1 and multiplies the slope at every step out, so the contributions form a geometric series that converges. The forecast approaches a horizontal asymptote instead of running off the top of the chart.</p>
+<p>Point at the gap at the right edge. Five years out, the undamped line has added 38 units that the damped one has not. Neither is verified here, and that is the point: nothing in the training data can tell you which is right five years out, so the conservative one is the better default.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="damping-turns-the-slope-sum-into-a-geometric-series" class="slide level2">
+<h2>Damping turns the slope sum into a geometric series</h2>
+<p><span class="math display">\[\hat{y}_{t+h|t} = \ell_t + h\,b_t \qquad\text{(undamped)}\]</span> <span class="math display">\[\hat{y}_{t+h|t} = \ell_t + (\phi + \phi^2 + \cdots + \phi^h)\,b_t \qquad\text{(damped)}\]</span></p>
+<div class="fragment">
+<p>With <span class="math inline">\(\phi &lt; 1\)</span> that sum converges, so the forecast has a ceiling:</p>
+<p><span class="math display">\[\hat{y}_{t+h|t} \;\longrightarrow\; \ell_t + \frac{\phi}{1-\phi}\,b_t\]</span></p>
+<aside class="notes">
+<p>Same move as the SES slide, pointed the other way. There they unrolled the recursion backwards over the history and the weights fell out. Here you unroll the forecast forwards over the horizon, and what falls out is the flattening they just watched.</p>
+<p>The undamped line adds a whole slope for every month you go out, h of them, forever. Damping multiplies the slope by phi once per step, so month one adds phi, month two adds phi squared, and so on. That is a geometric series, and a geometric series with ratio below 1 has a finite sum.</p>
+<p>Write the ceiling on the board if it helps: phi over one minus phi. It is worth computing one value live, because the numbers surprise people. At 0.9 the model can only ever add nine slopes to the current level, no matter how far out you ask. That is a hard cap on the forecast, chosen by one parameter.</p>
+<p>Then set up the next slide’s bullet about 0.8. Phi of 0.8 caps the whole forecast at four slopes, which on monthly data is gone inside half a year. That is why fitted phi almost always lands high, between 0.8 and 0.98, and why anything much lower means the trend has effectively been switched off.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section></section>
+<section>
+<section id="c.-seasonality-the-third-state" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
+<h1>C. Seasonality: the third state</h1>
+<p>Ch 8.3 · Holt-Winters</p>
+</section>
+<section id="the-third-state-updates-like-the-other-two" class="slide level2">
+<h2>The third state updates like the other two</h2>
+<p>The forecast gains one term: the matching value from the last cycle.</p>
+<p><span class="math display">\[\hat{y}_{t+h|t} = \ell_t + h\,b_t + \underbrace{s_{t+h-m(k+1)}}_{\text{the matching season value}}\]</span></p>
+<div class="fragment">
+<p>From Day 2 take the trend out, keep what is left:</p>
+<p><span class="math display">\[y_t - \underbrace{(\ell_{t-1} + b_{t-1})}_{\text{trend}} \;=\; \text{the season this period}\]</span></p>
+</div>
+<div class="fragment">
+<p><span class="math display">\[s_t = \gamma\,(y_t - \ell_{t-1} - b_{t-1}) + (1-\gamma)\,s_{t-m} \qquad\text{(season)}\]</span></p>
+<aside class="notes">
+<p>Read it in the order it is built. The forecast needs a season value, so the state has to hold one per position in the cycle: twelve of them for monthly data, each refreshed once per cycle rather than once per step.</p>
+<p>The middle line is Day 2’s decomposition, written as one line. There they subtracted a fitted trend and called the remainder seasonal; here the level and slope are the trend, and the remainder is the raw season value for this period.</p>
+<p>The last line is the same weighted step they have now seen three times, and the level and slope equations do not change at all. They work on the observation with its season removed, y minus s at t minus m, exactly as in Part B.</p>
+<p>The k in the forecast subscript just counts complete cycles; do not spend more than a sentence on it.</p>
+<p>Gamma is worth one question out loud: how much should one unusual year change what the model believes about that point in the cycle?</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="additive-or-multiplicative-is-a-real-choice" class="slide level2">
+<h2>Additive or multiplicative is a real choice</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>Additive season</strong></p>
+<p><span class="math inline">\(y_t = \ell_t + s_t\)</span></p>
+<p>A season adds the same number of units, whatever the level is.</p>
+</div><div class="column" style="width:50%;">
+<p><strong>Multiplicative season</strong></p>
+<p><span class="math inline">\(y_t = \ell_t \times s_t\)</span></p>
+<p>A season is a fixed <em>percentage</em> of the level.</p>
+</div></div>
+<div class="fragment">
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>What the spine does</strong></p>
+</div>
+<div class="callout-content">
+<p>Its seasonal swing grew from a few units in the 1980s to about 55 by 2018, right alongside the level.</p>
+</div>
+</div>
+</div>
+<aside class="notes">
+<p>This is the choice Day 1 already made them look at, in different clothes. When they log-transformed this series in lecture 2, the reason was that the seasonal swings grow with the level. Same observation, now a model decision.</p>
+<p>The numbers in the callout are read off the fitted seasonal state, which is on screen a few slides from now, so this is a promise the deck keeps.</p>
+<p>There are two ways out and the course teaches both: model the season as multiplicative, or transform the data until the season is additive. Part D does that pair properly.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="holt-winters-has-the-right-shape" class="slide level2">
+<h2>Holt-Winters has the right shape</h2>
+<div id="6442e85d" class="cell" data-fig-width="10" data-execution_count="5">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-6-output-1.png" width="1112" height="452"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>Flat, then tilted, then the right shape. One state added per slide.</p>
+</div>
+<aside class="notes">
+<p>Compare the Holt-Winters line against the dashed holdout. It puts the peaks and the troughs in the right places and at roughly the right size. It is not perfect and it does not need to be.</p>
+<p>If someone asks whether this beats the seasonal naive: good question, hold it for Part E, because answering it properly needs eight folds and not this chart.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="you-already-built-this-by-hand-on-day-2" class="slide level2">
+<h2>You already built this by hand on Day 2</h2>
+<p>Yesterday’s fifth model had the same three parts. You chose them. Today they are fitted.</p>
+<div class="flowrow">
+<p><span class="flownode navy"><span class="flowtitle">STL + drift</span><span class="flownote">yesterday</span></span> <span class="flownode coral"><span class="flowtitle">Split the season off</span><span class="flownote">STL decides</span></span> <span class="flownode coral"><span class="flowtitle">Pin drift</span><span class="flownote">your choice</span></span> <span class="flownode coral"><span class="flowtitle">Pin seasonal naive</span><span class="flownote">your choice</span></span></p>
+</div>
+<div class="flowrow">
+<p><span class="flownode navy"><span class="flowtitle">ETS</span><span class="flownote">today</span></span> <span class="flownode teal"><span class="flowtitle">Level, slope, season</span><span class="flownote">same three parts</span></span> <span class="flownode teal"><span class="flowtitle"><span class="math inline">\(\alpha, \beta^*, \gamma\)</span> fitted</span><span class="flownote">the data chooses</span></span></p>
+</div>
+<aside class="notes">
+<p>This is the most important slide in the lecture and it costs nothing to deliver, because they did the work yesterday.</p>
+<p>Alpha, beta-star and gamma are what “the data chooses” means concretely: how fast each part is allowed to change.</p>
+<p>It also sets up the honest expectation for Part E: learning the weights is not guaranteed to beat pinning them well.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
+<section>
+<section id="d.-the-ets-family" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>D. The ETS family</h1>
+<p>Ch 8.4 to 8.6 · The taxonomy, and the search over it</p>
+</section>
+<section id="three-letters-name-the-model" class="slide level2">
+<h2>Three letters name the model</h2>
 <table class="caption-top">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
 <thead>
 <tr class="header">
 <th></th>
-<th>Definition</th>
-<th>Verdict</th>
+<th>Error</th>
+<th>Trend</th>
+<th>Season</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>MAE</strong>, Mean Absolute Error</td>
-<td>mean of <span class="math inline">\(\lvert e_t \rvert\)</span></td>
-<td>Easy to read, and scale-dependent: cannot be pooled</td>
+<td><strong>N</strong> = none</td>
+<td></td>
+<td>no trend</td>
+<td>no season</td>
 </tr>
 <tr class="even">
-<td><strong>RMSE</strong>, Root Mean Squared Error</td>
-<td><span class="math inline">\(\sqrt{\text{mean}(e_t^2)}\)</span></td>
-<td>Punishes large errors, still scale-dependent</td>
+<td><strong>A</strong> = additive</td>
+<td>additive</td>
+<td>linear trend</td>
+<td>additive</td>
 </tr>
 <tr class="odd">
-<td><strong>MAPE</strong>, Mean Absolute Percentage Error</td>
-<td>mean of <span class="math inline">\(\lvert 100\,e_t / y_t \rvert\)</span></td>
-<td>Unit-free, but explodes near zero and is asymmetric</td>
+<td><strong>Ad</strong> = damped</td>
+<td></td>
+<td>damped trend</td>
+<td></td>
 </tr>
 <tr class="even">
-<td><strong>MASE</strong>, Mean Absolute Scaled Error</td>
-<td>MAE over the benchmark’s own MAE</td>
-<td>Scale-free; reads only against its benchmark</td>
-</tr>
-<tr class="odd">
-<td><strong>RMSSE</strong>, Root Mean Squared Scaled Error</td>
-<td>RMSE over the benchmark’s own RMSE</td>
-<td>Scale-free, and still punishes outliers</td>
+<td><strong>M</strong> = multiplicative</td>
+<td>multiplicative</td>
+<td></td>
+<td>multiplicative</td>
 </tr>
 </tbody>
 </table>
+<div class="fragment">
+<p><strong>ETS(A,N,N)</strong> is SES. <strong>ETS(A,A,N)</strong> is Holt. <strong>ETS(A,A,A)</strong> is additive Holt-Winters. Parts A, B and C, renamed.</p>
+</div>
+<div class="fragment">
+<div class="cardbox teal">
+<p>Two errors, five trends, three seasons: about thirty models, and you have already built three of them.</p>
+</div>
 <aside class="notes">
-<p>This is the lookup table, not a new argument: every row was earned on the last five slides, so read down the Limitation column and stop.</p>
-<p>MAE and RMSE are honest within one series. The moment you want to compare different products or series, the unit is in the way, and only the scaled metrics survive. MAPE also drops the unit, and the room has just seen why that alone does not make it safe.</p>
-<p>Tell them this table is in the cheatsheet, so nobody photographs it.</p>
+<p>Do not teach this table row by row. Put it up, say what the three letters are, and spend the time on the line underneath, which is the payoff.</p>
+<p>The one thing worth saying about the error letter, because it is the least intuitive: an additive error is a fixed number of units, a multiplicative error is a fixed percentage. On a series that grew by a factor of eight, that distinction is not cosmetic.</p>
+<p>A handful of the thirty are unstable and get excluded, which is why the card says “about”.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="the-error-term-makes-it-a-model" class="slide level2">
+<h2>The error term makes it a model</h2>
+<p>Holt-Winters gives one number. ETS also says where the randomness enters.</p>
+<p><span class="math display">\[y_t = \underbrace{\ell_{t-1} + b_{t-1} + s_{t-m}}_{\text{what the states predict}} \;+\; \underbrace{\varepsilon_t}_{\text{the error}}\]</span></p>
+<div class="fragment">
+<p>Now the model can say how likely the data it saw was. That number is its <strong>likelihood</strong>, and it is what lets you rank models.</p>
+</div>
+<div class="fragment">
+<div class="cardbox teal">
+<p>It can also draw many futures instead of one line. The spread of those futures is the interval.</p>
+</div>
+<aside class="notes">
+<p>This is the answer to “why not just use Holt-Winters and stop”. The point forecasts are identical. What the state space form adds is the error term.</p>
+<p>Connect it to yesterday explicitly. To get an interval out of a seasonal naive they had to supply an assumption: Gaussian errors, bootstrapped residuals, or conformal calibration. ETS carries its own error distribution instead, so the interval is part of the model, and it emits quantiles directly.</p>
+<p>That is exactly why Part E can score it on scaled CRPS without a line of new plumbing.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="aicc-picks-one-member-of-the-family" class="slide level2">
+<h2>AICc picks one member of the family</h2>
+<p><span class="math display">\[\text{AICc} = \underbrace{-2\log L}_{\text{how badly it fits}} \;+\; \underbrace{2k}_{\text{a toll per parameter}} \;+\; \text{a small-sample correction}\]</span></p>
+<div class="fragment">
+<p>A bigger model always fits better, so fit alone would always pick the biggest one. The toll makes it pay for every parameter it asks for.</p>
+</div>
+<div class="fragment">
+<div class="cardbox teal">
+<p>Lower is better, only the gaps between models mean anything, and <code>AutoETS</code> keeps the smallest.</p>
+</div>
+<aside class="notes">
+<p>Read the formula left to right in two beats. Minus two log-likelihood is the misfit and it falls as the model explains more. Two k is the toll: every parameter costs two points, whether or not it earned them.</p>
+<p>The correction is what the extra c stands for, it matters at small sample sizes, and at 441 observations it is a rounding error. Do not spend time on it.</p>
+<p>The caveat worth stating: the number only compares models fit to the same data. It says nothing about whether any of them is good, only which is best, which is why Part E still scores the winner out of sample.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="the-season-changes-the-score.-the-trend-does-not" class="slide level2">
+<h2>The season changes the score. The trend does not</h2>
+<div id="2e55ae58" class="cell" data-fig-width="9" data-execution_count="6">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-7-output-1.png" width="958" height="342"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox coral">
+<p>Drop the season and the score jumps by hundreds. Add a trend and it hardly moves.</p>
+</div>
+<aside class="notes">
+<p>Every bar here is a real fit on the spine, and the axis is the distance from the winner rather than the raw AICc, because the raw numbers are all near 4500 and only the differences matter.</p>
+<p>Read the shape, not the values. The two models with no seasonal letter sit about 475 points out. Among the four seasonal ones, adding a trend moves the score by 16 points one way and 7 the other.</p>
+<p>Same conclusion Day 1 reached from the ACF: on retail data, seasonality is what discriminates.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -527,25 +757,23 @@ z_t - z_{t-1} &amp;= (a\,y_t + b) - (a\,y_{t-1} + b) = a\,(y_t - y_{t-1})
           display:block!important;
       }</style></aside>
 </section>
-<section id="on-this-one-window-the-stl-route-wins-every-metric" class="slide level2">
-<h2>On this one window the STL route wins every metric</h2>
-<div id="57d4ddfe" class="cell" data-fig-width="10" data-execution_count="2">
+<section id="what-it-picked-has-no-trend-term" class="slide level2">
+<h2>What it picked has no trend term</h2>
+<div id="5b794cb3" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-stdout">
-<pre><code>                   MAE    RMSE  MAPE %   MASE  RMSSE
-Mean            173.67  175.55   51.82  12.66   9.09
-Naive            37.07   42.46   11.64   2.70   2.20
-Seasonal naive   15.24   17.56    4.55   1.11   0.91
-Drift            44.35   49.02   13.86   3.23   2.54
-STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
+<pre><code>selected      : ETS(M,N,A)
+alpha (level) : 0.525
+gamma (season): 0.321</code></pre>
 </div>
 </div>
 <div class="cardbox coral">
-<p>On <strong>this window</strong> the STL route wins on every metric (<span class="math inline">\(\text{MASE} = 0.70\)</span>), with the seasonal naive second at <span class="math inline">\(1.11\)</span>. Hold that thought until part B.</p>
+<p>Multiplicative error, <strong>no trend state</strong>, additive season. On a series that grew by a factor of eight.</p>
 </div>
 <aside class="notes">
-<p>Resist declaring a winner here. The seasonal naive’s MASE &gt; 1.0 because forecasting 24 months ahead is harder than the in-sample one-step naive errors in the denominator. The STL route’s 0.70 is the number that gets a model promoted on one lucky year, and part B of this deck takes it back.</p>
-<p>RMSSE is the same idea as MASE with squared errors, which is why the two columns agree on the ranking here and why both end up on the leaderboard.</p>
-<p>MAPE is the only column here that the leaderboard drops. It is the one metric in the table that a single near-zero month can break, and the room just spent a slide on that. It stays for reporting, it never scores a model.</p>
+<p>This is the slide that earns the segment, so give it room and let the room react before explaining it.</p>
+<p>The explanation is in the level equation from Part A. With alpha at 0.52, the level takes a half-step towards every new observation, so it climbs perfectly well on its own. A trend state would let the model extrapolate that climb, and that is the part AICc rejected: two more parameters, and a slope that has to be right twelve months out.</p>
+<p>Connect it to Part B’s callout. This is what “damping loses on this series” looked like from the other end: the search did not merely damp the trend, it removed it.</p>
+<p>The lesson worth naming: an automatic search optimizes the criterion you gave it, not the story you had in your head.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -557,25 +785,86 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</section></section>
-<section>
-<section id="b.-one-split-is-not-evidence" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
-<h1>B. One split is not evidence</h1>
-<p>Ch 5.10 · Rolling-origin cross-validation</p>
 </section>
-<section id="one-test-window-is-one-lucky-or-unlucky-year" class="slide level2">
-<h2>One test window is one lucky, or unlucky, year</h2>
-<div class="flowrow">
-<p><span class="flownode coral"><span class="flowtitle">One split</span><span class="flownote">24 months, scored once</span></span> <span class="flownode coral"><span class="flowtitle">One number per model</span><span class="flownote">no error bar</span></span> <span class="flownode navy"><span class="flowtitle">No ranking</span><span class="flownote">whatever those two years did is baked in</span></span></p>
+<section id="the-states-it-learned-are-a-decomposition" class="slide level2">
+<h2>The states it learned are a decomposition</h2>
+<div id="edc4d253" class="cell" data-fig-width="10" data-execution_count="8">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-9-output-1.png" width="1002" height="430"></p>
+</figure>
 </div>
-<div class="fragment">
+</div>
+</div>
 <div class="cardbox navy">
-<p>Time series cannot use ordinary <strong>k-fold</strong>: shuffling the rows puts future months into the training set. Move the split forward instead.</p>
+<p>The level climbed without a trend state, and the season grew from a few units in the 1980s to about 55 by 2018.</p>
 </div>
 <aside class="notes">
-<p>This is the hinge of the day. One split gives one number, and one number has no error bar, so it cannot support a ranking.</p>
-<p>Two things the flow leaves for you to say. 24 scored points is a small sample, so the number moves for reasons that have nothing to do with the model. And one window invites data snooping: keep refitting until that window looks good, which is part E’s subject.</p>
-<p>Ask the room how confident they would be in a drug trial with one patient. Same objection, same fix: more origins.</p>
+<p>Deliberately the same picture Day 1 drew with STL, in the same panel vocabulary, because these are the same kind of object.</p>
+<p>The season panel pays the promise made three slides back: a few units in the 1980s, plus 55 by 2018. That is multiplicative behaviour showing up inside an additive seasonal state, and the model copes with it through the multiplicative error term, which is the next slide’s subject.</p>
+<p>If anyone asks why the season panel is noisier late in the series: the swings are bigger in absolute terms, so a fixed percentage of noise is a bigger number.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="two-ways-to-handle-a-season-that-grows" class="slide level2">
+<h2>Two ways to handle a season that grows</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>Change the data</strong></p>
+<p>Transform until the swings hold still, forecast, then transform back. Day 1 used the log.</p>
+</div><div class="column" style="width:50%;">
+<p><strong>Change the model</strong></p>
+<p>A multiplicative error already works in percentages. This is what <code>AutoETS</code> chose here.</p>
+</div></div>
+<div class="fragment">
+<p><span class="math display">\[w_t = \begin{cases} \log(y_t) &amp; \lambda = 0 \\ (y_t^{\lambda}-1)/\lambda &amp; \lambda \neq 0\end{cases}\]</span></p>
+<p>Box-Cox is one dial across the transforms: <span class="math inline">\(\lambda = 1\)</span> is none, <span class="math inline">\(\lambda = 0\)</span> is the log.</p>
+<aside class="notes">
+<p>The two columns are the honest summary of the choice. Both routes handle variance that grows with the level. Transforming is more explicit and leaves you owning the back-transformation. Letting the error be multiplicative is one letter in the model name.</p>
+<p>Do not present either as correct. They are the same idea entering the model at two different points, and this course took the second route by accident, because it let the search choose.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section></section>
+<section>
+<section id="e.-scoring-it-on-the-day-2-harness" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
+<h1>E. Scoring it on the Day 2 harness</h1>
+<p>Ch 8.7 · The Day 2 harness, pointed somewhere new</p>
+</section>
+<section id="the-harness-takes-it-unchanged" class="slide level2">
+<h2>The harness takes it unchanged</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a><span class="co"># The only new line is the model on line 4. Everything else is Exercise 2.5.</span></span>
+<span id="cb3-2"><a></a><span class="im">from</span> coursekit <span class="im">import</span> scoring</span>
+<span id="cb3-3"><a></a></span>
+<span id="cb3-4"><a></a>sf <span class="op">=</span> StatsForecast(models<span class="op">=</span>[AutoETS(season_length<span class="op">=</span><span class="dv">12</span>)], freq<span class="op">=</span><span class="st">"MS"</span>)</span>
+<span id="cb3-5"><a></a>cv <span class="op">=</span> sf.cross_validation(df<span class="op">=</span>spine, h<span class="op">=</span><span class="dv">12</span>, step_size<span class="op">=</span><span class="dv">12</span>, n_windows<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb3-6"><a></a>                         level<span class="op">=</span>scoring.LEVELS)</span>
+<span id="cb3-7"><a></a>scoring.score_cv(cv, <span class="st">"AutoETS"</span>, spine)     <span class="co"># mase, rmsse, crps, coverage_80</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="fragment">
+<p>Same folds, same metrics, same numbers out. Only the model is new.</p>
+<aside class="notes">
+<p>Five lines, and four of them are yesterday’s. Walk the code: the cross-validation call is the one they wrote in Exercise 2.5, with the same h, the same step size, the same eight windows, and score_cv is the scoring they did by hand there, packaged.</p>
+<p>That is what a harness is for, and it is worth naming, because this afternoon a framework will do the same job with a different API and they should be able to see what it is buying.</p>
+<p>Say what happens if a model has no closed-form interval, since they will hit it in the capstone: cross-validation refuses to score levels and asks for prediction intervals. Conformal, from yesterday’s segment E. ETS does not need it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -589,24 +878,25 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
       }</style></aside>
 </div>
 </section>
-<section id="score-the-model-eight-times-not-once" class="slide level2">
-<h2>Score the model eight times, not once</h2>
-<p>The <strong>origin</strong> is where training stops and the forecast starts. Move it forward a year at a time: eight training sets, eight forecasts, eight scores.</p>
-<div id="9bc1fd4e" class="cell" data-fig-width="9" data-execution_count="3">
+<section id="ets-wins-on-one-window-and-ties-over-eight-folds" class="slide level2">
+<h2>ETS wins on one window and ties over eight folds</h2>
+<div id="f462466e" class="cell" data-fig-width="10" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-4-output-1.png" width="1002" height="352"></p>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-10-output-1.png" width="1091" height="364"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cardbox teal">
-<p>A <strong>fold</strong> trains only on its own past: <strong>no fold peeks into its future</strong>.</p>
+<div class="cardbox navy">
+<p>One window: 0.97 against 1.11. Eight folds: 1.176 against 1.183, inside a fold spread of 0.72 to 2.02.</p>
 </div>
 <aside class="notes">
-<p>Walk the diagram fold by fold. Blue is what the model saw, orange is what it was scored on, grey is the future it was not allowed to know about. Every row moves the boundary forward and never backwards.</p>
-<p>Say explicitly why k-fold is wrong here: shuffling puts future rows in the training set, which is leakage, and part E of this deck comes back to it.</p>
+<p>This is Exercise 2.4 and 2.5 happening again, to a different model, and it is worth saying so out loud before explaining the chart.</p>
+<p>Left panel: on the single 24-month window ETS improves on the seasonal naive by 13 percent, the kind of number that gets a model shipped. Over eight folds both land on 1.18 and the win evaporates. Yesterday the decomposition route did exactly this, in exactly this direction, on this same series.</p>
+<p>Right panel is why. The fold-to-fold spread runs from about 0.72 to about 2.02 for both models, so a 0.007 difference in the means is a small fraction of the difference between a good year and a bad one.</p>
+<p>If someone asks whether the win is real: eight folds cannot settle a gap this size, and the next move is more folds or more series, not a louder claim. That is why score_cv returns mase_min and mase_max.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -619,49 +909,25 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
           display:block!important;
       }</style></aside>
 </section>
-<section id="only-one-of-the-three-knobs-comes-from-the-business" class="slide level2">
-<h2>Only one of the three knobs comes from the business</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a><span class="co"># Rolling-origin CV on the spine:</span></span>
-<span id="cb2-2"><a></a>cv <span class="op">=</span> sf.cross_validation(</span>
-<span id="cb2-3"><a></a>    df<span class="op">=</span>spine,</span>
-<span id="cb2-4"><a></a>    h<span class="op">=</span><span class="dv">12</span>,          <span class="co"># Forecast horizon matched to business need</span></span>
-<span id="cb2-5"><a></a>    step_size<span class="op">=</span><span class="dv">12</span>,  <span class="co"># Steps between successive origins</span></span>
-<span id="cb2-6"><a></a>    n_windows<span class="op">=</span><span class="dv">8</span>,   <span class="co"># Number of evaluation folds (if less than h, then we overlap)</span></span>
-<span id="cb2-7"><a></a>    level<span class="op">=</span>LEVELS,  <span class="co"># the quantile ladder, spent in part D</span></span>
-<span id="cb2-8"><a></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>h</code> is the planning horizon. The other two are what the series affords.</p>
-<aside class="notes">
-<p>Pick h from the decision, not from the data. If the plan is quarterly, h is three, and a model that wins at h=12 is not the one you want.</p>
-<p>The trade in n_windows is honest: more windows is a steadier estimate and a shorter first training set. Eight is what this series affords.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="eight-folds-keep-the-ranking-and-move-the-winner" class="slide level2">
-<h2>Eight folds keep the ranking and move the winner</h2>
-<div id="9cbe41e0" class="cell" data-fig-width="10" data-execution_count="4">
+<section id="its-80-band-covers-87.5" class="slide level2">
+<h2>Its 80% band covers 87.5%</h2>
+<div id="199db4e6" class="cell" data-fig-width="9" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-5-output-1.png" width="1089" height="305"></p>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-11-output-1.png" width="958" height="322"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cardbox coral">
-<p>One window crowned <strong>STL + drift</strong> at 0.70. Eight folds hand it back, 1.18 to 1.22.</p>
+<p>More coverage than promised is not better. It means the band is too wide.</p>
 </div>
 <aside class="notes">
-<p>Notice the right panel: for the seasonal naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky or unlucky; the 8-fold average is what to trust.</p>
-<p>The one line students get wrong in Lab D: the denominator has to be rebuilt per fold, from that fold’s own training history, or the score is measured against data the model was not allowed to see.</p>
+<p>Both bars miss, in opposite directions, and the ETS miss is the interesting one because it looks like good news. The chart calls a band honest within five points of nominal, which the seasonal naive clears and ETS does not.</p>
+<p>Ask the room which model they would rather ship, before explaining. Most rooms pick the 87.5 percent, because more coverage sounds safer.</p>
+<p>A band that claims 80 and delivers 87.5 is wrong by 7.5 points, and it is wrong in the direction that costs money: every decision sized off it is hedged more than the evidence requires.</p>
+<p>Recall yesterday’s rule while it is on screen: coverage checks a band, it cannot rank two bands. To rank them you need a proper score.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -673,24 +939,25 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</section></section>
-<section>
-<section id="c.-does-the-band-keep-its-promise" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h1>C. Does the band keep its promise?</h1>
-<p>Ch 5.9 · Checking an interval</p>
 </section>
-<section id="an-80-band-is-a-claim-you-can-check" class="slide level2">
-<h2>An 80% band is a claim you can check</h2>
-<p>An interval forecast <span class="math inline">\([L_{t+h|t},\; U_{t+h|t}]\)</span> says one thing, and it is checkable:</p>
-<p><span class="math display">\[\mathbb{P}\left(L_{t+h|t} \le y_{t+h} \le U_{t+h|t}\right) = 0.80\]</span></p>
-<div class="fragment">
-<div class="cardbox teal">
-<p><strong>Nominal</strong> is what the model promised: 8 in 10. All five models in this deck make the same promise about their own band.</p>
+<section id="the-wider-band-scores-worse" class="slide level2">
+<h2>The wider band scores worse</h2>
+<div id="5eeca9eb" class="cell" data-fig-width="10" data-execution_count="11">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="05_exponential_smoothing_and_ets_files/figure-revealjs/cell-12-output-1.png" width="1095" height="417"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox coral">
+<p>ETS has the wider band on the left and the worse CRPS on the right.</p>
 </div>
 <aside class="notes">
-<p>Slow down here, because “80% interval” is a claim and most people read it as a description. The model is asserting something checkable: run this forever and 8 in 10 actuals land inside. Nothing more.</p>
-<p>Be explicit about who is claiming what, because “80% interval” hides an author. Each of the five models produced its own band, and every one of them asserted the same thing about it.</p>
-<p>The deck reads coverage off the 80% band from here on, and yesterday’s fan charts were drawn at 80 and 95, so this is the same object measured rather than drawn.</p>
+<p>This is exactly yesterday’s STL comparison run in reverse, and it is worth saying so. Yesterday the decomposition route had the narrowest bands and the worst coverage and still lost on CRPS. Today ETS has the widest bands and the most coverage and still loses on CRPS.</p>
+<p>Neither sharpness nor coverage ranks a forecast on its own. CRPS does, because it scores the whole distribution against what actually happened.</p>
+<p>The seasonal naive is not on top here because it is clever. It is on top because its band is roughly the right size and roughly in the right place.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -702,44 +969,54 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</div>
 </section>
-<section id="coverage-is-counting-not-statistics" class="slide level2">
-<h2>Coverage is counting, not statistics</h2>
-<p>Make <span class="math inline">\(100\)</span> forecasts. Count how many actuals landed inside the band.</p>
+<section id="ets-ties-on-mase-and-loses-on-crps" class="slide level2">
+<h2>ETS ties on MASE and loses on CRPS</h2>
 <table class="caption-top">
 <thead>
 <tr class="header">
-<th>inside</th>
-<th>coverage</th>
-<th>verdict</th>
+<th></th>
+<th>Seasonal naive</th>
+<th>ETS</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(78\)</span></td>
-<td><span class="math inline">\(78\%\)</span></td>
-<td>honest, close to the claim</td>
+<td>MASE</td>
+<td>1.183</td>
+<td><strong>1.176</strong></td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(62\)</span></td>
-<td><span class="math inline">\(62\%\)</span></td>
-<td>under-covering: bands too narrow</td>
+<td>Scaled CRPS</td>
+<td><strong>0.0306</strong></td>
+<td>0.0329</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\(95\)</span></td>
-<td><span class="math inline">\(95\%\)</span></td>
-<td>over-covering: bands too wide</td>
+<td>80% coverage</td>
+<td>77%</td>
+<td>87.5%</td>
 </tr>
 </tbody>
 </table>
 <div class="fragment">
-<div class="cardbox coral">
-<p>The attempts are in the denominator. One 24-month window gives 24 of them, and 24 attempts cannot measure a rate.</p>
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>What to report</strong></p>
+</div>
+<div class="callout-content">
+<p>A fitted, selected model matched a one-line benchmark on the point forecast and did worse on the interval. Report that.</p>
+</div>
+</div>
 </div>
 <aside class="notes">
-<p>Coverage is arithmetic, not statistics. Count the hits, divide by the attempts. 78 out of 100 against a claimed 80 is a band doing its job. 62 is a band that lied narrow, and a plan built on it is surprised far more often than the number led anyone to expect. 95 is the failure people forget is a failure: the band is honest and useless, too wide to act on.</p>
-<p>Note the count in the denominator, because the next slide needs it. That is why lecture 1’s 96% and this deck’s 77% are the same interval, measured twice: 24 attempts against 96.</p>
+<p>This is where a lot of forecasting projects quietly go wrong, so make the point directly. A team that only tracked MASE would ship ETS today and write in the summary that the new model beat the benchmark.</p>
+<p>They would be reporting a 0.6 percent point-forecast improvement while shipping intervals seven points too wide, and every downstream decision sized off those intervals would be more conservative than the data justifies.</p>
+<p>The floor holding is not a failure of the day. It is the strongest evidence this course can offer that benchmarks are not a formality. A seasonal naive took one line, took no fitting time, and is still the best-calibrated model in the room.</p>
+<p>Then hand over to the lab, where they do the whole thing themselves.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -753,374 +1030,65 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
       }</style></aside>
 </div>
 </section>
-<section id="only-the-seasonal-naives-band-is-close-to-honest" class="slide level2">
-<h2>Only the seasonal naive’s band is close to honest</h2>
-<div id="59723309" class="cell" data-fig-width="9" data-execution_count="5">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-6-output-1.png" width="1002" height="331"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cardbox coral">
-<p>The seasonal naive lands at 77%, close to the 80% it claimed. The mean model covers <strong>0%</strong>, on a series that grew sixfold.</p>
-</div>
-<aside class="notes">
-<p>The dashed line is the claim from the last slide; the bars are what the 96 scored points did about it.</p>
-<p>The mean model scores exactly 0%. Not “poorly”, zero. On a series that grew sixfold, an interval centred on the historical average never touches the last few years at all, and that is worth pausing on: a model can be so wrong that its uncertainty estimate is not even wrong in an interesting way.</p>
-<p>The seasonal naive’s 77% against its claimed 80% is the honest result here, and 96% on the single window in lecture 1 is the same interval measured badly.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="coverage-checks-the-band.-it-cannot-rank." class="slide level2">
-<h2>Coverage checks the band. It cannot rank.</h2>
-<p>Coverage answers one question: is the 80% band honest?</p>
-<p><span class="math display">\[\text{coverage}\big([-\infty,\; +\infty]\big) = 100\%\]</span></p>
-<p>It prices no width, so two models at 80% coverage can be worlds apart.</p>
-<div class="cardbox teal">
-<p>To rank two bands you need a score that prices width <strong>and</strong> misses in one number. Building it starts with a single quantile.</p>
-</div>
-<aside class="notes">
-<p>The infinity example lands immediately: an interval of plus or minus infinity has 100% coverage and zero value. Coverage is a pass/fail check on honesty, not a ranking metric.</p>
-<p>So the next part builds the ranking score from the bottom up, and the bottom is one quantile rather than a whole band.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section></section>
-<section>
-<section id="d.-scoring-the-whole-distribution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
-<h1>D. Scoring the whole distribution</h1>
-<p>Ch 5.9 · Quantile loss, Winkler, CRPS</p>
-</section>
-<section id="a-band-is-two-quantiles" class="slide level2">
-<h2>A band is two quantiles</h2>
-<p>The <span class="math inline">\(\alpha\)</span>-quantile <span class="math inline">\(\hat{q}_\alpha\)</span> is the value the forecast puts <span class="math inline">\(\alpha\)</span> of its probability below:</p>
-<p><span class="math display">\[\mathbb{P}(y \le \hat{q}_\alpha) = \alpha\]</span></p>
-<div class="fragment">
-<div id="0997487b" class="cell" data-execution_count="6">
-<div class="cell-output cell-output-stdout">
-<pre><code>LEVELS   : [20, 40, 60, 80, 95]
-QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code></pre>
-</div>
-</div>
-<div class="cardbox teal">
-<p>An 80% band is the pair <span class="math inline">\(\hat{q}_{0.10}\)</span> and <span class="math inline">\(\hat{q}_{0.90}\)</span>: the columns <code>lo-80</code> and <code>hi-80</code>, all along.</p>
-</div>
-<aside class="notes">
-<p>This is the step that turns a band into something scoreable. Up to here the interval has been one object with two edges; from here it is two numbers, each of which can be scored on its own.</p>
-<p>Point at the arithmetic: an 80% band leaves 20% outside, split evenly, so 10% below the lower edge and 10% above the upper. Hence 0.10 and 0.90, and hence the card.</p>
-<p>Five levels were requested at every forecast in this deck, so ten quantile columns are already on disk. QCOLS names them in the order QUANTILES lists.</p>
-<p>Then point at the printout and connect it back to the cross_validation call in part B, which passed level=LEVELS. That ladder was not decoration: five levels give ten quantiles, and the next three slides spend them.</p>
-<p>The lists live in coursekit.scoring, so the deck, the lab and Day 3 cannot drift apart. Out of step, scaled_crps returns a number that is wrong and still positive.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="a-quantile-miss-must-cost-more-on-one-side" class="slide level2">
-<h2>A quantile miss must cost more on one side</h2>
-<p>If you forecast the 90th percentile, the actual should come in below it nine times out of ten. Landing below is the job, not a failure.</p>
-<p><span class="math display">\[L_\alpha(\hat{q}, y) = \begin{cases}
-\alpha \, (y - \hat{q}) &amp; \text{if } y \ge \hat{q} \quad \text{(underestimated)} \\
-(1 - \alpha) \, (\hat{q} - y) &amp; \text{if } y &lt; \hat{q} \quad \text{(overestimated)}
-\end{cases}\]</span></p>
-<div class="fragment">
-<div class="cardbox coral">
-<p>At <span class="math inline">\(\alpha = 0.9\)</span> the slope to the right is <span class="math inline">\(0.9\)</span> and to the left is <span class="math inline">\(0.1\)</span>: the same miss, priced nine times apart.</p>
-</div>
-</div>
-</section>
-<section id="at-alpha-0.5-quantile-loss-is-mae" class="slide level2">
-<h2>At <span class="math inline">\(\alpha = 0.5\)</span>, quantile loss is MAE</h2>
-<div id="8e353650" class="cell" data-fig-width="8.5" data-execution_count="7">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-8-output-1.png" width="947" height="298"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cardbox teal">
-<p>Put <span class="math inline">\(\alpha = 0.5\)</span> in both lines: each side is <span class="math inline">\(0.5\lvert y - \hat{q}\rvert\)</span>. That is MAE, halved. Minimising it finds the median forecast.</p>
-</div>
-</section>
-<section id="winkler-prices-an-interval-as-two-quantile-losses" class="slide level2">
-<h2>Winkler prices an interval as two quantile losses</h2>
-<p>Write <span class="math inline">\(c\)</span> for what a band claims, so <span class="math inline">\(c = 0.8\)</span> here. It leaves <span class="math inline">\(1-c\)</span> outside, split between the tails, and its edges are <span class="math inline">\(\hat{q}_{(1-c)/2}\)</span> and <span class="math inline">\(\hat{q}_{(1+c)/2}\)</span>: the <span class="math inline">\(0.10\)</span> and <span class="math inline">\(0.90\)</span> quantiles again.</p>
-<p><span class="math display">\[\text{Winkler}([\ell, u], y) =
-\frac{L_{(1-c)/2}(\ell, y) + L_{(1+c)/2}(u, y)}{(1-c)/2}\]</span></p>
-<div class="cardbox navy">
-<p>Nothing new is being defined. It is the previous slide’s loss, applied twice.</p>
-</div>
-<aside class="notes">
-<p>The Winkler score is not a fresh ad-hoc formula, and saying so is the point of having this slide separate from the next one. It is literally the sum of the two bounding quantile losses, scaled so that the number is comparable across nominal levels.</p>
-<p>Keep alpha meaning what it has meant since the quantile slide: the level of a single quantile. The band’s own claim is c, and everything here is written in terms of it, so nothing on screen asks alpha to mean two things.</p>
-<p>Substitute c equals 0.8 at the board and it collapses to the familiar numbers: the edges are the 0.10 and 0.90 quantiles from three slides back, and the divisor is 0.1.</p>
-<p>The division is a convention that puts the miss penalty on the same footing as the width. The next slide expands it and the convention disappears into a charge anyone can read.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="inside-the-band-the-charge-is-the-width" class="slide level2">
-<h2>Inside the band the charge is the width</h2>
-<p><span class="math display">\[\text{Winkler} = \begin{cases}
-(u - \ell) &amp; \text{inside the band} \\
-(u - \ell) + \frac{2}{1-c} (\ell - y) &amp; \text{missed low } (y &lt; \ell) \\
-(u - \ell) + \frac{2}{1-c} (y - u) &amp; \text{missed high } (y &gt; u)
-\end{cases}\]</span></p>
-<div class="fragment">
-<div class="cardbox navy">
-<p><strong>Winkler prices the trade:</strong> narrow bands win when the actual lands inside, and pay a heavy linear fine for every unit outside.</p>
-</div>
-<aside class="notes">
-<p>Expand the two pinball losses from the last slide and this is what falls out, so if the room wants to see the algebra it is three lines at the board.</p>
-<p>Read it as a charge sheet. You always pay the width, which is the cost of being vague. If the actual lands outside you also pay for the distance, at a rate set by how confident the band claimed to be: at c equals 0.8 that rate is 2 over 0.2, so ten units of penalty for every unit outside.</p>
-<p>That is the first score in this deck that cannot be gamed by widening: a wider band pays more inside the band, every time.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="averaging-the-whole-ladder-gives-crps" class="slide level2">
-<h2>Averaging the whole ladder gives CRPS</h2>
-<p>Average over <strong>all</strong> of them and you have scored the whole forecast distribution:</p>
-<p><span class="math display">\[\text{CRPS} = \int_0^1 2 \, L_\alpha(\hat{q}_\alpha, y) \, d\alpha
-\quad \approx \quad
-\frac{1}{\lvert\text{quantiles}\rvert} \sum_{\alpha} 2 \, L_\alpha(\hat{q}_\alpha, y)\]</span></p>
-<p>Here <span class="math inline">\(\alpha\)</span> is the quantile level again, running over the whole ladder.</p>
-<aside class="notes">
-<p>CRPS is the Continuous Ranked Probability Score, and the integral is the definition while the sum is what the code does.</p>
-<p>This completes the arc from a point forecast to a distribution: MAE, then quantile loss, then Winkler, then CRPS. Each rung is the one before it, applied more widely.</p>
-<p>Now the LEVELS ladder from the first slide of this part has paid for itself: ten quantiles is the resolution of the approximation. With one level the integral is estimated from two points and the number is noise.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="scaled-crps-is-to-crps-what-mase-is-to-mae" class="slide level2">
-<h2>Scaled CRPS is to CRPS what MASE is to MAE</h2>
-<p>Divide by the seasonal naive benchmark’s own CRPS, and the score is free of the series’ units:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="im">from</span> utilsforecast.losses <span class="im">import</span> scaled_crps</span>
-<span id="cb4-2"><a></a><span class="im">from</span> coursekit.scoring <span class="im">import</span> QCOLS, QUANTILES</span>
-<span id="cb4-3"><a></a></span>
-<span id="cb4-4"><a></a>crps <span class="op">=</span> {m: scaled_crps(cv.drop(columns<span class="op">=</span>[<span class="st">"cutoff"</span>]),</span>
-<span id="cb4-5"><a></a>                       models<span class="op">=</span>{m: [<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> c <span class="kw">in</span> QCOLS]},</span>
-<span id="cb4-6"><a></a>                       quantiles<span class="op">=</span>QUANTILES)[m].iloc[<span class="dv">0</span>]</span>
-<span id="cb4-7"><a></a>        <span class="cf">for</span> m <span class="kw">in</span> MODELS}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cardbox teal">
-<p>Scale-free and sortable across a portfolio, for the same reason MASE was: an error over an error.</p>
-</div>
-<aside class="notes">
-<p>Exactly the move from part A, applied one level up. CRPS in dollars of turnover cannot be pooled across 148 retail series; divided by the benchmark’s own CRPS it can.</p>
-<p>Walk the call, because Lab D writes it: the models argument is a dict mapping each model to its ten quantile columns, and quantiles has to be in the same order. If the two lists drift apart the function returns a number that is wrong and still positive, which is why they live in coursekit.scoring rather than in the notebook.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="narrow-is-not-the-same-as-good" class="slide level2">
-<h2>Narrow is not the same as good</h2>
-<p><strong>Mean width</strong> is Winkler’s <span class="math inline">\(u - \ell\)</span>, the height of the 80% band, averaged over all 96 scored points:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a>width80 <span class="op">=</span> (cv[<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-hi-80"</span>] <span class="op">-</span> cv[<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-lo-80"</span>]).mean()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div id="3fdbdfb2" class="cell" data-fig-width="10" data-execution_count="8">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-9-output-1.png" width="1095" height="318"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cardbox coral">
-<p>The STL route’s intervals are the <strong>narrowest</strong> here, and it still loses on CRPS. Narrowness that is not earned gets charged for.</p>
-</div>
-<aside class="notes">
-<p>This is the Ch 5.9 payoff, so give it the time. It is the slide that stops “my intervals are tighter” from being an argument.</p>
-<p>Define the left panel before reading it. Mean width is the same u minus l that Winkler charges you for, averaged over all 96 scored points, and it is in the series’ own units, millions of turnover. It is a sharpness measure on its own, with no reference to what actually happened, which is exactly why it cannot be read without the coverage label beside it.</p>
-<p>The STL route has the narrower 80% band, about 40 units against the seasonal naive’s 49, and it loses on CRPS, 0.034 to 0.031, because those narrow bands miss more often: 61% coverage against 77%. Tighter is only better if you were right, and CRPS is what prices that trade in one number.</p>
-<p>Tie it back to part C in one sentence: coverage said the STL band was dishonest but could not say by how much it mattered. This can.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section></section>
-<section>
-<section id="e.-ways-a-good-harness-still-lies" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
-<h1>E. Ways a good harness still lies</h1>
-<p>Ch 13 · Leakage, and the traps that survive it</p>
-</section>
-<section id="leakage-is-a-model-seeing-its-own-future" class="slide level2">
-<h2>Leakage is a model seeing its own future</h2>
-<div class="flowconv">
-<div class="flowcauses">
-<p><span class="flownode coral"><span class="flowtitle">Scale on the whole series</span><code>scaler.fit(spine)</code> <span class="flownote">the holdout sets the scale</span></span> <span class="flownode coral"><span class="flowtitle">Centred rolling features</span><code>rolling(12, center=True)</code> <span class="flownote">month <span class="math inline">\(t\)</span> has already seen <span class="math inline">\(y_{t+6}\)</span></span></span> <span class="flownode coral"><span class="flowtitle">Tune on the test set</span><span class="flownote">keep trying until the score improves</span></span></p>
-</div>
-<p><span class="flownode navy"><span class="flowtitle">The answer is in the input</span><span class="flownote">CV flatters, production does not</span></span></p>
-</div>
-<aside class="notes">
-<p>Every one of these crosses the fold boundary from part B: the blue region was what the model was allowed to see, and each of these three quietly lets orange into it.</p>
-<p>Always fit scalers, imputers, and feature engineering strictly on each fold’s training history. The third cause is the one that gets past code review, because nobody wrote a line that looks wrong. They just kept trying models until the test score improved.</p>
-<p>The next slide runs that one, and the lab’s stretch exercise prices the leak the students can see.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="four-ways-an-honest-team-still-fools-itself" class="slide level2">
-<h2>Four ways an honest team still fools itself</h2>
-<table class="caption-top">
-<thead>
-<tr class="header">
-<th>the trap</th>
-<th>how you catch it</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Regime change</strong></td>
-<td>old folds disagree with recent ones</td>
-</tr>
-<tr class="even">
-<td><strong>Underpowered sample</strong></td>
-<td>fewer than about 50 scored points</td>
-</tr>
-<tr class="odd">
-<td><strong>Overlapping folds</strong></td>
-<td><code>step_size &lt; h</code> reuses holdout points</td>
-</tr>
-<tr class="even">
-<td><strong>Data gaps</strong></td>
-<td>timestamps not continuous across origins</td>
-</tr>
-</tbody>
-</table>
-<aside class="notes">
-<p>None of these require anyone to be careless. Every one of them has shipped from a competent team. Overlapping folds is the one to spell out: with step_size below h the folds share holdout points, so their scores are correlated and every interval read off them is narrower than the evidence supports. Fifty scored points is the rough floor for ranking anything.</p>
-<p>If you have a war story, this is where it goes. If not, the honest version is the one this course just walked through: a single window crowned the STL route at 0.70 and eight windows handed it back.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="rightarrow-lab-d-score-them-honestly" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Lab D · Score them honestly</h2>
-<p>Open <code>labs/02_day2_toolbox_and_evaluation.ipynb</code></p>
+<section id="rightarrow-lab-e-fit-ets-then-score-it-honestly" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab E · Fit ETS, then score it honestly</h2>
+<p>Open <code>labs/03_day3_models_and_orchestration.ipynb</code></p>
 <table class="caption-top">
 <tbody>
 <tr class="odd">
-<td><strong>2.4</strong></td>
-<td>Scoring, and the metric that lies</td>
+<td><strong>3.1</strong></td>
+<td>Fit ETS and read what it picked</td>
+<td>12 min</td>
+</tr>
+<tr class="even">
+<td><strong>3.2</strong></td>
+<td>Eight folds, and the coverage surprise</td>
+<td>18 min</td>
+</tr>
+<tr class="odd">
+<td><strong>3.3</strong></td>
+<td>Damped against undamped (optional)</td>
 <td>10 min</td>
 </tr>
-<tr class="even">
-<td><strong>2.5</strong></td>
-<td>The harness</td>
-<td>19 min</td>
-</tr>
 </tbody>
 </table>
 <div class="fragment">
-<p><em>29 minutes. The notebook carries the instructions; work down it in order.</em></p>
+<p><em>40 minutes. The notebook carries the instructions; work down it in order.</em></p>
 <div class="cardbox teal">
-<p>Same notebook as Lab C, pick up at Exercise 2.4. <strong>2.5 writes <code>labs/leaderboard.csv</code></strong>, which every Day 3 model plugs into. Do not skip it.</p>
+<p><strong>3.2 is the one that produces a result.</strong> It scores ETS against the floor over the same eight folds. Do not skip it.</p>
 </div>
+<aside class="notes">
+<p>Warn them about the Colab runtime before they start, out loud, before anyone opens a cell. If the runtime resets, every install is gone and the setup cell has to run again. That is the single most common way to lose ten minutes today, and the notebook is written so that re-running the setup cell fixes it.</p>
+<p>3.3 is genuinely optional and the notebook says so. 3.1 and 3.2 are not.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </div>
 </section>
-<section id="day-2-summary" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h2>Day 2 Summary</h2>
+<section id="lecture-summary" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
+<h2>Lecture summary</h2>
 <ul>
-<li class="fragment">Start with the <strong>four benchmarks</strong>, then the <strong>decomposition route</strong></li>
-<li class="fragment">Diagnose <strong>residuals</strong>: uncorrelated, zero mean</li>
-<li class="fragment">Report <strong>intervals</strong>, and know which assumption each one spends</li>
-<li class="fragment">Score with <strong>MASE</strong>, <strong>scaled CRPS</strong>, over <strong>rolling origins</strong></li>
-<li class="fragment">One window picks winners it cannot defend</li>
+<li class="fragment">One update rule, applied to <strong>level</strong>, then <strong>slope</strong>, then <strong>season</strong></li>
+<li class="fragment">The <strong>error term</strong> turns a recipe into a model, with a likelihood and intervals</li>
+<li class="fragment"><strong>AICc</strong> picks a member of the family; it picked one with no trend state</li>
+<li class="fragment">The Day 2 harness scored it unchanged, and the floor held on CRPS</li>
 </ul>
 <div class="fragment">
 <div class="cardbox navy">
-<p><strong>Seasonal naive, MASE 1.18, scaled CRPS 0.031.</strong> That is the number to beat. And its residuals are not white noise, so it is beatable. Day 3 starts there.</p>
+<p>Every parameter today was fitted from the data, and you can still name all of them. This afternoon a framework fits a zoo of models for you, in one call.</p>
 </div>
 <aside class="notes">
-<p>Close on what is now on disk, and on what it does not do. The leaderboard is real: seasonal naive at MASE 1.18 and scaled CRPS 0.031 over eight folds, and every Day 3 model has to get past those numbers.</p>
-<p>And the floor is not finished. The seasonal naive’s residuals failed Ljung-Box at p about 1e-240, so there is signal in this series that nothing today captured. That is Day 3’s opening sentence.</p>
+<p>Close on the transition, because it is the shape of the whole day. This morning was one model with every moving part visible and named. This afternoon is a tool that runs ten of them behind one call.</p>
+<p>The reason that order is not arbitrary: when AutoGluon prints its leaderboard after lunch, ETS and the seasonal naive will both be on it, and they will know exactly what those two rows mean.</p>
+<p>If time is short, cut the summary and go straight to the lab. The card is the only thing here that is not already on an earlier slide.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;

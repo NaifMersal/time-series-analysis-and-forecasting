@@ -10,7 +10,7 @@
   <meta name="generator" content="quarto-1.9.38">
 
   <meta name="dcterms.date" content="2026-08-27">
-  <title>Getting Started &amp; Time Series Patterns</title>
+  <title>Orchestration &amp; the Field</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -200,56 +200,183 @@
     <div class="slides">
 
 <section id="title-slide" data-background-image="../slides_template/assets/anim.svg" data-background-opacity="0.15" data-background-size="cover" class="quarto-title-block center">
-  <h1 class="title">Getting Started &amp; Time Series Patterns</h1>
-  <p class="subtitle">Day 1 · Lecture 1 · fpppy Ch 1–2</p>
+  <h1 class="title">Orchestration &amp; the Field</h1>
+  <p class="subtitle">Day 3 · Lecture 2 · AutoGluon, and the map beyond the course</p>
 
 <div class="quarto-title-authors">
 </div>
 
   <p class="date">2026-08-27</p>
 </section>
-<section id="where-we-are-going" class="slide level2">
-<h2>Where we are going</h2>
+<section id="yesterdays-floor-is-still-standing" class="slide level2">
+<h2>Yesterday’s floor is still standing</h2>
 <ul>
-<li class="fragment"><strong>Day 1</strong>: Patterns, decomposition, and features</li>
-<li class="fragment"><strong>Day 2</strong>: Baselines, uncertainty, and evaluation</li>
-<li class="fragment"><strong>Day 3</strong>: Forecasting models</li>
+<li class="fragment"><strong>Part A</strong>: the fitting step, handed to a tool, and what it hands back</li>
+<li class="fragment"><strong>Part B</strong>: a map of everything this course did not teach</li>
 </ul>
 <div class="fragment">
-<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>The Goal</strong></p>
+<p><strong>This morning’s result</strong></p>
 </div>
 <div class="callout-content">
-<p>Diagnose a series, build a baseline, and prove whether anything beats it.</p>
+<p>ETS matched the floor on MASE and lost on the distribution. The seasonal naive is still the best-calibrated model in the room.</p>
 </div>
 </div>
 </div>
+<aside class="notes">
+<p>Take thirty seconds to put the morning back up. They fitted ETS, read its components, scored it over the same eight folds, and found a tie on the point forecast and a loss on scaled CRPS with an 80 percent band that covered 87.5.</p>
+<p>Two parts this afternoon. Part A is hands-on: the fitting step handed to a tool, and a reading lesson on what that tool hands back. Part B is a map, read aloud, so they leave knowing what the names mean when they meet them.</p>
+<p>Say the shape of the day out loud once more, because it is the argument of the whole course: transparent first, orchestrated second. Every model this afternoon’s tool fits is one they have built by hand or watched get built, and that is the only reason its output is readable.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </div>
 </section>
 <section>
-<section id="a.-what-forecasting-is-for" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
-<h1>A. What forecasting is for</h1>
-<p>Ch 1 · Why forecast at all</p>
+<section id="a.-handing-the-fitting-step-over" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>A. Handing the fitting step over</h1>
+<p>AutoGluon TimeSeries, on the same spine</p>
 </section>
-<section id="forecasts-exist-to-change-decisions" class="slide level2">
-<h2>Forecasts exist to change decisions</h2>
+<section id="two-calls-do-the-job-you-wrote-by-hand" class="slide level2">
+<h2>Two calls do the job you wrote by hand</h2>
+<p><strong>This morning, four lines, one model you chose:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a>sf <span class="op">=</span> StatsForecast(models<span class="op">=</span>[AutoETS(season_length<span class="op">=</span><span class="dv">12</span>)], freq<span class="op">=</span><span class="st">"MS"</span>)</span>
+<span id="cb1-2"><a></a>cv <span class="op">=</span> sf.cross_validation(df<span class="op">=</span>spine, h<span class="op">=</span><span class="dv">12</span>, step_size<span class="op">=</span><span class="dv">12</span>, n_windows<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb1-3"><a></a>                         level<span class="op">=</span>scoring.LEVELS)</span>
+<span id="cb1-4"><a></a>scoring.score_cv(cv, <span class="st">"AutoETS"</span>, spine)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Today, two calls, a list of models:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a>predictor <span class="op">=</span> TimeSeriesPredictor(prediction_length<span class="op">=</span><span class="dv">12</span>, target<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb2-2"><a></a>                                eval_metric<span class="op">=</span><span class="st">"MASE"</span>, freq<span class="op">=</span><span class="st">"MS"</span>)</span>
+<span id="cb2-3"><a></a>predictor.fit(ag_train, hyperparameters<span class="op">=</span>ZOO, time_limit<span class="op">=</span><span class="dv">120</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="fragment">
+<div class="cardbox navy">
+<p>Same job. The question of the afternoon: when the tool picks the model and scores it, what is still yours?</p>
+</div>
+<aside class="notes">
+<p>Open with the contrast, because the contrast is the lesson. The left block is the four lines they wrote this morning: one model, chosen by hand, scored over eight folds by their own harness. That is the right amount of code on one series, and it is the right amount because the judgment is theirs.</p>
+<p>The right block is the same job in two calls. The first names the horizon and the metric; the second fits a list of models inside a time budget and prints a ranking. Nothing about the job changed. What changed is who picks the model and who scores it, and this segment is about exactly those two decisions.</p>
+<p>Do not name the tool yet beyond the import line; the next three slides are the tool’s interface, and the log and the leaderboard after that are its output.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="the-conversion-is-two-renames-and-a-constructor" class="slide level2">
+<h2>The conversion is two renames and a constructor</h2>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th></th>
+<th>this course</th>
+<th>AutoGluon</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>series id</td>
+<td><code>unique_id</code></td>
+<td><code>item_id</code></td>
+</tr>
+<tr class="even">
+<td>timestamp</td>
+<td><code>ds</code></td>
+<td><code>timestamp</code></td>
+</tr>
+<tr class="odd">
+<td>value</td>
+<td><code>y</code></td>
+<td><code>target</code>, nameable</td>
+</tr>
+<tr class="even">
+<td>container</td>
+<td><code>pd.DataFrame</code></td>
+<td><code>TimeSeriesDataFrame</code></td>
+</tr>
+</tbody>
+</table>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a>ag_long <span class="op">=</span> spine.rename(columns<span class="op">=</span>{<span class="st">"unique_id"</span>: <span class="st">"item_id"</span>, <span class="st">"ds"</span>: <span class="st">"timestamp"</span>})</span>
+<span id="cb3-2"><a></a>tsdf <span class="op">=</span> TimeSeriesDataFrame.from_data_frame(</span>
+<span id="cb3-3"><a></a>    ag_long, id_column<span class="op">=</span><span class="st">"item_id"</span>, timestamp_column<span class="op">=</span><span class="st">"timestamp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<aside class="notes">
+<p>Two renames and a constructor. That is the entire conceptual content of the conversion, and it is worth showing precisely because it is so thin: the long format this course has used since the first hour is the format every serious forecasting library expects, under different names.</p>
+<p>Say the general lesson, since it outlives this library. When you meet a new forecasting tool, the first question is what it calls the three columns and whether it wants one frame or many. If the answer is long format, which it almost always is, you already know how to feed it.</p>
+<p>One detail the docs state plainly and it is worth ten seconds: a TimeSeriesDataFrame holds a panel of series, and every forecast is per series. There are no cross-series interactions; it is not multivariate forecasting. On the spine the panel holds exactly one item, which is why the lab can feed it the same frame everything else used.</p>
+<p>The <code>slice_by_timestep</code> call in the notebook is how AutoGluon cuts a holdout. It is their <code>train_test</code>, with a different name.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="most-of-the-zoo-is-models-you-have-already-met" class="slide level2">
+<h2>Most of the zoo is models you have already met</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a>ZOO <span class="op">=</span> {<span class="st">"Naive"</span>: {}, <span class="st">"SeasonalNaive"</span>: {}, <span class="st">"AutoETS"</span>: {},</span>
+<span id="cb4-2"><a></a>       <span class="st">"AutoARIMA"</span>: {}, <span class="st">"Theta"</span>: {}}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="fragment">
+<div class="cardbox teal">
+<p>Three you built: two Day 2 benchmarks and this morning’s ETS. Two you have not: ARIMA and Theta, both on the map in fifteen minutes.</p>
+</div>
+<aside class="notes">
+<p>Read the zoo aloud, one name at a time, and let the room sort them. Naive and SeasonalNaive are Day 2’s benchmarks. AutoETS is this morning. Those three they can read a result for without help.</p>
+<p>AutoARIMA and Theta they cannot, and saying so is the honest version of this slide. A framework will fit whatever is in its catalogue, including families nobody has taught you, and the map in Part B is where those two get their names. That gap is not a flaw in the tool; it is the reason the map exists.</p>
+<p>Two practical notes for the lab. The zoo is pinned to local models on purpose, so nothing neural downloads and nothing needs a GPU; the tool’s own presets reach for deep models and the two minute budget would not cover them. And <code>time_limit</code> is a budget, not a target, so the run stops when the clock runs out.</p>
+<p>Warn them again about the runtime reset wiping the install.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="fit-runs-a-queue-of-models-under-one-budget" class="slide level2">
+<h2>fit() runs a queue of models under one budget</h2>
 <ul>
-<li class="fragment"><strong>Inventory</strong>: how much stock to hold</li>
-<li class="fragment"><strong>Staffing</strong>: how many people to roster</li>
-<li class="fragment"><strong>Energy</strong>: when generation must ramp up</li>
-<li class="fragment"><strong>Finance</strong>: cash flow and budget targets</li>
+<li class="fragment">The zoo runs in turn, one model at a time</li>
+<li class="fragment">Each gets a share of the remaining <code>time_limit</code></li>
+<li class="fragment">A <code>WeightedEnsemble</code> is fitted on top, by default</li>
+<li class="fragment">The ranking rests on <strong>one</strong> internal validation split</li>
 </ul>
 <div class="fragment">
 <div class="cardbox teal">
-<p>A forecast is only useful if it <strong>changes a decision</strong>.</p>
+<p>The docs’ presets run from <code>fast_training</code> to <code>best_quality</code>. This lab pins the zoo instead, so every row that comes back is a model you can read.</p>
 </div>
 <aside class="notes">
-<p>The decision dictates the entire setup: the forecast horizon, the time frequency, and the error metric you care about.</p>
+<p>Say what fit does, in order, because the order is the design. The models run one after another in the order the zoo gives them. Each is handed a share of whatever budget is left, which is why the ensemble fitted last gets whatever survived, and why a slow model starves the ones behind it. The next slide shows the arithmetic in the tool’s own log.</p>
+<p>The last bullet is the one that pays off in the two slides after it: all of this is ranked on a single internal validation split. The tool has the machinery for more windows; the lab leaves it at one on purpose, so the leaderboard slide can show the gap.</p>
+<p>One line to save for the Colab run: the docs list the exponential smoothing model under the zoo key <code>ETS</code>, while the lab writes <code>AutoETS</code> after statsforecast. If the fit complains about an unknown model name, that is the first line to change, and changing it is a useful lesson about reading a tool’s catalogue.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -263,16 +390,89 @@
       }</style></aside>
 </div>
 </section>
-<section id="three-factors-dictate-predictability" class="slide level2">
-<h2>Three factors dictate predictability</h2>
-<ol type="1">
-<li class="fragment"><strong>Understanding</strong>: how well we understand the drivers</li>
-<li class="fragment"><strong>Data</strong>: how much historical data exists</li>
-<li class="fragment"><strong>Influence</strong>: whether the forecast changes the outcome</li>
-</ol>
+<section id="the-sign-flip-is-printed-in-the-log" class="slide level2">
+<h2>The sign flip is printed in the log</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb5-1"><a></a>AutoGluon will gauge predictive performance using evaluation metric: 'MASE'</span>
+<span id="cb5-2"><a></a>  This metric's sign has been flipped to adhere to being higher_is_better.</span>
+<span id="cb5-3"><a></a>  The metric score can be multiplied by -1 to get the metric value.</span>
+<span id="cb5-4"><a></a>...</span>
+<span id="cb5-5"><a></a>Training timeseries model ETS. Training for up to 116.0s of the 579.9s of remaining time.</span>
+<span id="cb5-6"><a></a>  -1.9661       = Validation score (-MASE)</span>
+<span id="cb5-7"><a></a>...</span>
+<span id="cb5-8"><a></a>Fitting 1 ensemble(s), in 1 layers.</span>
+<span id="cb5-9"><a></a>Training ensemble model WeightedEnsemble.</span>
+<span id="cb5-10"><a></a>  Ensemble weights: {'Chronos2': 0.43, 'DirectTabular': 0.03, ...}</span>
+<span id="cb5-11"><a></a>  -0.8203       = Validation score (-MASE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The tool’s own quick start, its M4 hourly example. The numbers are not ours; the shape is.</p>
+<div class="cardbox coral">
+<p>The ensemble is not a black box: the log prints its weights, a plain weighted average of the members.</p>
+</div>
+<aside class="notes">
+<p>Set the frame before the log: this is the tool’s own quick start, run on its M4 hourly example, not on our spine. The numbers are not ours, and that is fine, because the shape is what is on the board.</p>
+<p>Walk the log top to bottom. First line of interest: the tool announces that it has negated the metric so that higher is better, and it tells you how to get the real value back, multiply by minus one. That sentence is in every AutoGluon run, and it is the first thing to check whenever a tool’s ranking surprises you.</p>
+<p>Next, one line per model: the remaining budget it was given, and one validation score. Note the budget arithmetic: each model gets an equal share of what is left, so the ensemble that is fitted last gets whatever survived.</p>
+<p>Last block: the ensemble. It is not a mystery model; the log prints its weights, a plain weighted average of the members, chosen to be best on the same one validation window. If the room asks what the ensemble is, this line is the answer.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="its-leaderboard-is-a-shortlist-not-a-verdict" class="slide level2">
+<h2>Its leaderboard is a shortlist, not a verdict</h2>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th>model</th>
+<th>score_val</th>
+<th>score_test</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>WeightedEnsemble</strong></td>
+<td><strong>-0.820</strong></td>
+<td><strong>-0.740</strong></td>
+</tr>
+<tr class="even">
+<td>Chronos2</td>
+<td>-0.878</td>
+<td>-0.765</td>
+</tr>
+<tr class="odd">
+<td>SeasonalNaive</td>
+<td>-1.217</td>
+<td>-1.023</td>
+</tr>
+<tr class="even">
+<td>ETS</td>
+<td>-1.966</td>
+<td>-1.806</td>
+</tr>
+<tr class="odd">
+<td>Theta</td>
+<td>-2.143</td>
+<td>-1.905</td>
+</tr>
+</tbody>
+</table>
+<p>The tool’s own quick start, M4 hourly. <strong>Higher is better</strong>: every score is negated, so <code>-1.97</code> is a MASE of 1.97.</p>
 <div class="fragment">
+<div class="cardbox navy">
+<p><code>score_val</code> is one validation window. Day 2 spent an hour on why that cannot rank two models. The verdict comes from your harness.</p>
+</div>
 <aside class="notes">
-<p>Point 3 is key: if a demand forecast causes price cuts or stockouts, it alters future demand (self-fulfilling or self-defeating forecasts).</p>
+<p>Same run, now as the table the lab will show them. The full table has fit times and fit order as well; three columns are on the board because those are the three that carry the lesson.</p>
+<p>The sign: every score is negated, so higher is better. A <code>score_val</code> of -1.97 is a MASE of 1.97. Say it out loud once with a number, because the sign flip is the trap that catches people who have used the library for months.</p>
+<p>The window: <code>score_val</code> comes from one internal validation split, and <code>predictor.leaderboard(tsdf)</code>, the call the lab makes, adds <code>score_test</code>, one more window. That is why both columns are on the board.</p>
+<p>The swap: between validation and test, RecursiveTabular and Toto2 change places on this same example. The tool’s own two windows disagree about which of the two is better. That is not a flaw to work around; it is the reason the ranking is a shortlist, and the next move is to cross-validate the top of it properly, on your harness, over your eight folds.</p>
+<p>The ensemble row beats its members on both windows here. On other data it will not. Note that and move on; it is Part B’s ensembles line arriving early.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -286,49 +486,157 @@
       }</style></aside>
 </div>
 </section>
-<section id="high-data-and-clear-drivers-make-series-predictable" class="slide level2">
-<h2>High data and clear drivers make series predictable</h2>
+<section id="what-the-framework-buys-and-what-it-does-not" class="slide level2">
+<h2>What the framework buys, and what it does not</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
-<div class="cardbox teal">
-<p><span class="card-title">Electricity Demand</span></p>
+<p><strong>Buys</strong></p>
 <ul>
-<li>Clear physical drivers (weather, calendar)</li>
-<li>High volume of historical data</li>
-<li>Forecast does not change demand</li>
-<li><span class="math inline">\(\rightarrow\)</span> <strong>Highly predictable</strong></li>
+<li>Five models fitted, tuned and ensembled inside one call and a fixed budget</li>
+<li>The same code on 148 series, with no new loop</li>
+<li>A shortlist in two minutes</li>
 </ul>
-</div>
 </div><div class="column" style="width:50%;">
-<div class="cardbox">
-<p><span class="card-title">Exchange Rates</span></p>
+<p><strong>Does not buy</strong></p>
 <ul>
-<li>Weakly understood drivers</li>
-<li>Forecast moves the market</li>
-<li>No stable recurring pattern</li>
-<li><span class="math inline">\(\rightarrow\)</span> <strong>Hard to beat today’s price</strong></li>
+<li>An evaluation you can trust: one window, one sign</li>
+<li>A reason the winner beats your floor</li>
+<li>Any read on whether its bands are too wide</li>
 </ul>
-</div>
 </div></div>
+<div class="fragment">
+<div class="cardbox navy">
+<p>You have now seen every line this library runs. In industry you hand this step to a framework, and you still own the judgement.</p>
+</div>
+<aside class="notes">
+<p>This is the thesis of the segment, so land it slowly.</p>
+<p>The left column is real and should not be undersold. Five models, tuned and ensembled, inside a fixed budget, with the same code working on 148 series instead of one. On a panel that size orchestration is not optional, and nobody should leave thinking the course disapproves of the tool.</p>
+<p>The right column is what the last three days were for. The tool will always return a winner. It will not tell you whether the winner is better than a seasonal naive, whether its intervals are honest, or whether the margin survives a second window. Those are the questions, and they are yours.</p>
+<p>The card is the line to close on. Say it, then hand over to the map.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section></section>
+<section>
+<section id="b.-the-field-and-where-to-go-next" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
+<h1>B. The field, and where to go next</h1>
+<p>Listed, not taught · one line each</p>
 </section>
-<section id="pure-time-series-models-require-no-future-drivers" class="slide level2 smaller">
-<h2>Pure time series models require no future drivers</h2>
-<p>Forecasting hourly <strong>electricity demand (ED)</strong>, three ways to write the same job:</p>
-<div class="cardbox teal">
-<p><span class="card-title">1. Explanatory</span> — <em>why is demand what it is?</em> Every driver on the right needs its own forecast first.</p>
-<p><span class="math display">\[\small \text{ED} = f(\text{temperature},\ \text{economy},\ \text{population},\ \text{time of day},\ \text{day of week},\ \text{error})\]</span></p>
+<section id="four-more-classical-families-by-name" class="slide level2">
+<h2>Four more classical families, by name</h2>
+<ul>
+<li class="fragment"><strong>Theta</strong> · simple, fast, strong. In AutoGluon’s zoo, and best on this series</li>
+<li class="fragment"><strong>ARIMA</strong> · Ch 9. The other classical family, and where the structure Ljung-Box found on Day 2 actually lives</li>
+<li class="fragment"><strong>Dynamic regression</strong> · Ch 7 and 10, for when you have price or promotions</li>
+<li class="fragment"><strong>Hierarchical</strong> · Ch 11, when state totals must equal the national total</li>
+</ul>
+<aside class="notes">
+<p>Four names, one line each, and no apology for the brevity. The purpose of the map is recognition: when one of these turns up in a paper or a job spec, they should know roughly what it is and where to read about it.</p>
+<p>Theta first, because it was in the zoo ten minutes ago, it is in the capstone in fifteen, and it makes an honest point about complexity: a very simple method that is about to beat everything the course taught properly.</p>
+<p>ARIMA next, and be straight about why it is a line on a map rather than a segment. It costs differencing, stationarity, AR against MA, and PACF for order selection, which is a diagnostic Day 1 never showed. That is a chapter, and three hours does not have one to spend. What it is worth knowing is that the autocorrelation Ljung-Box found in the seasonal naive’s residuals yesterday is exactly what an MA term consumes. Ch 9 is written to be read on its own.</p>
+<p>Dynamic regression is the one most likely to matter in their actual work. Everything this course did used only the series’ own past. The moment you have a price, a promotion calendar or a holiday flag, that is the chapter. Note that Ch 10 is really Ch 7 plus Ch 9, so regression travels with it.</p>
+<p>Hierarchical is worth naming for anyone forecasting a business with regions or product lines, which is most of them.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-harness-is-the-part-that-transfers" class="slide level2">
+<h2>The harness is the part that transfers</h2>
+<ul>
+<li class="fragment"><strong>Lag-feature ML</strong> · LightGBM on lags and rolling stats; no fpppy chapter</li>
+<li class="fragment"><strong>Global neural</strong> · DeepAR, Transformers. One model across many series</li>
+<li class="fragment"><strong>Foundation models</strong> · Chronos, Moirai, TimeGPT. Pretrained, zero fitting</li>
+<li class="fragment"><strong>Ensembles</strong> · combine forecasts; AutoGluon’s <code>WeightedEnsemble</code> is one</li>
+</ul>
+<div class="fragment">
+<div class="cardbox purple">
+<p>Every one of these still gets scored by the harness you built. That is the part that transfers.</p>
+</div>
+<aside class="notes">
+<p>The second half of the map, and the half with the most hype attached, so keep the tone level.</p>
+<p>Lag features are how most working data scientists actually do this: build a tabular frame of lags and rolling statistics, then fit a gradient booster. fpppy has no chapter on it. The zoo log from Part A already showed the two AutoGluon versions of it, RecursiveTabular and DirectTabular, so the name has a face. Warn them once about the trap Day 2 covered, which is computing a feature over data the fold was not allowed to see.</p>
+<p>Neural models are global: one model across many series, learning shared structure. On one series with 441 points they are the wrong tool, which is worth saying plainly because the instinct runs the other way.</p>
+<p>Foundation models are the genuinely new thing. Pretrained on many series, and they forecast a series they have never seen with no fitting at all. On Colab, Chronos-Bolt-small or Moirai-small run on CPU; TimeGPT needs an API key and Moirai needs weights from Hugging Face.</p>
+<p>Ensembles last, because it is the cheapest reliable win in forecasting and the least glamorous, and they have now seen one with its weights printed in a log.</p>
+<p>One cross-link worth making if the room is with you: the covariates support in AutoGluon, known covariates like promotions and holidays, is where dynamic regression lives inside a framework. The chapter name and the framework flag are the same idea.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="choosing-in-practice" class="slide level2">
+<h2>Choosing, in practice</h2>
+<div class="flowconv">
+<div class="flowcauses">
+<p><span class="flownode teal"><span class="flowtitle">One series</span><span class="flownote">benchmarks, then ETS</span></span> <span class="flownode coral"><span class="flowtitle">Many, related</span><span class="flownote">global ML or neural</span></span> <span class="flownode purple"><span class="flowtitle">Drivers to use</span><span class="flownote">dynamic regression</span></span></p>
+</div>
+<p><span class="flownode navy"><span class="flowtitle">Score them the same way</span><span class="flownote">rolling folds, a proper score</span></span></p>
+</div>
+<div class="fragment">
+<p>The first move on any new series is still the benchmark floor.</p>
+<aside class="notes">
+<p>If the room remembers one slide of Part B, this is the one to make it.</p>
+<p>The three inputs at the top are the questions that actually decide the family: how many series, how related they are, and whether you have anything to regress on. Everything else is detail.</p>
+<p>The bottom node is the part that does not change with the family, and it is what the course was really about. A neural model and a seasonal naive get scored by the same harness, over the same folds, on the same proper score, or you cannot compare them at all.</p>
+<p>Then the closing line, which should sound almost too simple by now: fit the benchmarks first. The next slide is why.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="one-model-beat-the-floor-two-did-not" class="slide level2">
+<h2>One model beat the floor; two did not</h2>
+<div id="394e2a54" class="cell" data-fig-width="10" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="06_orchestration_and_the_field_files/figure-revealjs/cell-3-output-1.png" width="1112" height="441"></p>
+</figure>
+</div>
+</div>
 </div>
 <div class="cardbox navy">
-<p><span class="card-title">2. Time series</span> — <em>what happened next last time?</em> Everything on the right is already recorded.</p>
-<p><span class="math display">\[\small \text{ED}_{t+1} = f(\text{ED}_t,\ \text{ED}_{t-1},\ \text{ED}_{t-2},\ \text{ED}_{t-3},\ \ldots,\ \text{error})\]</span></p>
+<p>Off this chart: naive 0.081, drift 0.090, mean 0.348. Those three were never in contention.</p>
 </div>
-<div class="cardbox purple">
-<p><span class="card-title">3. Mixed</span> — <em>dynamic regression:</em> past demand <strong>plus</strong> drivers, so the drivers’ forecast error rides along.</p>
-<p><span class="math display">\[\small \text{ED}_{t+1} = f(\text{ED}_t,\ \text{temperature}_{t+1},\ \text{time of day},\ \text{day of week},\ \text{error})\]</span></p>
-</div>
-<p><strong>Course focus:</strong> Days 1–2 stay on <strong>model 2</strong>. Day 3 goes further.</p>
 <aside class="notes">
-<p>This is fpppy 1.4. The point is not that explanatory models are worse — it is that their right-hand side is unavailable at forecast time, so you end up forecasting the predictors too, and inherit that error.</p>
+<p>Seven models, three days, one series, one metric that scores the whole forecast distribution. Give them a moment to read it before you say anything.</p>
+<p>Read the axis out loud once, because it is not the usual one. Zero is yesterday’s seasonal naive, every bar is a percentage against it, and left is better. The raw scores are all between 0.029 and 0.034, which on an ordinary axis is three bars of the same length; measured against the floor they spread over seventeen points.</p>
+<p>Say what the chart leaves out and why: the naive, the drift and the mean were never in contention. The card carries their numbers.</p>
+<p>Then walk the right-hand side. ETS, which got a ninety-minute deck this morning and every parameter fitted from the data, is worse than the floor. Yesterday’s decomposition route is worse.</p>
+<p>One bar is on the left, and it belongs to the model nobody lectured about – the one that turned up inside the framework’s zoo an hour ago and got a single line on the map.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -341,542 +649,33 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="past-history-avoids-missing-future-predictors" class="slide level2">
-<h2>Past history avoids missing future predictors</h2>
-<p>Time series models only need to know: <strong>what happened next last time?</strong></p>
-<ul>
-<li class="fragment">External drivers may not be available</li>
-<li class="fragment">Future driver values are often unknown (e.g.&nbsp;future gas prices)</li>
-<li class="fragment">The real system is often too complex to specify</li>
-</ul>
-<aside class="notes">
-<p>Relying on past history is not laziness; it is often the most dependable, honest model choice in production.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section></section>
-<section>
-<section id="b.-what-is-in-a-time-series" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
-<h1>B. What is in a time series</h1>
-<p>Ch 2 · Patterns and components</p>
-</section>
-<section id="trend-seasonality-and-cycles-are-distinct-patterns" class="slide level2">
-<h2>Trend, seasonality, and cycles are distinct patterns</h2>
-<ul>
-<li class="fragment"><strong>Trend</strong>: Long-term increase or decrease</li>
-<li class="fragment"><strong>Seasonality</strong>: Repeating pattern at a <strong>fixed, known period</strong> (day, week, year)</li>
-<li class="fragment"><strong>Cycle</strong>: Rises and falls with <strong>no fixed period</strong> (business cycles)</li>
-</ul>
-<aside class="notes">
-<p>Trend does not have to be linear. Cycles are usually longer than seasonality and vary in length.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="seasonality-has-a-fixed-calendar-period-cycles-vary" class="slide level2">
-<h2>Seasonality has a fixed calendar period; cycles vary</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
-<div class="cardbox teal">
-<p><span class="card-title">Seasonality</span></p>
-<ul>
-<li><strong>Known, fixed period</strong></li>
-<li>Driven by the calendar / clock</li>
-<li>Can be counted on reliably</li>
-</ul>
-</div>
-</div><div class="column" style="width:50%;">
-<div class="cardbox">
-<p><span class="card-title">Cycle</span></p>
-<ul>
-<li><strong>Variable, unknown period</strong></li>
-<li>Driven by economic / natural factors</li>
-<li>Turning points are hard to predict</li>
-</ul>
-</div>
-</div></div>
-<div class="fragment">
-<div class="callout callout-important callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>Common Mistake</strong></p>
-</div>
-<div class="callout-content">
-<p>Treating a cycle as seasonality causes models to predict peaks at the wrong time with false confidence.</p>
-</div>
-</div>
-</div>
-</div>
-</section>
-<section id="four-series-show-four-distinct-temporal-patterns" class="slide level2">
-<h2>Four series show four distinct temporal patterns</h2>
-<div class="panel-tabset">
-<ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1">
-<div id="6d555c59" class="cell" data-fig-width="10" data-execution_count="2">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-3-output-1.png" width="1112" height="507"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-1-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="co"># Datasets:</span></span>
-<span id="cb1-2"><a></a><span class="co"># 1. Victorian retail takeaway turnover: spine = D.spine()</span></span>
-<span id="cb1-3"><a></a><span class="co"># 2. Australian quarterly beer production: beer = D.beer()</span></span>
-<span id="cb1-4"><a></a><span class="co"># 3. Canadian lynx pelts (annual): lynx = D.lynx()</span></span>
-<span id="cb1-5"><a></a><span class="co"># 4. Simulated white noise: noise = D.white_noise(n=len(spine), seed=7)</span></span>
-<span id="cb1-6"><a></a></span>
-<span id="cb1-7"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">5.4</span>))</span>
-<span id="cb1-8"><a></a>P.plot_series(spine, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Trend + seasonality (retail)"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>)</span>
-<span id="cb1-9"><a></a>P.plot_series(beer, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">1</span>], title<span class="op">=</span><span class="st">"Seasonality + drifting trend (beer)"</span>, color<span class="op">=</span>P.BLUE, ylabel<span class="op">=</span><span class="st">"megalitres"</span>)</span>
-<span id="cb1-10"><a></a>P.plot_series(lynx, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Cycle, no fixed period (lynx)"</span>, color<span class="op">=</span>P.PINK, ylabel<span class="op">=</span><span class="st">"pelts traded"</span>)</span>
-<span id="cb1-11"><a></a>P.plot_series(noise, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">1</span>], title<span class="op">=</span><span class="st">"No pattern (white noise)"</span>, color<span class="op">=</span>P.GREY, ylabel<span class="op">=</span><span class="st">"z"</span>)</span>
-<span id="cb1-12"><a></a></span>
-<span id="cb1-13"><a></a><span class="co"># Decade labels, plus a tick on every year, so the peak-to-peak gaps are countable</span></span>
-<span id="cb1-14"><a></a>P.year_xticks(axes[<span class="dv">1</span>, <span class="dv">0</span>], step<span class="op">=</span><span class="dv">10</span>, minor<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
-<aside class="notes">
-<p>The lynx peaks occur 8–11 years apart, never the exact same gap. This is a cycle, not seasonality.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="time-series-split-into-trend-season-and-remainder" class="slide level2">
-<h2>Time series split into trend, season, and remainder</h2>
-<ul>
-<li class="fragment"><strong>Additive</strong>: <span class="math inline">\(y_t = S_t + T_t + R_t\)</span></li>
-<li class="fragment"><strong>Multiplicative</strong>: <span class="math inline">\(y_t = S_t \times T_t \times R_t\)</span></li>
-</ul>
-<div class="fragment">
-<table class="caption-top">
-<thead>
-<tr class="header">
-<th>Component</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">\(S_t\)</span></td>
-<td><strong>Seasonal</strong> component (repeating calendar pattern)</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(T_t\)</span></td>
-<td><strong>Trend-Cycle</strong> component (underlying direction)</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(R_t\)</span></td>
-<td><strong>Remainder</strong> (random noise / unexplained variation)</td>
-</tr>
-</tbody>
-</table>
-<p>Decomposition cannot separate trend from cycle, so <span class="math inline">\(T_t\)</span> carries both. That is why it is written trend-cycle.</p>
-</div>
-</section>
-<section id="expanding-swings-require-multiplicative-models" class="slide level2">
-<h2>Expanding swings require multiplicative models</h2>
-<div class="panel-tabset">
-<ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-2-1">
-<div id="5a79b3ef" class="cell" data-fig-width="9.5" data-execution_count="3">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-4-output-1.png" width="1057" height="353"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-2-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a><span class="co"># Datasets:</span></span>
-<span id="cb2-2"><a></a><span class="co"># 1. Australian beer production (last 10 years / 120 obs): beer.tail(120)</span></span>
-<span id="cb2-3"><a></a><span class="co"># 2. Souvenir shop sales: souvenirs = D.souvenirs()</span></span>
-<span id="cb2-4"><a></a></span>
-<span id="cb2-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.1</span>))</span>
-<span id="cb2-6"><a></a>P.plot_series(beer.tail(<span class="dv">120</span>), ax<span class="op">=</span>axes[<span class="dv">0</span>], color<span class="op">=</span>P.BLUE, ylabel<span class="op">=</span><span class="st">"megalitres"</span>,</span>
-<span id="cb2-7"><a></a>              title<span class="op">=</span><span class="st">"Additive: swing size is constant"</span>)</span>
-<span id="cb2-8"><a></a>P.plot_series(souvenirs, ax<span class="op">=</span>axes[<span class="dv">1</span>], color<span class="op">=</span>P.ORANGE, ylabel<span class="op">=</span><span class="st">"sales ($)"</span>,</span>
-<span id="cb2-9"><a></a>              title<span class="op">=</span><span class="st">"Multiplicative: swing grows with level"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
-<div class="cardbox purple">
-<ul>
-<li>Constant swing <span class="math inline">\(\rightarrow\)</span> <strong>Additive</strong></li>
-<li>Growing swing <span class="math inline">\(\rightarrow\)</span> <strong>Multiplicative</strong> (fix with log transform)</li>
-</ul>
-</div>
-<aside class="notes">
-<p>Point at the right panel and ask what a model fitted to the 1988 swing would predict for 1993. Far too small. A log transform turns that growing swing into a constant one, which is the fix used all through segment 4.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-golden-rule" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2>The Golden Rule</h2>
-<div class="r-fit-text">
-<p>The order <strong>is</strong> the data.</p>
-</div>
-<div class="fragment">
-<ul>
-<li class="fragment">Never shuffle time series data</li>
-<li class="fragment">Never use random train/test splits</li>
-<li class="fragment">Never use standard k-fold cross-validation</li>
-</ul>
-<aside class="notes">
-<p>Random shuffling allows models to look into the future. Day 2 introduces rolling-origin evaluation.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="same-values-shuffled-every-pattern-is-gone" class="slide level2">
-<h2>Same values, shuffled: every pattern is gone</h2>
-<div class="panel-tabset">
-<ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-3-1">
-<div id="9c2b56d1" class="cell" data-fig-width="10" data-execution_count="4">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-5-output-1.png" width="1112" height="386"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-3-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a><span class="co"># Dataset: spine = D.spine() (441 monthly observations)</span></span>
-<span id="cb3-2"><a></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
-<span id="cb3-3"><a></a>y <span class="op">=</span> spine[<span class="st">"y"</span>].to_numpy()</span>
-<span id="cb3-4"><a></a>shuffled <span class="op">=</span> rng.permutation(y)</span>
-<span id="cb3-5"><a></a></span>
-<span id="cb3-6"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.4</span>), sharey<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb3-7"><a></a>P.plot_series(spine, ax<span class="op">=</span>axes[<span class="dv">0</span>], color<span class="op">=</span>P.BLACK, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>,</span>
-<span id="cb3-8"><a></a>              title<span class="op">=</span><span class="st">"Original: trend and season"</span>)</span>
-<span id="cb3-9"><a></a>P.plot_series(spine.assign(y<span class="op">=</span>shuffled), ax<span class="op">=</span>axes[<span class="dv">1</span>], color<span class="op">=</span>P.ORANGE,</span>
-<span id="cb3-10"><a></a>              title<span class="op">=</span><span class="st">"Shuffled: same 441 values, new order"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Same mean, same variance, same histogram</li>
-<li class="fragment">Nothing left to forecast from: the order was the only structure</li>
-</ul>
-<aside class="notes">
-<p>Ask the room what a model could possibly learn from the right-hand panel. Nothing, and yet its summary statistics are identical to the left. Day 2 measures this properly.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section></section>
-<section>
-<section id="c.-seeing-the-patterns" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h1>C. Seeing the patterns</h1>
-<p>Ch 2.2–2.5 · The four plots</p>
-</section>
-<section id="four-plots-four-questions" class="slide level2">
-<h2>Four plots, four questions</h2>
-<table class="caption-top">
-<thead>
-<tr class="header">
-<th>Plot</th>
-<th>Core Question</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Time plot</strong></td>
-<td>What does the overall series look like?</td>
-</tr>
-<tr class="even">
-<td><strong>Seasonal plot</strong></td>
-<td>What is the repeating annual shape?</td>
-</tr>
-<tr class="odd">
-<td><strong>Subseries plot</strong></td>
-<td>How does each specific month/quarter evolve?</td>
-</tr>
-<tr class="even">
-<td><strong>Lag plot</strong></td>
-<td>Is <span class="math inline">\(y_t\)</span> related to <span class="math inline">\(y_{t-k}\)</span>? (next deck)</td>
-</tr>
-</tbody>
-</table>
-<div class="fragment">
+<section id="the-floor-held-and-one-thing-beat-it" class="slide level2">
+<h2>The floor held, and one thing beat it</h2>
 <div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>Start with the Time Plot</strong></p>
+<p><strong>The closing result</strong></p>
 </div>
 <div class="callout-content">
-<p>Always check the time plot first for outliers, gaps, and structural breaks.</p>
+<p>Theta wins on MASE and on scaled CRPS, in three lines and with no lecture. Nothing this course taught properly beat the seasonal naive on the distribution.</p>
 </div>
-</div>
-</div>
-</div>
-</section>
-<section id="time-plots-reveal-long-term-trend-and-variance-growth" class="slide level2">
-<h2>Time plots reveal long-term trend and variance growth</h2>
-<div class="panel-tabset">
-<ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-4-1">
-<div id="f8ad7c25" class="cell" data-fig-width="9.5" data-execution_count="5">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-6-output-1.png" width="1057" height="342"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-4-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="co"># Data: Victorian takeaway food turnover (D.spine())</span></span>
-<span id="cb4-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.0</span>))</span>
-<span id="cb4-3"><a></a>P.plot_series(spine, ax<span class="op">=</span>ax, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>,</span>
-<span id="cb4-4"><a></a>              title<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>D<span class="sc">.</span>SPINE_ID<span class="sc">}</span><span class="ss">, monthly"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Upward trend, roughly sixfold over 37 years</li>
-<li class="fragment">The seasonal swing widens as the level rises</li>
-<li class="fragment">Sharp 2009 step and 2000 dip: investigate breaks before modelling</li>
-</ul>
-<aside class="notes">
-<p>Spend a moment here. This is the series the whole course runs on, so the room should leave this slide able to describe it from memory: rising, seasonal, wider swings later, one step in 2009.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="seasonal-plots-expose-repeating-annual-shapes" class="slide level2">
-<h2>Seasonal plots expose repeating annual shapes</h2>
-<div class="panel-tabset">
-<ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-5-1">
-<div id="a8562644" class="cell" data-fig-width="10" data-execution_count="6">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-7-output-1.png" width="1057" height="419"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-5-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (last 10 years):</span></span>
-<span id="cb5-2"><a></a><span class="co"># spine = D.spine(); sp = D.add_calendar(spine)</span></span>
-<span id="cb5-3"><a></a>recent <span class="op">=</span> sp[sp[<span class="st">"year"</span>] <span class="op">&gt;=</span> sp[<span class="st">"year"</span>].<span class="bu">max</span>() <span class="op">-</span> <span class="dv">9</span>]</span>
-<span id="cb5-4"><a></a></span>
-<span id="cb5-5"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.7</span>))</span>
-<span id="cb5-6"><a></a>P.seasonal_plot(recent, <span class="st">"year"</span>, <span class="st">"month"</span>, ax<span class="op">=</span>ax, season_labels<span class="op">=</span>P.MONTH_LABELS,</span>
-<span id="cb5-7"><a></a>                ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>, xlabel<span class="op">=</span><span class="st">""</span>, colorbar<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb5-8"><a></a>                title<span class="op">=</span><span class="st">"One line per year, last 10 years"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Every year peaks in <strong>December</strong> and troughs in <strong>February</strong></li>
-<li class="fragment">The shape repeats while the level climbs: that is seasonality, not cycle</li>
-</ul>
-<aside class="notes">
-<p>Ten years, not all 37. Over the full span the level grows sixfold, so the lines stack by year and the shape is unreadable.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="subseries-plots-isolate-pure-seasonal-means" class="slide level2">
-<h2>Subseries plots isolate pure seasonal means</h2>
-<div class="panel-tabset">
-<ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-6-1">
-<div id="24325e68" class="cell" data-fig-width="10" data-execution_count="7">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-8-output-1.png" width="837" height="386"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-6-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a><span class="co"># Dataset: Australian quarterly beer production (1956 to 2010): beer = D.beer()</span></span>
-<span id="cb6-2"><a></a>fig, axes <span class="op">=</span> P.subseries_plot(D.add_calendar(beer), <span class="st">"quarter"</span>,</span>
-<span id="cb6-3"><a></a>                             ylabel<span class="op">=</span><span class="st">"megalitres"</span>, season_labels<span class="op">=</span>P.QUARTER_LABELS,</span>
-<span id="cb6-4"><a></a>                             title<span class="op">=</span><span class="st">"Beer production by quarter, 1956 to 2010 (orange line = quarter mean)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
-<div class="cardbox teal">
-<p>Differences in the horizontal means highlight the pure seasonal pattern.</p>
-</div>
-</section>
-<section id="strong-trend-obscures-raw-month-to-month-means" class="slide level2">
-<h2>Strong trend obscures raw month-to-month means</h2>
-<div class="panel-tabset">
-<ul id="tabset-7" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-7-1">Plot</a></li><li><a href="#tabset-7-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-7-1">
-<div id="80a7a3a7" class="cell" data-fig-width="10" data-execution_count="8">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-9-output-1.png" width="1046" height="386"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-7-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (D.spine(), 1982-2018):</span></span>
-<span id="cb7-2"><a></a><span class="co"># sp = D.add_calendar(spine)</span></span>
-<span id="cb7-3"><a></a>fig, axes <span class="op">=</span> P.subseries_plot(sp, <span class="st">"month"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>,</span>
-<span id="cb7-4"><a></a>                             season_labels<span class="op">=</span>P.MONTH_LABELS,</span>
-<span id="cb7-5"><a></a>                             title<span class="op">=</span><span class="st">"Spine turnover by month, 1982 to 2018"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
-<div class="callout callout-important callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>Trend Obscures Month-to-Month Means</strong></p>
-</div>
-<div class="callout-content">
-<p>When trend growth is this large (6x), seasonal differences appear tiny until trend is removed with <strong>decomposition</strong> (next deck).</p>
-</div>
-</div>
-</div>
-<aside class="notes">
-<p>Ask the room which month is highest here. Nobody can tell. Then flip back two slides to the seasonal plot, where December is obvious. Same data, different subtraction.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="verify-timestamp-continuity-before-fitting-models" class="slide level2">
-<h2>Verify timestamp continuity before fitting models</h2>
-<div id="ec469137" class="cell" data-execution_count="9">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a>gaps <span class="op">=</span> spine[<span class="st">"ds"</span>].diff().dt.days</span>
-<span id="cb8-2"><a></a><span class="bu">print</span>(<span class="st">"Inferred frequency :"</span>, pd.infer_freq(spine[<span class="st">"ds"</span>]))</span>
-<span id="cb8-3"><a></a><span class="bu">print</span>(<span class="st">"Duplicate stamps   :"</span>, spine[<span class="st">"ds"</span>].duplicated().<span class="bu">sum</span>())</span>
-<span id="cb8-4"><a></a><span class="bu">print</span>(<span class="st">"Gaps &gt; 1 month     :"</span>, <span class="bu">int</span>((gaps <span class="op">&gt;</span> <span class="dv">32</span>).<span class="bu">sum</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Inferred frequency : MS
-Duplicate stamps   : 0
-Gaps &gt; 1 month     : 0</code></pre>
 </div>
 </div>
 <div class="fragment">
-<div class="callout callout-important callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>Silent Gaps Break Models</strong></p>
-</div>
-<div class="callout-content">
-<p>A missing row shifts every seasonal lag that follows. Always check frequency before modelling.</p>
-</div>
-</div>
-</div>
+<ul>
+<li class="fragment">A one-line benchmark survived a full day of fitted models</li>
+<li class="fragment">Complexity did not order the results; honest uncertainty did</li>
+<li class="fragment">You cannot know which is which without a harness</li>
+</ul>
 <aside class="notes">
-<p>Run this on every series before anything else. A missing month does not raise, it silently renumbers every seasonal lag after it, and you find out much later when a seasonal model quietly stops working. Exercise 1.2 has students break it on purpose.</p>
+<p>Two things to land, and they pull in opposite directions on purpose.</p>
+<p>First, the floor held. Across ETS and the decomposition route, a model that takes one line and no fitting time was better calibrated than both. This is why the benchmark floor is the first thing you build on a new series. Not as a formality. As the thing that most of your candidates will fail to beat.</p>
+<p>Second, the one model that did beat it is the simple one. Theta is simpler than ETS, got no lecture at all, and won on both metrics. If complexity ordered forecast accuracy, this chart would read the other way around.</p>
+<p>What did order it was whether each model’s uncertainty was priced honestly, and that is not visible from the model, only from the evaluation. Which is the third bullet, and the whole point of Day 2.</p>
+<p>Then hand to the lab: the capstone is where they score a model of their own against this same floor, and Theta is one of the options.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -890,42 +689,70 @@ Gaps &gt; 1 month     : 0</code></pre>
       }</style></aside>
 </div>
 </section>
-<section id="rightarrow-lab-a-structure-and-patterns" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Lab A · Structure and patterns</h2>
-<p>Open <code>labs/01_day1_structure_and_diagnostics.ipynb</code></p>
+<section id="rightarrow-lab-f-orchestration-and-one-of-your-own" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab F · Orchestration, and one of your own</h2>
+<p>Back to <code>labs/03_day3_models_and_orchestration.ipynb</code></p>
 <table class="caption-top">
 <tbody>
 <tr class="odd">
-<td><strong>1.1</strong></td>
-<td>Name the pattern</td>
-<td>10 min</td>
+<td><strong>3.4</strong></td>
+<td>The same job, handed to a framework</td>
+<td>20 min</td>
 </tr>
 <tr class="even">
-<td><strong>1.2</strong></td>
-<td>Load, verify, and look</td>
+<td><strong>3.5</strong></td>
+<td>Capstone: add a model of your own</td>
 <td>15 min</td>
 </tr>
 </tbody>
 </table>
 <div class="fragment">
-<p><em>25 minutes. The notebook carries the instructions; work down it in order.</em></p>
+<p><em>35 minutes. 3.4 needs the install; start it before you read the cell.</em></p>
 <div class="cardbox teal">
-<p>Visual diagnosis first. No modelling yet.</p>
+<p><strong>3.5 is the course in four lines.</strong> Pick a model, cross-validate over the same eight folds, score it with the same harness, read it against the floor.</p>
 </div>
+<aside class="notes">
+<p>Send them off with the install running. <code>pip install autogluon.timeseries</code> takes a few minutes on Colab and there is no reason to watch it: start the cell, then read the conversion table while it works.</p>
+<p>For 3.5, resist naming a model. The exercise lists four candidates and Theta is one of them, so the room will find the winner without being handed it, and finding it is better than being told.</p>
+<p>The one thing to say out loud before they go: a model with no closed-form interval will refuse to cross-validate with a level and ask for <code>prediction_intervals</code>. That is conformal, from Day 2’s segment E, and the notebook has the line.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </div>
 </section>
-<section id="part-1-recap" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h2>Part 1 Recap</h2>
+<section id="lecture-summary" class="slide level2">
+<h2>Lecture summary</h2>
 <ul>
-<li class="fragment">Forecasts exist to <strong>change decisions</strong></li>
-<li class="fragment"><strong>Trend, Seasonality, Cycle</strong> are distinct patterns</li>
-<li class="fragment">Multiplicative swings become additive under a <strong>log transform</strong></li>
-<li class="fragment"><strong>Order is the data</strong>: never shuffle</li>
+<li class="fragment">A framework brings its own frame, its own budget and its own sign. The judgement stays yours</li>
+<li class="fragment">The map is a reading list. The harness is what transfers to every model on it</li>
 </ul>
 <div class="fragment">
-<div class="cardbox teal">
-<p>Next: Autocorrelation (ACF) and Decomposition.</p>
+<div class="cardbox navy">
+<p>Three days, one series, one way of scoring. You can now take a model you have never met and say honestly whether it is better.</p>
 </div>
+<aside class="notes">
+<p>Close the lecture, not the course; the course closes after the lab.</p>
+<p>Walk the two bullets quickly, then stop on the card. That sentence is the actual deliverable of three days. Not ETS, not AutoGluon, not the seasonal naive. The ability to take a model nobody taught you, score it the same way as everything else, and defend the ranking.</p>
+<p>If you have a minute left, ask the room what they would fit first on a series from their own work. The answer you want is the benchmarks, and by now it usually is.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 
 
 </div>
