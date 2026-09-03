@@ -209,11 +209,11 @@ points that is $\pm16\%$. One window cannot measure coverage.
 | Method | Assumes | Interval is |
 |---|---|---|
 | Gaussian | residuals uncorrelated, constant variance, **normal** | $\hat y \pm c\,\hat\sigma_h$ |
-| Bootstrap | residuals uncorrelated and **i.i.d. from $\hat F$**: one distribution whose characteristics do not change over time | percentiles of simulated paths |
+| Bootstrap | residuals uncorrelated and **i.i.d. from $\hat F$**: one distribution whose characteristics do not change over time | quantiles of simulated paths |
 | Split conformal | past $h$-step errors **exchangeable** with future ones (weaker than i.i.d.: order carries no information) | $\hat y_{T+h\vert T} \pm Q_{1-\alpha}(\lvert e_{t+h\vert t}\rvert)$ |
 
 **Bootstrap.** Resample past residuals into the model's own recursion, then take
-percentiles down each column. Nothing forces the result to be symmetric.
+quantiles down each column. Nothing forces the result to be symmetric.
 
 ```python
 resid = (fv["y"] - fv["SeasonalNaive"]).dropna()
@@ -395,8 +395,8 @@ or `N`one, with an optional `d` for a damped trend.
 
 | letter | means |
 |---|---|
-| $lpha$ | how fast the **level** re-estimates |
-| $eta$ | how fast the **slope** re-estimates |
+| $\alpha$ | how fast the **level** re-estimates |
+| $\beta$ | how fast the **slope** re-estimates |
 | $\gamma$ | how fast the **season** re-estimates |
 | $\phi$ | how fast a trend **damps** toward flat |
 

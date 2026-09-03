@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-html/tabby.min.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.9.38">
+
+  <meta name="dcterms.date" content="2026-09-03">
+  <title>A Statistics Refresher</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/reveal.css">
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+      vertical-align: middle;
+    }
+  </style>
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
+  <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
+  <link href="../site_libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+DQogIDxkZWZzPg0KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYSIgeDE9Ii0xLjkxMSIgeDI9IjIuOTg1IiB5MT0iLS44NDEiIHkyPSIxLjQxNCIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOTlkNjMzIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjM2M5Ii8+DQogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyNzM0NzAiLz4NCiAgICA8L2xpbmVhckdyYWRpZW50Pg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9ImQiIHgxPSItMy41NjkiIHgyPSIxLjMyOCIgeTE9Ii0xLjYwNSIgeTI9Ii42NTEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJlIiB4MT0iLTMuMDQ3IiB4Mj0iMS44NDkiIHkxPSItLjkwNCIgeTI9IjEuMzUyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iZiIgeDE9Ii0yLjg5IiB4Mj0iMi4wMDciIHkxPSItMS4yOTIiIHkyPSIuOTY0Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iZyIgeDE9Ii0yLjQiIHgyPSIyLjQ5NyIgeTE9Ii0xLjA2NiIgeTI9IjEuMTg5Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iaCIgeDE9Ii0uOTkyIiB4Mj0iMi42NzkiIHkxPSItLjQxOCIgeTI9IjEuMjczIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iaSIgeDE9Ii0xLjUxMiIgeDI9IjIuMTU5IiB5MT0iLS4xOTciIHkyPSIxLjQ5NSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9ImoiIHgxPSItLjkxNCIgeDI9IjIuNzU4IiB5MT0iLjA3OSIgeTI9IjEuNzcxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iayIgeDE9Ii0zLjQwNSIgeDI9IjEuNDkzIiB5MT0iLTEuMDY4IiB5Mj0iMS4xODciLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJsIiB4MT0iLjM0NyIgeDI9IjMuMjg1IiB5MT0iLjE5OSIgeTI9IjEuNTUyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0ibSIgeDE9Ii0uOTA1IiB4Mj0iMi43NjciIHkxPSIuMDgzIiB5Mj0iMS43NzUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJuIiB4MT0iLTIuMTE5IiB4Mj0iMi43NzgiIHkxPSItLjQ3NiIgeTI9IjEuNzc5Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0ibyIgeDE9Ii01LjY0NCIgeDI9Ii40ODYiIHkxPSItMi45OTgiIHkyPSIuNzQxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0icCIgeDE9Ii0zLjQ5NSIgeDI9IjIuNjM2IiB5MT0iLTEuNjg3IiB5Mj0iMi4wNTMiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJxIiB4MT0iLTEuNDIyIiB4Mj0iMy4xNzUiIHkxPSItLjkyMyIgeTI9IjEuODgyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iciIgeDE9Ii0zLjMwNiIgeDI9IjIuODI1IiB5MT0iLTIuMDcyIiB5Mj0iMS42NjgiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJzIiB4MT0iLTEuNjgzIiB4Mj0iMi45MTQiIHkxPSItMS4wODEiIHkyPSIxLjcyMyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9InQiIHgxPSItMS4xNTgiIHgyPSIyLjUyMSIgeTE9Ii0uMjYxIiB5Mj0iMS45ODMiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImIiIHgxPSIuMjYxIiB4Mj0iLjYyNCIgeTE9IjMuNTYiIHkyPSItMS40NjkiIGdyYWRpZW50VW5pdHM9Im9iamVjdEJvdW5kaW5nQm94Ij4NCiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzZjZiIvPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIuNSIgc3RvcC1jb2xvcj0iIzYyNThhNiIvPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjczNDcwIi8+DQogICAgPC9saW5lYXJHcmFkaWVudD4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ1IiB4MT0iLjE2MyIgeDI9Ii41MjYiIHkxPSI0LjkyNCIgeTI9Ii0uMTAzIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0idiIgeDE9Ii4zODYiIHgyPSIuNjU4IiB5MT0iMS44MjUiIHkyPSItMS45NDUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ3IiB4MT0iLjI1MiIgeDI9Ii42MTUiIHkxPSI0LjE4MiIgeTI9Ii0uODQ1Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0ieCIgeDE9Ii40MTciIHgyPSIuNjg5IiB5MT0iMS45IiB5Mj0iLTEuODciLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ5IiB4MT0iLjQ4NSIgeDI9Ii43MDMiIHkxPSIuOTU2IiB5Mj0iLTIuMDYiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ6IiB4MT0iLjM3NyIgeDI9Ii42NDkiIHkxPSIyLjQ1NSIgeTI9Ii0xLjMxNCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkEiIHgxPSIuMTk5IiB4Mj0iLjU2MiIgeTE9IjQuOTIyIiB5Mj0iLS4xMDUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJCIiB4MT0iLjQzNyIgeDI9Ii43MDkiIHkxPSIxLjYyNSIgeTI9Ii0yLjE0NSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkMiIHgxPSIuMjYxIiB4Mj0iLjYyNCIgeTE9IjQuMDU1IiB5Mj0iLS45NzIiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJEIiB4MT0iLjUiIHgyPSIuNSIgeTE9IjMuMDQ1IiB5Mj0iLTEuOTI3Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iRSIgeDE9Ii41IiB4Mj0iLjUiIHkxPSI0LjkwMSIgeTI9Ii0uMDcyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iRiIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIyLjQzNSIgeTI9Ii0xLjI5NiIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkciIHgxPSIuNSIgeDI9Ii41IiB5MT0iLjkzNCIgeTI9Ii0yLjA1Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iSCIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIzLjc4NSIgeTI9Ii0xLjE4NyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkkiIHgxPSIuNSIgeDI9Ii41IiB5MT0iMS44MDkiIHkyPSItMS45MjEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJKIiB4MT0iLjUiIHgyPSIuNSIgeTE9IjMuMDQ2IiB5Mj0iLTEuOTI4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iSyIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIyLjc5NCIgeTI9Ii0yLjE3NyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYyIgeDE9IjUuMDEiIHgyPSItMi4yNzciIHkxPSItMS4zODMiIHkyPSIyLjAzOSIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmRiZDRkIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjZjYzIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyNzM0NzAiLz4NCiAgICA8L2xpbmVhckdyYWRpZW50Pg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IkwiIHgxPSIyLjIzOSIgeDI9Ii0yLjEzNCIgeTE9Ii0uMDgyIiB5Mj0iMS45NzEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJNIiB4MT0iNi4wOTgiIHgyPSItMS4xOTEiIHkxPSItMS44OTMiIHkyPSIxLjUyOCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9Ik4iIHgxPSIzLjM4NCIgeDI9Ii0yLjA4MSIgeTE9Ii0xLjA4OCIgeTI9IjEuNDc3Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iTyIgeDE9IjIuNzgiIHgyPSItMi42ODYiIHkxPSItLjgwNSIgeTI9IjEuNzYxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iUCIgeDE9IjcuMDc0IiB4Mj0iLS4yMTIiIHkxPSItMi4zNTMiIHkyPSIxLjA2OSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlEiIHgxPSI1LjA3NSIgeDI9Ii0yLjIxMSIgeTE9Ii0xLjQxNCIgeTI9IjIuMDA4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iUiIgeDE9IjUuNzM2IiB4Mj0iLTEuNTUiIHkxPSItMi4xOTQiIHkyPSIxLjIyOCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlMiIHgxPSIyLjA4MSIgeDI9Ii0xLjc4MSIgeTE9Ii0uMDQ3IiB5Mj0iMS45Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iVCIgeDE9Ii43MjkiIHgyPSItMi4zNjEiIHkxPSIuMTM1IiB5Mj0iMS42OTIiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJVIiB4MT0iMi43MTciIHgyPSItMi40MzMiIHkxPSItLjg2OCIgeTI9IjEuNzI4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iViIgeDE9IjEuNTE3IiB4Mj0iLTIuMzQ3IiB5MT0iLS4yNjIiIHkyPSIxLjY4NCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlciIHgxPSIzLjU0NCIgeDI9Ii0xLjYwNiIgeTE9Ii0xLjI4NCIgeTI9IjEuMzEyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iWCIgeDE9IjIuNjMxIiB4Mj0iLTEuMjMzIiB5MT0iLS4zMjQiIHkyPSIxLjYyMyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlkiIHgxPSIyLjAwMyIgeDI9Ii0xLjg2IiB5MT0iLS4wMDciIHkyPSIxLjk0Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iWiIgeDE9IjQuMTI1IiB4Mj0iLTEuMDI1IiB5MT0iLTEuMDc3IiB5Mj0iMS41MTgiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJhYSIgeDE9IjMuMDIyIiB4Mj0iLTIuMTI3IiB5MT0iLTEuMDIxIiB5Mj0iMS41NzQiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJhYiIgeDE9IjQuNjgxIiB4Mj0iLS40NjkiIHkxPSItMS44NTciIHkyPSIuNzM4Ii8+DQogIDwvZGVmcz4NCiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMy44IDEpIj4NCiAgPHBhdGggZmlsbD0iIzNjOSIgZD0ibTM2LjA0MSAyNi41My0xMS40NDggNi42MTF2MTMuMjJsMTEuNDQ4IDYuNjEyIDExLjQ0Ni02LjYwOFYzMy4xNDFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYSkiIGQ9Ik03MS40NjQgMjAuOTF2Ny45MzJsLTYuODctMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZCkiIGQ9Ik02NC4yNDkgNTIuOTdsNi44NjkgMy45NjV2LTcuOTNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZSkiIGQ9Im02OC4xIDQ2LjM1OSAtNi44NjkgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2YpIiBkPSJNNzIuMzkyIDM1LjM3djcuOTMybC02Ljg2OSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZykiIGQ9Ik01Ni42NTEgNTYuODQ3djcuOTMybC02Ljg2OSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjaCkiIGQ9Im01Ny43OTQgNTEuNjQzIC05LjE2IC01LjI4NiA5LjE2IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2kpIiBkPSJtNTcuNzk1IDUyLjk3IC05LjE2IDUuMjlWNDcuNjg0WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2opIiBkPSJtNTcuNzkyIDM5Ljc0OSAtOS4xNTggNS4yODZ2LTEwLjU3MloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNrKSIgZD0ibTU4LjUgNzAuMzE4IC02Ljg2OCAzLjk2N3YtNy45MzJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjbCkiIGQ9Im00Ny40ODcgNDYuMzYxIC0xMS40NDYgLTYuNjEyIDExLjQ0NiAtNi42MTFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjbSkiIGQ9Im00Ni4zNDQgNjEuMDc3IC05LjE1OCA1LjI4NnYtMTAuNTcyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI24pIiBkPSJtNDUuMTk5IDc0LjAzNSAtNi44NjggMy45NjV2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI28pIiBkPSJtNzAuMDIxIDYxLjc3NSAtNi44NjkgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3ApIiBkPSJtNjguMSAzMy4xNDIgLTYuODY5IDMuOTY3di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNxKSIgZD0iTTU3Ljc5NCAyNy44NTJ2MTAuNTc2bC05LjE2IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3IpIiBkPSJNNDUuMjAyIDYyLjg5MXY3LjkzMmwtNi44NjkgLTMuOTY3WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3MpIiBkPSJtNDYuMzQzIDU5Ljc1NiAtOS4xNTcgLTUuMjg2IDkuMTU3IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3QpIiBkPSJtMzYuMDQxIDM5Ljc1IDExLjQ0NiA2LjYxMiAtMTEuNDQ2IDYuNjA4WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2IpIiBkPSJtNjkuMzM0IDE3LjAzMSAtNi44NjkgMy45NjV2LTcuOTNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjdSkiIGQ9Im01OC4wODIgNS40NiAtNi44NzEgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3YpIiBkPSJtNTcuNzk2IDI2LjUyOSAtOS4xNjIgNS4yODZWMjEuMjQxWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3cpIiBkPSJtNDUuMiAxNC41NDUgLTYuODY5IC0zLjk2NSA2Ljg2OSAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjeCkiIGQ9Ik00Ni4zNDQgMTkuNzQ0VjMwLjMxOWwtOS4xNTggLTUuMjg2WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3kpIiBkPSJNMzYuMDQxIDI2LjUzdjEzLjIyTDI0LjU5MyAzMy4xNDFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjeikiIGQ9Im0zNC44OTcgMjMuNzA5IC05LjE1OCAtNS4yODYgOS4xNTggLTUuMjlaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQSkiIGQ9Im0zMy43NSA3LjkzMiAtNi44NyAtMy45NjUgNi44NyAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQikiIGQ9Im0yMy40NDkgMzEuODE2IC05LjE1OCAtNS4yOSA5LjE1OCAtNS4yODVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQykiIGQ9Ik0xOS43NiA2LjAzOXY3LjkzMmwtNi44NjkgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0QpIiBkPSJtNTYuNjQ3IDIyLjY1MSAtNi44NzEgLTMuOTY3IDYuODcxIC0zLjk2N1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNFKSIgZD0ibTQ1LjIgMy45NjcgLTYuODY5IDMuOTY1di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNGKSIgZD0ibTQ2LjM0NCAxOC40MTcgLTkuMTU4IDUuMjg2di0xMC41NjhaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjRykiIGQ9Im00Ny40ODcgMzMuMTQxIC0xMS40NDYgNi42MTF2LTEzLjIyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0gpIiBkPSJtMzMuNzUzIDEyLjgxNCAtNi44NzEgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0kpIiBkPSJtMzQuODk2IDI1LjAzMyAtOS4xNTggNS4yODZ2LTEwLjU3NVoiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNKKSIgZD0ibTIyLjMgMTguNjg0IC02Ljg3IDMuOTY1di03LjkzWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0spIiBkPSJtNy41NTYgMjQuNjM3IC02Ljg3IC0zLjk2NSA2Ljg3IC0zLjk2N1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNjKSIgZD0ibTMzLjc1MSA3OC4wMDEgLTYuODcxIC0zLjk2NSA2Ljg3MSAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTCkiIGQ9Ik0zNi4wNDEgMzkuNzV2MTMuMjJsLTExLjQ0OCAtNi42MTJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTSkiIGQ9Ik0yMi4zIDY2Ljc2M3Y3LjkzMmwtNi44NyAtMy45NjZaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTikiIGQ9Im0yMy40NDkgNDYuMzYyIC05LjE1OCA1LjI4NnYtMTAuNTc2WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI08pIiBkPSJtMjMuNDQ5IDMzLjE0MiAtOS4xNTggNS4yOXYtMTAuNThaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjUCkiIGQ9Ik05LjYxNiA1OS40MDF2Ny45M2wtNi44NzEgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1EpIiBkPSJNMTAuODUxIDI4Ljg5OXY3LjkzMmwtNi44NzEgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1IpIiBkPSJtNi44NzEgNDAuMDkzIC02Ljg3MSAzLjk2NXYtNy45M1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNTKSIgZD0ibTM0Ljg5NCA2Ni4zNjcgLTkuMTYgLTUuMjg2IDkuMTYgLTUuMjlaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjVCkiIGQ9Im0zNi4wNDEgMzkuNzUgLTExLjQ0OCA2LjYwOHYtMTMuMjJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjVSkiIGQ9Im0zMy43NSA2Ny40MjUgLTYuODcxIDMuOTY3di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNWKSIgZD0ibTM0Ljg5MiA1NC40NjcgLTkuMTU3IDUuMjl2LTEwLjU4MloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNXKSIgZD0ibTIyLjI5OSA2MC44MTQgLTYuODY5IDMuOTY1di03LjkzWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1gpIiBkPSJNMjMuNDQ5IDQ3LjY4M3YxMC41NzNsLTkuMTU4IC01LjI4NloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNZKSIgZD0iTTIzLjQ0OSAzNC40NTl2MTAuNTczbC05LjE1OCAtNS4yODNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjWikiIGQ9Im0xMC44NSA1MC4zMjYgLTYuODcxIC0zLjk2NyA2Ljg3MSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYWEpIiBkPSJtNy4xNDUgMjYuNTMxIC02Ljg2OSAzLjk2NXYtNy45MzJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYWIpIiBkPSJtNy41NTYgNTMuNDUyIC02Ljg3MSAzLjk2NXYtNy45MzVaIi8+DQogIDwvZz4NCjwvc3ZnPg0K">
+
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" data-background-image="../slides_template/assets/anim.svg" data-background-opacity="0.15" data-background-size="cover" class="quarto-title-block center">
+  <h1 class="title">A Statistics Refresher</h1>
+  <p class="subtitle">Read before Day 1, or in an expansion hour</p>
+
+<div class="quarto-title-authors">
+</div>
+
+  <p class="date">2026-09-03</p>
+</section>
+<section id="the-course-assumes-five-ideas.-here-is-where-they-come-from" class="slide level2">
+<h2>The course assumes five ideas. Here is where they come from</h2>
+<div class="flowrow">
+<p><span class="flownode navy"><span class="flowtitle">A forecast is a range</span><span class="flownote">not a number</span></span> <span class="flownode teal"><span class="flowtitle">An 80% interval</span><span class="flownote">is a pair of cuts</span></span> <span class="flownode coral"><span class="flowtitle">i.i.d.</span><span class="flownote">and how each half breaks</span></span> <span class="flownode purple"><span class="flowtitle">A test of a claim</span><span class="flownote">24 lags become one number</span></span> <span class="flownode navy"><span class="flowtitle">The p-value</span><span class="flownote">1e-240 means not finished</span></span></p>
+</div>
+<div class="fragment">
+<div class="cardbox teal">
+<p>This deck is read alone. No slide depends on a speaker, so every one of the five lands the first time.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. If taught in an expansion hour, take about forty-five minutes. The five nodes are the five segments; the pointer table at the end maps each back to the course slide that needs it. Do not restate the concepts here; the segments do that.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section>
+<section id="a.-the-distribution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>A. The distribution</h1>
+<p>The range, the random variable, the shape, and the cuts that make a band</p>
+</section>
+<section id="a-point-forecast-is-one-number-and-the-future-is-not" class="slide level2">
+<h2>A point forecast is one number, and the future is not</h2>
+<p>A point forecast is a single centre, usually a mean or a median.</p>
+<div class="fragment">
+<p>The future value has not been observed yet. Until it is, it is still random, and one number cannot represent a range of plausible outcomes.</p>
+<div class="cardbox coral">
+<p>A forecast without a range is half an answer. The range is the forecast; the point is one summary of it.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The course moment this unlocks: a forecast is a range, not a number (deck 3, segment C). The next slide names the object that holds the range.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="before-it-is-observed-the-future-is-a-random-variable" class="slide level2">
+<h2>Before it is observed, the future is a random variable</h2>
+<p>Capital <span class="math inline">\(Y\)</span> marks a value not yet observed; lowercase <span class="math inline">\(y\)</span> is what it turns out to be.</p>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(Y_{T+h}\)</span></td>
+<td>the future value, still random</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(y_{T+h}\)</span></td>
+<td>the same value, once observed</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\hat{y}_{T+h}\)</span></td>
+<td>the point forecast, one number</td>
+</tr>
+</tbody>
+</table>
+<div class="cardbox teal">
+<p>A random variable is the whole set of values <span class="math inline">\(Y\)</span> could take, before it is seen. The point forecast is one number chosen from that set.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The capital/lowercase distinction is the one that trips people later, so give it a sentence. The point forecast is a summary of the random variable, not the random variable itself.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-distribution-is-the-shape-of-that-randomness" class="slide level2">
+<h2>The distribution is the shape of that randomness</h2>
+<div id="36e17317" class="cell" data-fig-width="9" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-3-output-1.png" width="980" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>A distribution is the full set of plausible values, not one. Its picture is a histogram of many draws.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The histogram is the distribution made visible. The point forecast sits somewhere inside it; the band spans most of it. The next slide shows the shape is stable across many simulations.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-same-recipe-gives-5000-futures-and-they-share-one-shape" class="slide level2">
+<h2>The same recipe gives 5,000 futures, and they share one shape</h2>
+<div id="1dd3737d" class="cell" data-fig-width="10" data-execution_count="3">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-4-output-1.png" width="1048" height="340"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>Repeated simulation gives a stable shape. That shape is the distribution, and it does not depend on which 8 paths you happened to look at.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The left panel is 8 paths; the right is all 5000 cut at the quantiles. The shape is the same in both, which is the point: the distribution is a property of the recipe, not of one draw.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-shape-is-the-forecast-the-line-is-just-its-centre" class="slide level2">
+<h2>The shape is the forecast, the line is just its centre</h2>
+<div id="0577a3ff" class="cell" data-fig-width="10" data-execution_count="4">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-5-output-1.png" width="1112" height="496"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>The band is the forecast. The line down the middle is just its most likely value.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. This is the segment’s payoff. The band is the object the course scores; the point is one summary. The next segment asks how to cut the band from the distribution.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
+<section>
+<section id="b.-cutting-a-distribution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
+<h1>B. Cutting a distribution</h1>
+<p>The quantile, the percentile, and why an 80% interval is a pair of cuts</p>
+</section>
+<section id="the-median-is-the-cut-that-leaves-half-on-each-side" class="slide level2">
+<h2>The median is the cut that leaves half on each side</h2>
+<div id="0cb83c2c" class="cell" data-fig-width="9.5" data-execution_count="5">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-6-output-1.png" width="1035" height="296"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>The median is a position in a sorted list, not a formula. Sort the values; the median is the one with half below and half above.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. Start from the median because the room already owns it. The next slide changes one number and the median becomes a general quantile.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="a-quantile-is-the-same-cut-with-a-knob" class="slide level2">
+<h2>A quantile is the same cut, with a knob</h2>
+<div id="45e68bdc" class="cell" data-fig-width="9.5" data-execution_count="6">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-7-output-1.png" width="1035" height="296"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li class="fragment">The <span class="math inline">\(0.5\)</span> quantile is the median: position <span class="math inline">\(0.5n\)</span></li>
+<li class="fragment">The <span class="math inline">\(0.9\)</span> quantile is position <span class="math inline">\(0.9n\)</span>: 90% of the values sit below it</li>
+<li class="fragment">The <span class="math inline">\(0.1\)</span> quantile is position <span class="math inline">\(0.1n\)</span>: 10% sit below it</li>
+</ul>
+<div class="cardbox teal">
+<p>One rule, one number. A quantile is a position in a sorted list, and the number is the knob.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The median is the 0.5 quantile; every other quantile is the same sorted list read at a different position. Say “half the list”, not “half the range”, because on skewed data the midpoint of the range is nowhere near the median.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="an-80-interval-is-a-pair-of-cuts" class="slide level2">
+<h2>An 80% interval is a pair of cuts</h2>
+<div id="016b01d4" class="cell" data-fig-width="9.5" data-execution_count="7">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-8-output-1.png" width="1035" height="296"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>The 80% interval is the span between the <span class="math inline">\(0.1\)</span> and <span class="math inline">\(0.9\)</span> quantiles. Two cuts, one band.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The 80% interval leaves 10% in each tail, so its bounds are the 0.1 and 0.9 quantiles. The 95% interval leaves 2.5% in each tail, so its bounds are the 0.025 and 0.975 quantiles. Same rule, different knob.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="crps-integrates-a-ladder-of-cuts" class="slide level2">
+<h2>CRPS integrates a ladder of cuts</h2>
+<div id="ce8ed68d" class="cell" data-fig-width="8.5" data-execution_count="8">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-9-output-1.png" width="947" height="342"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>CRPS scores the whole distribution by integrating the quantile loss over a ladder of cuts. Each cut is priced by its own slope.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The course moment this unlocks: CRPS integrates a ladder of quantiles. The pinball loss is the price of one cut; CRPS is the integral of that price over the whole ladder. The next slide names the percentile, which is the same cut read as a share.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="a-percentile-is-the-same-cut-read-as-a-share" class="slide level2">
+<h2>A percentile is the same cut, read as a share</h2>
+<p>The 90th percentile is the value below which 90% of the data fall.</p>
+<div class="fragment">
+<p>A quantile is a position in a sorted list. A percentile is the same position, read as a share of the data. The <span class="math inline">\(0.9\)</span> quantile and the 90th percentile are the same number.</p>
+<div class="cardbox teal">
+<p>Quantile: a position. Percentile: the same position, read as a share. One object, two names.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The distinction is naming, not substance. The course uses “quantile” for the position and “percentile” for the share; they are the same cut. The next slide names the gap this segment opens.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="quantiles-describe-one-distribution" class="slide level2">
+<h2>Quantiles describe one distribution</h2>
+<p>A quantile is a position in one sorted list. It says nothing about where the next value comes from.</p>
+<div class="cardbox coral">
+<p>The distribution tells you the shape of one draw. It does not tell you whether the next draw comes from the same shape.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. This is the gap the segment opens. A quantile is a property of one distribution; it says nothing about whether the future error comes from the same distribution as the past ones. That is the i.i.d. assumption, and it is the next segment.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="to-build-a-band-from-past-errors-they-must-be-exchangeable" class="slide level2">
+<h2>To build a band from past errors, they must be exchangeable</h2>
+<p>The bootstrap and conformal both assume the past errors stand in for the future ones.</p>
+<div class="flowrow">
+<p><span class="flownode navy"><span class="flowtitle">Past errors</span><span class="flownote">the pool</span></span> <span class="flownode teal"><span class="flowtitle">Draw from the pool</span><span class="flownote">with replacement</span></span> <span class="flownode purple"><span class="flowtitle">Simulate forward</span><span class="flownote">one path at a time</span></span> <span class="flownode navy"><span class="flowtitle">Cut the quantiles</span><span class="flownote">the band</span></span></p>
+</div>
+<div class="cardbox coral">
+<p>The assumption doing the work: the past errors are exchangeable with the future ones. That is i.i.d., and it is the next segment.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The flowrow is the bootstrap in four steps. The assumption is exchangeability: shuffle the past errors and the future error is still comparable. That is i.i.d., and the next segment takes it apart.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
+<section>
+<section id="c.-i.i.d." class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
+<h1>C. i.i.d.</h1>
+<p>Independent, then identically distributed, then each one breaking on the spine</p>
+</section>
+<section id="i.i.d.-is-two-claims-and-they-fail-differently" class="slide level2">
+<h2>i.i.d. is two claims, and they fail differently</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>Independent</strong></p>
+<p>The last error tells you nothing about the next.</p>
+</div><div class="column" style="width:50%;">
+<p><strong>Identically distributed</strong></p>
+<p>One spread for every era, 1982 to 2018.</p>
+</div></div>
+<div class="cardbox coral">
+<p>They are separate claims, and each breaks its own way. Independence fails through autocorrelation. Identical distribution fails through a changing variance regime.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The two claims are the whole segment. The next two slides take independence apart; the two after that take identical distribution apart. Do not conflate them; the 61% story lives in the second.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="independent-means-the-last-one-tells-you-nothing" class="slide level2">
+<h2>Independent means the last one tells you nothing</h2>
+<div id="c5dcfb12" class="cell" data-fig-width="9" data-execution_count="9">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-10-output-1.png" width="979" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>If <span class="math inline">\(e_t\)</span> and <span class="math inline">\(e_{t-1}\)</span> are independent, the scatter of one against the other has no shape. Knowing the last error says nothing about the next.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The scatter is the definition made visible. White noise has no shape, which is what independence looks like. The next slide shows the naive’s residuals do have structure, which is the failure.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-naives-errors-still-know-what-month-it-is" class="slide level2">
+<h2>The naive’s errors still know what month it is</h2>
+<div id="535e3e4b" class="cell" data-fig-width="9" data-execution_count="10">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-11-output-1.png" width="1002" height="287"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li class="fragment">Lags 12 and 24 (orange) stand at 0.68 and 0.58, against a bound of 0.096</li>
+<li class="fragment">The errors are not independent: the season is still in them</li>
+</ul>
+<div class="cardbox coral">
+<p>Independence fails through autocorrelation. The naive’s residuals still know what month it is.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The orange spikes at 12 and 24 are the failure. The seasonal pattern went through the model and came out untouched. This is the first half of i.i.d. breaking. The next two slides take the second half apart.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="identically-distributed-means-one-spread-for-every-era" class="slide level2">
+<h2>Identically distributed means one spread for every era</h2>
+<div id="7450b96a" class="cell" data-fig-width="9" data-execution_count="11">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-12-output-1.png" width="980" height="296"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>If the spread is the same in 1985 and 2015, one pool stands for both. That is identically distributed: one <span class="math inline">\(\sigma\)</span> for the whole series.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The rolling SD is the definition made visible. If it is flat, the spread is constant and one pool is honest. The next slide shows it is not flat on this series.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-spread-tripled-so-the-pool-mixes-two-series" class="slide level2">
+<h2>The spread tripled, so the pool mixes two series</h2>
+<div id="1424909d" class="cell" data-fig-width="9.5" data-execution_count="12">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-13-output-1.png" width="1057" height="342"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li class="fragment">The residual SD went 8.5 to 26.2: <strong>3x</strong> as tall</li>
+<li class="fragment">A pooled pool is too tight for recent data: it draws 1980s-sized errors into a 2019 forecast</li>
+</ul>
+<div class="cardbox coral">
+<p>Identical distribution fails through a changing variance regime. The pool mixes two series.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The two boxes are the finding. The left is the 1980s spread; the right is the 2010s spread, three times taller. A pool mixing the two is too tight for recent data. The next slide shows what that does to coverage.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="pool-1982-with-2018-and-coverage-falls-to-61" class="slide level2">
+<h2>Pool 1982 with 2018 and coverage falls to 61%</h2>
+<div id="19475bdd" class="cell" data-fig-width="8" data-execution_count="13">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-14-output-1.png" width="892" height="298"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li class="fragment">Full pool: the 80% band covers <strong>61%</strong> across 8 folds</li>
+<li class="fragment">Recent pool: the same band covers <strong>89%</strong></li>
+<li class="fragment">A pool that mixes two spreads is too tight for the recent one</li>
+</ul>
+<div class="cardbox coral">
+<p>The pooled pool under-covers because it is too tight. It draws 1980s-sized errors into a 2019 forecast.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The 61% is the i.i.d. assumption being punished, measured the way Day 2 measures it: 8 rolling folds. The next slide shows the mechanism on a single window.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-mechanism-on-one-window-the-band-is-too-tight" class="slide level2">
+<h2>The mechanism, on one window: the band is too tight</h2>
+<div id="0e679fdc" class="cell" data-fig-width="10" data-execution_count="14">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-15-output-1.png" width="1088" height="307"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li class="fragment">Full pool: 80% band covers <strong>88%</strong> of this holdout</li>
+<li class="fragment">Recent pool: the same band covers <strong>100%</strong></li>
+<li class="fragment">One window is noisy; the 8-fold number is the honest one</li>
+</ul>
+<aside class="notes">
+<p>Delivery mode only. The left band is the pooled one and it is too tight, so it misses more. The right band is sized to the recent spread. The single window flatters the full pool here; the 8-fold number does not.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="draw-from-recent-errors-only-and-it-recovers-to-89" class="slide level2">
+<h2>Draw from recent errors only and it recovers to 89%</h2>
+<div id="63c55714" class="cell" data-fig-width="10" data-execution_count="15">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-16-output-1.png" width="1112" height="386"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>Restricting the pool to the last 120 residuals restores coverage. The band is wider, and wider is the honest answer here.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The fix is the knob: resid_tail. The band widens because it is now sized to the recent spread, not the pooled one. Coverage recovers because the pool is no longer too tight.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
+<section>
+<section id="d.-testing-a-claim" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>D. Testing a claim</h1>
+<p>H0 and H1, the test statistic, the null distribution, alpha, the decision</p>
+</section>
+<section id="twenty-four-lag-checks-by-eye-become-one-number" class="slide level2">
+<h2>Twenty-four lag checks by eye become one number</h2>
+<p>Reading 24 ACF bars by eye is unreliable. A test pools them into one number.</p>
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>The course moment</strong></p>
+</div>
+<div class="callout-content">
+<p>Day 2’s Ljung-Box slide states H0, the statistic, the chi-squared reference distribution and the decision rule on one slide. This segment builds that slide, one piece at a time.</p>
+</div>
+</div>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The course moment this unlocks: 24 lag checks by eye become one number (deck 3, segment B). The next slide names the claim the test makes.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-claim-is-that-the-residuals-are-white-noise" class="slide level2">
+<h2>The claim is that the residuals are white noise</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong><span class="math inline">\(H_0\)</span>: the null</strong></p>
+<p>The first 24 residual autocorrelations are all zero.</p>
+</div><div class="column" style="width:50%;">
+<p><strong><span class="math inline">\(H_1\)</span>: the alternative</strong></p>
+<p>At least one of them is not zero.</p>
+</div></div>
+<div class="cardbox teal">
+<p>The null is white noise: no autocorrelation at any lag. The alternative is that some lag still has structure in it.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The null is the claim the test checks. White noise means the residuals are uncorrelated, which is what a finished model leaves behind. The next slide names the statistic that pools the lags.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-test-statistic-pools-the-squared-lags" class="slide level2">
+<h2>The test statistic pools the squared lags</h2>
+<p><span class="math display">\[Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}\]</span></p>
+<p><span class="math inline">\(r_k\)</span>: the lag-<span class="math inline">\(k\)</span> autocorrelation · <span class="math inline">\(T\)</span>: the number of residuals · <span class="math inline">\(\ell\)</span>: the number of lags tested, 24 here</p>
+<div class="cardbox teal">
+<p><span class="math inline">\(Q\)</span> sums the squared autocorrelations, weighted by <span class="math inline">\(T\)</span>. One number, pooled from 24 lags.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The statistic is the pooling made explicit. Each lag’s squared autocorrelation is weighted by <span class="math inline">\(T\)</span> and summed. The next slide names the shape <span class="math inline">\(Q\)</span> has if the null is true.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="under-the-null-q-has-a-known-shape" class="slide level2">
+<h2>Under the null, Q has a known shape</h2>
+<div id="a2ff70a2" class="cell" data-fig-width="9" data-execution_count="16">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-17-output-1.png" width="981" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>If <span class="math inline">\(H_0\)</span> is true, <span class="math inline">\(Q\)</span> follows a chi-squared distribution with 24 degrees of freedom. That shape is the reference.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The null distribution is the reference the observed <span class="math inline">\(Q\)</span> is measured against. The next slide names alpha, which sets where the rejection region begins.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="alpha-is-the-false-alarm-rate-you-accept" class="slide level2">
+<h2>Alpha is the false-alarm rate you accept</h2>
+<p><span class="math inline">\(\alpha = 0.05\)</span> means you accept a 5% chance of a false alarm: rejecting <span class="math inline">\(H_0\)</span> when it is true.</p>
+<div class="cardbox teal">
+<p>Alpha is set before the data is looked at. It is the price of a false alarm, and 0.05 is the course’s choice.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. Alpha is the significance level. It is the probability of a Type I error: rejecting the null when it is true. The next slide names the critical value, which is where the top 5% begins.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-critical-value-is-where-the-top-5-begins" class="slide level2">
+<h2>The critical value is where the top 5% begins</h2>
+<div id="78d0dc19" class="cell" data-fig-width="9" data-execution_count="17">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-18-output-1.png" width="981" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>The critical value is the 95th percentile of the null. Reject <span class="math inline">\(H_0\)</span> if <span class="math inline">\(Q\)</span> lands past it.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The critical value is the boundary between the acceptance and rejection regions. The next slide shows where the seasonal naive’s <span class="math inline">\(Q\)</span> lands.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-seasonal-naives-q-lands-far-out-in-the-tail" class="slide level2">
+<h2>The seasonal naive’s Q lands far out in the tail</h2>
+<div id="7ce3d0a8" class="cell" data-fig-width="9" data-execution_count="18">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-19-output-1.png" width="981" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox coral">
+<p>The observed <span class="math inline">\(Q\)</span> is enormous. The residuals are not white noise; the model is not finished.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The observed <span class="math inline">\(Q\)</span> is far out in the tail, past the critical value. The decision is to reject the null. The next slide names the warning that prevents the misreading this slide invites.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="a-small-p-value-says-detectable-not-large" class="slide level2">
+<h2>A small p-value says detectable, not large</h2>
+<p>Ljung-Box on 405 residuals finds tiny autocorrelation. A small <span class="math inline">\(p\)</span>-value says the effect is detectable, not that it is large.</p>
+<div class="cardbox coral">
+<p><span class="math inline">\(p\)</span> does not rank models. The seasonal naive is the best of the benchmarks and has the smallest <span class="math inline">\(p\)</span>, because its one-step residual is a year-on-year change while the naive’s is a month-on-month one.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The warning is the point. A small <span class="math inline">\(p\)</span>-value means the effect is detectable at this sample size, not that the effect is large. The next slide names the language that prevents the other misreading.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="failing-to-reject-is-not-accepting" class="slide level2">
+<h2>Failing to reject is not accepting</h2>
+<p><span class="math inline">\(p \ge 0.05\)</span> means the residuals are indistinguishable from white noise. It does not mean <span class="math inline">\(H_0\)</span> is true.</p>
+<div class="cardbox teal">
+<p>The course says “indistinguishable from white noise”, not “accept <span class="math inline">\(H_0\)</span>”. Failing to reject is not accepting.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The language matters. Failing to reject means the data did not provide strong enough evidence to rule out the null. It does not prove the null is true. The next slide names the scope of the test.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-test-is-a-passfail-not-a-score" class="slide level2">
+<h2>The test is a pass/fail, not a score</h2>
+<p>The Ljung-Box test says whether the model is finished. It does not say how good it is.</p>
+<div class="cardbox teal">
+<p>A pass/fail on whether a model is finished, not a score. The ranking comes from the evaluation harness, not from the <span class="math inline">\(p\)</span>-value.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The scope is the point. The test is a gate, not a leaderboard. The next segment takes the <span class="math inline">\(p\)</span>-value apart, because the course quotes 1e-240 as settled and the reader needs to know what that number is.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
+<section>
+<section id="e.-the-p-value" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
+<h1>E. The p-value</h1>
+<p>What it is, read off the null distribution, and the three misreadings</p>
+</section>
+<section id="the-p-value-how-often-this-extreme-would-happen-under-h0" class="slide level2">
+<h2>The p-value: how often this extreme would happen under H0</h2>
+<p><span class="math display">\[p = P\big(Q \ge Q_{\text{obs}} \;\big|\; H_0\big)\]</span></p>
+<p>The <span class="math inline">\(p\)</span>-value is the probability, calculated assuming <span class="math inline">\(H_0\)</span> is true, of obtaining a statistic at least as extreme as the one observed.</p>
+<div class="cardbox teal">
+<p><span class="math inline">\(p\)</span> conditions on <span class="math inline">\(H_0\)</span>. It is not a statement about whether <span class="math inline">\(H_0\)</span> is true; it is a statement about how surprising the data would be if <span class="math inline">\(H_0\)</span> were true.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The definition is the whole slide. <span class="math inline">\(p\)</span> is a tail area under the null distribution, measured at the observed value. The next slide shows how to read it off the null.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="read-it-off-the-null-distribution-at-the-observed-value" class="slide level2">
+<h2>Read it off the null distribution, at the observed value</h2>
+<div id="2b643bf6" class="cell" data-fig-width="9" data-execution_count="19">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-20-output-1.png" width="981" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>The <span class="math inline">\(p\)</span>-value is the tail area beyond the observed <span class="math inline">\(Q\)</span>, under the null distribution. Here it is 9e-241.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The <span class="math inline">\(p\)</span>-value is the tail area under the null curve to the right of the observed <span class="math inline">\(Q\)</span>. Here that tail is off the axis, so the chart marks the observed <span class="math inline">\(Q\)</span> off-scale and states the <span class="math inline">\(p\)</span>-value as a number. The next slide names the first misreading.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="p-is-not-the-probability-that-h0-is-true" class="slide level2">
+<h2>p is not the probability that H0 is true</h2>
+<p>The most common misreading: <span class="math inline">\(p\)</span> is not <span class="math inline">\(P(H_0 \text{ is true})\)</span>.</p>
+<div class="cardbox coral">
+<p><span class="math inline">\(p\)</span> conditions on <span class="math inline">\(H_0\)</span> being true. It does not measure the probability that <span class="math inline">\(H_0\)</span> is true. Those are different questions.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The misreading is the point. <span class="math inline">\(p\)</span> is a tail area under the null; it is not a posterior probability of the null. The next slide names the second misreading.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="p-is-not-the-probability-the-result-happened-by-chance" class="slide level2">
+<h2>p is not the probability the result happened by chance</h2>
+<p><span class="math inline">\(p\)</span> is not <span class="math inline">\(P(\text{data})\)</span>. It is <span class="math inline">\(P(\text{data this extreme} \mid H_0)\)</span>.</p>
+<div class="cardbox coral">
+<p>The result did not “happen by chance”. The <span class="math inline">\(p\)</span>-value is how often a statistic this extreme would occur if <span class="math inline">\(H_0\)</span> were true.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The second misreading. “By chance” is not a probability; it is a story. The <span class="math inline">\(p\)</span>-value is a tail area, not a story. The next slide names the third misreading.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="a-small-p-does-not-mean-a-large-effect" class="slide level2">
+<h2>A small p does not mean a large effect</h2>
+<div id="77db5adf" class="cell" data-fig-width="9" data-execution_count="20">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-21-output-1.png" width="980" height="342"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li class="fragment"><span class="math inline">\(r = 0.12\)</span> at <span class="math inline">\(T = 417\)</span>: p = 0.01 (detectable)</li>
+<li class="fragment"><span class="math inline">\(r = 0.30\)</span> at <span class="math inline">\(T = 40\)</span>: p = 0.06 (not detectable)</li>
+</ul>
+<div class="cardbox coral">
+<p>Detectable is not the same as large. A tiny effect at a large sample size is detectable; a large effect at a small sample size is not.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The third misreading. The <span class="math inline">\(p\)</span>-value depends on both the effect size and the sample size. A tiny <span class="math inline">\(r\)</span> at 417 months is detectable; a large <span class="math inline">\(r\)</span> at 40 months is not. The next slide is the course payoff.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="a-tiny-p-means-the-model-is-not-finished-not-very-wrong" class="slide level2">
+<h2>A tiny p means the model is not finished, not very wrong</h2>
+<p><span class="math inline">\(p \approx 10^{-240}\)</span> means structure is left on the table. It does not mean the model is very wrong.</p>
+<div class="cardbox teal">
+<p>The floor is beatable. The seasonal naive’s residuals fail Ljung-Box at <span class="math inline">\(p \approx 10^{-240}\)</span>, so there is signal in this series that nothing on Day 2 captured. That is why Day 3 exists.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The course payoff. The tiny <span class="math inline">\(p\)</span>-value is the opening for Day 3: the floor is beatable because the residuals are not white noise. The next segment maps each idea back to the course slide that needs it.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section></section>
+<section>
+<section id="f.-where-each-of-these-lands" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
+<h1>F. Where each of these lands</h1>
+<p>The pointer table back into decks 2, 3 and 4</p>
+</section>
+<section id="five-ideas-five-course-slides-that-need-them" class="slide level2">
+<h2>Five ideas, five course slides that need them</h2>
+<table class="caption-top">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Concept</th>
+<th>The course slide that needs it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Distribution</td>
+<td>A forecast is a range, not a number (deck 3, segment C)</td>
+</tr>
+<tr class="even">
+<td>Quantile, percentile</td>
+<td>An 80% interval is the 10th to the 90th; CRPS integrates a ladder (deck 3, segment C)</td>
+</tr>
+<tr class="odd">
+<td>i.i.d.</td>
+<td>The bootstrap pools 1982 errors with 2018 errors and coverage falls to 61% (deck 4)</td>
+</tr>
+<tr class="even">
+<td>Hypothesis testing</td>
+<td>24 lag checks by eye become one number (deck 3, segment B)</td>
+</tr>
+<tr class="odd">
+<td>The p-value</td>
+<td><span class="math inline">\(p \approx 10^{-240}\)</span>, so the floor is beatable, so Day 3 exists (deck 3, segment B)</td>
+</tr>
+</tbody>
+</table>
+<div class="cardbox teal">
+<p>Each idea is taught once here and once in the course. The pointer table is the map back.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The pointer table is the close. Each concept maps back to the course slide that assumes it. The next slide is the final payoff.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-floor-is-beatable-and-now-you-can-say-why" class="slide level2">
+<h2>The floor is beatable, and now you can say why</h2>
+<p><span class="math inline">\(p \approx 10^{-240}\)</span> means the seasonal naive is not finished. The 61% means the pool was stale.</p>
+<div class="cardbox teal">
+<p>The floor is beatable, and now you can say why. The residuals are not white noise, and the bootstrap’s pool was too tight. Both are fixable, and Day 3 fixes the first.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The final payoff. The two numbers are the lesson: the <span class="math inline">\(p\)</span>-value says the model is not finished, and the 61% says the pool was stale. Both are the opening for the rest of the course.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+
+
+</section></section>
+    </div>
+  <div class="quarto-auto-generated-content" style="display: none;">
+<p><img src="../slides_template/assets/sdaia.svg" class="slide-logo"></p>
+<div class="footer footer-default">
+
+</div>
+</div></div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="../site_libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="../site_libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="../site_libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="../site_libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
+  <script src="../site_libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="../site_libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="../site_libs/revealjs/plugin/search/search.js"></script>
+  <script src="../site_libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="../site_libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': false,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'jumpToSlide': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"8\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'chalkboard': {"buttons":true},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: false,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'slide',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'fade',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, RevealChalkboard, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    <script id="quarto-html-after-body" type="application/javascript">
+      window.document.addEventListener("DOMContentLoaded", function (event) {
+        const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+        tabsets.forEach(function(tabset) {
+          const tabby = new Tabby('#' + tabset.id);
+        });
+        const isCodeAnnotation = (el) => {
+          for (const clz of el.classList) {
+            if (clz.startsWith('code-annotation-')) {                     
+              return true;
+            }
+          }
+          return false;
+        }
+        const onCopySuccess = function(e) {
+          // button target
+          const button = e.trigger;
+          // don't keep focus
+          button.blur();
+          // flash "checked"
+          button.classList.add('code-copy-button-checked');
+          var currentTitle = button.getAttribute("title");
+          button.setAttribute("title", "Copied!");
+          let tooltip;
+          if (window.bootstrap) {
+            button.setAttribute("data-bs-toggle", "tooltip");
+            button.setAttribute("data-bs-placement", "left");
+            button.setAttribute("data-bs-title", "Copied!");
+            tooltip = new bootstrap.Tooltip(button, 
+              { trigger: "manual", 
+                customClass: "code-copy-button-tooltip",
+                offset: [0, -8]});
+            tooltip.show();    
+          }
+          setTimeout(function() {
+            if (tooltip) {
+              tooltip.hide();
+              button.removeAttribute("data-bs-title");
+              button.removeAttribute("data-bs-toggle");
+              button.removeAttribute("data-bs-placement");
+            }
+            button.setAttribute("title", currentTitle);
+            button.classList.remove('code-copy-button-checked');
+          }, 1000);
+          // clear code selection
+          e.clearSelection();
+        }
+        const getTextToCopy = function(trigger) {
+          const outerScaffold = trigger.parentElement.cloneNode(true);
+          const codeEl = outerScaffold.querySelector('code');
+          for (const childEl of codeEl.children) {
+            if (isCodeAnnotation(childEl)) {
+              childEl.remove();
+            }
+          }
+          return codeEl.innerText;
+        }
+        const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+          text: getTextToCopy
+        });
+        clipboard.on('success', onCopySuccess);
+        if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+          const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+            text: getTextToCopy,
+            container: window.document.getElementById('quarto-embedded-source-code-modal')
+          });
+          clipboardModal.on('success', onCopySuccess);
+        }
+          var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+          var mailtoRegex = new RegExp(/^mailto:/);
+            var filterRegex = new RegExp("https:\/\/NaifMersal\.github\.io\/time-series-analysis-and-forecasting\/");
+          var isInternal = (href) => {
+              return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+          }
+          // Inspect non-navigation links and adorn them if external
+         var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+          for (var i=0; i<links.length; i++) {
+            const link = links[i];
+            if (!isInternal(link.href)) {
+              // undo the damage that might have been done by quarto-nav.js in the case of
+              // links that we want to consider external
+              if (link.dataset.originalHref !== undefined) {
+                link.href = link.dataset.originalHref;
+              }
+            }
+          }
+        function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+          const config = {
+            allowHTML: true,
+            maxWidth: 500,
+            delay: 100,
+            arrow: false,
+            appendTo: function(el) {
+                return el.closest('section.slide') || el.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'light-border',
+            placement: 'bottom-start',
+          };
+          if (contentFn) {
+            config.content = contentFn;
+          }
+          if (onTriggerFn) {
+            config.onTrigger = onTriggerFn;
+          }
+          if (onUntriggerFn) {
+            config.onUntrigger = onUntriggerFn;
+          }
+            config['offset'] = [0,0];
+            config['maxWidth'] = 700;
+          window.tippy(el, config); 
+        }
+        const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+        for (var i=0; i<noterefs.length; i++) {
+          const ref = noterefs[i];
+          tippyHover(ref, function() {
+            // use id or data attribute instead here
+            let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+            try { href = new URL(href).hash; } catch {}
+            const id = href.replace(/^#\/?/, "");
+            const note = window.document.getElementById(id);
+            if (note) {
+              return note.innerHTML;
+            } else {
+              return "";
+            }
+          });
+        }
+        const findCites = (el) => {
+          const parentEl = el.parentElement;
+          if (parentEl) {
+            const cites = parentEl.dataset.cites;
+            if (cites) {
+              return {
+                el,
+                cites: cites.split(' ')
+              };
+            } else {
+              return findCites(el.parentElement)
+            }
+          } else {
+            return undefined;
+          }
+        };
+        var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+        for (var i=0; i<bibliorefs.length; i++) {
+          const ref = bibliorefs[i];
+          const citeInfo = findCites(ref);
+          if (citeInfo) {
+            tippyHover(citeInfo.el, function() {
+              var popup = window.document.createElement('div');
+              citeInfo.cites.forEach(function(cite) {
+                var citeDiv = window.document.createElement('div');
+                citeDiv.classList.add('hanging-indent');
+                citeDiv.classList.add('csl-entry');
+                var biblioDiv = window.document.getElementById('ref-' + cite);
+                if (biblioDiv) {
+                  citeDiv.innerHTML = biblioDiv.innerHTML;
+                }
+                popup.appendChild(citeDiv);
+              });
+              return popup.innerHTML;
+            });
+          }
+        }
+      });
+      </script>
+    
+
+</body></html>

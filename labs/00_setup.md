@@ -1,83 +1,73 @@
 # Setup: do this before Day 1
 
-Twenty minutes, once. Day 1 opens with content, not an install clinic.
+The course runs on **Google Colab**. There is nothing to install on your own
+machine.
 
 ## What you need
 
-- **Python 3.11, 3.12 or 3.13** (3.14+ is not supported by every dependency yet)
-- **[uv](https://docs.astral.sh/uv/)**: the installer this project uses
-- Internet access **once**, to download packages and datasets. After that the whole
-  course runs offline.
+- A Google account (Colab runs in the browser)
+- Internet access on the day — the notebooks clone the course repository
+  when they start
 
-Installing uv:
+## Day 1, before class: the pre-work lab
 
-```bash
-# macOS / Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# Windows (PowerShell)
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
+1. Read [**A Statistics Refresher**](../slides/00_statistics_refresher.html)
+   (~40 minutes). It builds the five ideas the course assumes — a forecast is
+   a range, an 80% interval is a pair of cuts, i.i.d. and how each half
+   breaks, a test of a claim, and the p-value. **Required.**
+2. Open `labs/00_pre_work.ipynb` in Colab (download it from the course
+   repository, then **File → Open → Upload** in Colab).
+3. Run the **Setup** cell. It clones the course and installs `coursekit`.
+   When it prints the spine chart, the environment works.
+4. Work through the rest of the notebook, about 20 minutes. Section 5 runs
+   four short checks on the refresher's ideas. Nothing is assessed.
 
-## Install
+## Each day
 
-From the repository root:
+1. Open that day's notebook in Colab and run the **Setup** cell first.
+   It prints a line for the spine (441 months, Apr 1982 to Dec 2018) —
+   if you see it, you are ready.
+2. Work down in order. Cells marked `TODO` are yours to fill in; a
+   `checks.check_ex_*` call tells you whether it worked.
 
-```bash
-uv sync --extra dev
-```
+**If your runtime resets, every install is gone.** Re-run the Setup cell
+of the notebook you are in. A reset can happen any time Colab is idle;
+this is the single most common way to lose ten minutes in the room.
 
-That creates `.venv/` and installs everything, including `coursekit`, the course's own
-helper package, as an **editable** install, so the labs can `from coursekit import ...`
-from anywhere.
+## Day 3, Exercise 3.4
 
-## Verify
-
-```bash
-# Windows
-.venv\Scripts\python.exe scripts\check_env.py
-.venv\Scripts\python.exe scripts\prefetch_data.py
-
-# macOS / Linux
-.venv/bin/python scripts/check_env.py
-.venv/bin/python scripts/prefetch_data.py
-```
-
-`check_env.py` must end with **"Ready. See you on Day 1."** If it does not, it names
-exactly what is missing and how to fix it.
-
-`prefetch_data.py` downloads the five datasets the labs use and caches them under
-`coursekit/data/`. This is the step that needs internet; run it at home, not on the
-conference wifi.
-
-## Open the notebooks
-
-```bash
-uv run jupyter lab
-```
-
-Then open `labs/00_pre_work.ipynb` and work through it, about 20 minutes.
-
-If you prefer VS Code: open the folder, then pick the `.venv` interpreter
-(Ctrl+Shift+P → *Python: Select Interpreter*) before opening a notebook.
+AutoGluon is not installed by the Setup cell (it is large). When you reach
+Exercise 3.4, run the install cell it points to — it takes a few minutes.
+Everything else on Day 3 needs nothing extra.
 
 ## Troubleshooting
 
+**The Setup cell fails part-way**
+Run it again. If it fails twice, check your connection and try again;
+the clone is the only step that needs the network.
+
 **`ModuleNotFoundError: coursekit`**
-You are running a different Python than the one `uv sync` set up. Use
-`.venv/Scripts/python.exe` (Windows) or `.venv/bin/python`, or select the `.venv`
-interpreter in your editor.
+You are in a fresh runtime. Run the Setup cell of the notebook you are in.
 
-**`check_env.py` says datasets are missing**
-Run `scripts/prefetch_data.py`. If it fails, you are probably behind a proxy that blocks
-`raw.githubusercontent.com`, try from a different network, or ask the instructor for the
-`coursekit/data/` folder on a USB stick.
+**A plot does not appear**
+Re-run the cell above it. Colab notebooks do not keep state across
+runtime resets.
 
-**`pyreadr` fails to install**
-It ships as a wheel for common platforms. If yours is unusual, tell the instructor before
-Day 1, the datasets can be supplied as CSV instead.
-
-**A plot does not appear in Jupyter**
-Make sure the cell ends with `plt.show()` and that you selected the `.venv` kernel.
-
-**Still stuck?** Bring the laptop to the room ten minutes early. Do not spend an hour on
+**Still stuck?** Raise your hand in the room. Do not spend an hour on
 this alone.
+
+## If you want to work on your own machine
+
+Optional. The course is built for Colab; this is for people who prefer
+their own environment.
+
+```bash
+uv sync --extra dev
+.venv/Scripts/python.exe scripts/check_env.py     # Windows
+.venv/bin/python scripts/check_env.py             # macOS / Linux
+.venv/Scripts/python.exe scripts/prefetch_data.py # downloads the datasets
+uv run jupyter lab
+```
+
+`check_env.py` must end with **"Ready. See you on Day 1."** Then open
+`labs/00_pre_work.ipynb` in Jupyter and work through it.

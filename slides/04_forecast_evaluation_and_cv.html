@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-08-27">
+  <meta name="dcterms.date" content="2026-09-03">
   <title>Forecast Evaluation &amp; Cross-Validation</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -206,13 +206,13 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-08-27</p>
+  <p class="date">2026-09-03</p>
 </section>
 <section id="you-have-5-forecasts.-which-is-best" class="slide level2">
 <h2>You have 5 forecasts. Which is best?</h2>
 <ul>
 <li class="fragment">Lecture 1 built five: mean, naive, seasonal naive, drift, and the STL route</li>
-<li class="fragment">Every one of them produced a number for every future month</li>
+<li class="fragment">Every one of them produced a number for every step of the horizon</li>
 <li class="fragment">Nothing so far says which number to plan on</li>
 </ul>
 <div class="fragment">
@@ -249,7 +249,7 @@
 <section>
 <section id="a.-scoring-a-point-forecast" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
 <h1>A. Scoring a point forecast</h1>
-<p>Ch 5.8 · Point forecast metrics</p>
+<p>Point forecast metrics</p>
 </section>
 <section id="every-score-starts-from-the-same-error" class="slide level2">
 <h2>Every score starts from the same error</h2>
@@ -262,12 +262,12 @@
 \qquad
 \text{MAPE} = \text{mean}\left\lvert \frac{100\,e_t}{y_t} \right\rvert\]</span></p>
 <div class="cardbox navy">
-<p>MAE and RMSE are in the units of the series. MAPE divides those units away. Whether that makes it safe is the next two slides.</p>
+<p>MAE and RMSE are in the units of the series. MAPE divides those units away. Whether that makes it safe is tested in a moment.</p>
 </div>
 <aside class="notes">
 <p>Start from the error itself, because every metric in this lecture is one average of this one quantity. Actual minus forecast, per period, signed.</p>
 <p>MAE is the mean of the absolute errors: the typical miss, in dollars of turnover. RMSE squares first, so a single large miss moves it more than several small ones. Both are in the units of the series.</p>
-<p>MAPE divides each error by the actual value that period and reads as a percentage, which is why it is the metric every business audience already knows. That division is the whole subject of the next two slides, and it does not survive them.</p>
+<p>MAPE divides each error by the actual value that period and reads as a percentage, which is why it is the metric every business audience already knows. That division is the whole subject of the transformation slides that follow, and it does not survive them.</p>
 <p>Do not rank anything yet. Nothing on this slide can compare two series.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -282,25 +282,68 @@
       }</style></aside>
 </div>
 </section>
-<section id="rescaling-moves-mae-and-shifting-breaks-mape" class="slide level2">
-<h2>Rescaling moves MAE, and shifting breaks MAPE</h2>
-<p>Re-express the series in any unit: <span class="math inline">\(z_t = a\,y_t + b\)</span>, with <span class="math inline">\(a &gt; 0\)</span>.</p>
-<p><span class="math display">\[e^z_t \;=\; z_t - \hat{z}_t \;=\; (a\,y_t + b) - (a\,\hat{y}_t + b) \;=\; a\,e_t\]</span></p>
-<p>The offset is gone before any metric sees it.</p>
-<div class="fragment">
-<p><span class="math display">\[\begin{aligned}
-\text{MAE}_z &amp;= \text{mean}\lvert a\,e_t \rvert = a\,\text{MAE} \\
-\text{MAPE}_z &amp;= \text{mean}\left\lvert \frac{100\,a\,e_t}{a\,y_t + b} \right\rvert
-= \text{mean}\left\lvert \frac{100\,e_t}{y_t + b/a} \right\rvert
-\end{aligned}\]</span></p>
-<div class="cardbox coral">
-<p>The <span class="math inline">\(a\)</span> divides out of MAPE. The offset does not: it survives as <span class="math inline">\(b/a\)</span>, and <span class="math inline">\(b\)</span> is what °C to °F adds, so the same forecast scores differently in each unit.</p>
+<section id="day-1-pooled-148-series.-what-metric-made-that-possible" class="slide level2">
+<h2>Day 1 pooled 148 series. What metric made that possible?</h2>
+<p>Day 1 ranked 148 retail series with very different turnovers in one table. That is only possible with a metric that does not care about the unit:</p>
+<p><span class="math display">\[z_t = a\,y_t + b \;\Rightarrow\; \text{MAE}_z = a\,\text{MAE}, \qquad \text{MASE}_z = \text{MASE}\]</span></p>
+<div class="cardbox teal">
+<p>MAE and RMSE move with the unit. MAPE divides the unit away, but we will see that is not enough. <strong>MASE and RMSSE survive a change of unit</strong> - and they are the only two of the five that can be pooled.</p>
 </div>
 <aside class="notes">
-<p>Do this one at the board pace, not the slide pace. Ask what happens to each metric if the finance team reports the same series in thousands instead of dollars, then substitute.</p>
-<p>Start with the error line, because it does most of the work. Subtract two transformed numbers and the b cancels, leaving a times the original error. So every metric downstream sees errors that are a times too big.</p>
-<p>MAE therefore moves with the unit: report in thousands and the MAE drops by a factor of a thousand while the forecast is identical. That is what scale-dependent means, and it is why Day 1 could not have pooled 148 retail series with different turnovers on MAE.</p>
-<p>MAPE is the row to slow down on, because it looks like the cure. Divide top and bottom by a and watch what is left: the unit is gone, and the offset is still there as b over a. Do that second equals sign at the board. Same forecast, Celsius or Fahrenheit, two different scores, because b over a is not zero. Cancelling the unit is necessary and not sufficient.</p>
+<p>Open with the need, not the formula. Day 1’s feature sweep pooled 148 retail series with different turnovers into one ranking, and the room may not have noticed which metric made that legal. Ask what would have happened if that table had been ranked on MAE: the big-turnover series would dominate every average, and the ranking would be a ranking of series sizes, not of forecast quality.</p>
+<p>Then the one-line preview: MAE scales with the unit, MASE does not, because it is an error over an error. The next three slides earn that claim - the benchmark, the denominator, and the unit change done properly.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-naive-is-the-free-benchmark" class="slide level2">
+<h2>The naive is the free benchmark</h2>
+<p>The <strong>naive</strong> is the free benchmark: no fitting, no parameters, and it is the “do nothing” baseline every forecast must beat.</p>
+<p><span class="math display">\[\text{MASE} \;=\; \frac{\text{your MAE}}{\text{the naive forecast's own MAE}}\]</span></p>
+<aside class="notes">
+<p>This is the slide that makes MASE readable rather than just well-behaved. Every score in this lecture is a ratio against a benchmark, and the naive is the benchmark we use: it is free (no fitting), it is the “do nothing” baseline, and its own error is what we divide by.</p>
+<p>The ratio has a meaning you can say out loud: 1.0 is the line. Below 1, your model beats the naive; at 1, it ties; above 1, the naive is better.</p>
+<p>Warn them the seasonal naive will score above 1 on this data, and that this is not a contradiction: forecasting 24 months out is harder than the one-step in-sample errors sitting in the denominator.</p>
+<p>Do not define Q yet. The next slide is what the naive’s error actually is.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-naives-mae-is-q" class="slide level2">
+<h2>The naive’s MAE is Q</h2>
+<p>The naive carries the last value forward: <span class="math inline">\(\hat{y}_t = y_{t-1}\)</span>.</p>
+<div class="fragment">
+<p>Substitute into MAE: the naive’s error is <span class="math inline">\(y_t - y_{t-1}\)</span>, so its own MAE is</p>
+<p><span class="math display">\[\frac{1}{T-1}\sum_{t=2}^{T} \lvert y_t - y_{t-1} \rvert\]</span></p>
+</div>
+<div class="fragment">
+<p>Call it <span class="math inline">\(Q\)</span>:</p>
+<p><span class="math display">\[\text{MASE} = \frac{\text{your MAE}}{Q}\]</span></p>
+<div class="cardbox teal">
+<p><span class="math inline">\(Q\)</span> is a training-set average, so it is near zero only if the series never moves.</p>
+</div>
+<aside class="notes">
+<p>This is the slide that makes the denominator concrete. The naive forecast is last value carried forward, one step at a time, so its one-step error is the lag-one difference y_t minus y_{t-1}. Average the absolute values over the training set and that is Q, the naive’s own MAE.</p>
+<p>One detail the formula hides: the naive needs a previous point to predict from, so the first observation is spent on the first prediction. There are T minus 1 predictions, which is why the sum runs from t = 2 to T and the average divides by T minus 1.</p>
+<p>So MASE is your MAE over Q, and the ratio from the last slide now has a denominator you can compute.</p>
+<p>One divisor for the series, not one per point. MAPE picks its divisor fresh at every point and takes whatever the series happened to do; Q is an average over the whole training set, so it is stable and it cannot go near zero unless the series is flat.</p>
+<p>Hyndman and Koehler proposed this in 2006 precisely as the replacement for the percentage errors.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -314,9 +357,9 @@
       }</style></aside>
 </div>
 </section>
-<section id="a-denominator-that-is-a-level-breaks-three-ways" class="slide level2">
-<h2>A denominator that is a level breaks three ways</h2>
-<p>The offset survived because MAPE divides by a <strong>level</strong>, <span class="math inline">\(y_t\)</span>, and a level is not an error. Forecast <span class="math inline">\(\hat{y} = 100\)</span>, missed by <span class="math inline">\(20\)</span> each way:</p>
+<section id="mapes-denominator-is-a-level" class="slide level2">
+<h2>MAPE’s denominator is a level</h2>
+<p>MAPE divides by a <strong>level</strong>, <span class="math inline">\(y_t\)</span>, and a level is not an error. Forecast <span class="math inline">\(\hat{y} = 100\)</span>, missed by <span class="math inline">\(20\)</span> each way:</p>
 <table class="caption-top">
 <thead>
 <tr class="header">
@@ -347,8 +390,8 @@
 <p>One fault, seen three ways, and the arithmetic in the table is the argument.</p>
 <p>Put the table on the board. Forecast 100, and be wrong by 20 either way. Actual 80: the miss is 20 over 80, 25%. Actual 120: the same 20, now over 120, 16.7%. One error, two prices, and the expensive one is always the over-forecast, because a low actual is a small denominator. A team that selects on MAPE therefore learns to under-forecast, and in an inventory setting that means stocking out.</p>
 <p>The near-zero case is the same denominator taken to its limit: on intermittent or low-volume demand the actual is small often enough that the percentage stops describing the miss. Exercise 2.4 hands them that series and they compute it themselves, so do not spend a chart on it here.</p>
-<p>The true-zero case is the b from the last slide, restated in words: a percentage assumes zero means none of the thing. 0 degrees Celsius is not “no temperature”, it is a point on a scale somebody chose. Turnover in dollars does have a true zero; plenty of series do not.</p>
-<p>All three are the same fault: the denominator is a level. That is the sentence the next slide picks up.</p>
+<p>The true-zero case is the one to name now, in words: a percentage assumes zero means none of the thing. 0 degrees Celsius is not “no temperature”, it is a point on a scale somebody chose. Turnover in dollars does have a true zero; plenty of series do not. The next slide shows the same fault in algebra.</p>
+<p>All three are the same fault: the denominator is a level. MASE’s denominator is a difference, so none of these reach it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -362,29 +405,30 @@
       }</style></aside>
 </div>
 </section>
-<section id="the-fix-is-one-denominator-and-it-is-a-difference" class="slide level2">
-<h2>The fix is one denominator, and it is a difference</h2>
-<p>Divide instead by <span class="math inline">\(Q\)</span>, one number for the whole series, built out of differences.</p>
-<p><span class="math display">\[Q = \frac{1}{T-1}\sum_{t=2}^{T} \lvert y_t - y_{t-1} \rvert,
-\qquad q_j = \frac{e_j}{Q},
-\qquad \text{MASE} = \text{mean}(\lvert q_j \rvert)\]</span></p>
-<p><span class="math inline">\(t\)</span> indexes the training history, <span class="math inline">\(j\)</span> the forecast points being scored.</p>
+<section id="one-change-of-unit-breaks-two-metrics" class="slide level2">
+<h2>One change of unit breaks two metrics</h2>
+<p>The table’s true-zero fault has an algebraic form. Re-express the series in any unit: <span class="math inline">\(z_t = a\,y_t + b\)</span>, with <span class="math inline">\(a &gt; 0\)</span>.</p>
+<p><span class="math display">\[e^z_t = (a\,y_t + b) - (a\,\hat{y}_t + b) = a\,y_t - a\,\hat{y}_t = a\,e_t\]</span></p>
+<p>The error is clean. What each metric does with it:</p>
 <div class="fragment">
 <p><span class="math display">\[\begin{aligned}
-z_t - z_{t-1} &amp;= (a\,y_t + b) - (a\,y_{t-1} + b) = a\,(y_t - y_{t-1})
-&amp;&amp; \Longrightarrow \; Q_z = a\,Q \\
+\text{MAE}_z  &amp;= \text{mean}\lvert a\,e_t \rvert = a\,\text{MAE} \\
+\text{MAPE}_z &amp;= \text{mean}\left\lvert \frac{100\,a\,e_t}{a\,y_t + b} \right\rvert
+               = \text{mean}\left\lvert \frac{100\,e_t}{y_t + \color{#FF7A5C}{b/a}} \right\rvert
+               \quad \color{#FF7A5C}{\text{(offset is not cancelled)}} \\
 \text{MASE}_z &amp;= \frac{\text{mean}\lvert a\,e_t \rvert}{a\,Q} = \text{MASE}
 \end{aligned}\]</span></p>
+</div>
+<div class="fragment">
 <div class="cardbox teal">
-<p>Every term of <span class="math inline">\(Q\)</span> is a difference, so no offset reaches it.</p>
-<p><span class="math inline">\(Q\)</span> is a training-set average, so it is near zero only if the series never moves.</p>
+<p>The <span class="math inline">\(a\)</span> cancels in the MASE ratio; the <span class="math inline">\(b\)</span> cancels inside every difference of <span class="math inline">\(Q\)</span>. MASE is the only one of the three that survives a change of unit.</p>
 </div>
 <aside class="notes">
-<p>One divisor for the series, not one per point. MAPE picks its divisor fresh every month and takes whatever the series happened to do; Q is an average over the whole training set, so it is stable and it cannot go near zero unless the series is flat.</p>
-<p>Then rescale it, the same substitution as two slides back. Q is built from differences, so the b cancels inside every term exactly as it did in the error, and what is left is a times Q. Now both floors of the fraction carry the same a: the numerator because errors do, the denominator because it is an error too. An error over an error, and neither a nor b ever reaches the score. That is the licence for what Day 1 did when it pooled 148 retail series with different turnovers into one ranking.</p>
-<p>The card’s two lines answer the two faults from the last slide in order: the offset, and the near-zero denominator.</p>
-<p>Hyndman and Koehler proposed this in 2006 precisely as the replacement for the percentage errors.</p>
-<p>Do not explain what Q is yet beyond “differences”. The next slide is what that denominator turns out to be.</p>
+<p>The last slide’s table already made the point; this one is the general form. Ask what happens to each metric if the finance team reports the same series in thousands instead of dollars, then substitute.</p>
+<p>Start with the error line, because it does most of the work. Subtract two transformed numbers and the b cancels, leaving a times the original error. So every metric downstream sees errors that are a times too big.</p>
+<p>MAE therefore moves with the unit: report in thousands and the MAE drops by a factor of a thousand while the forecast is identical. That is what scale-dependent means, and it is why Day 1 could not have pooled 148 retail series with different turnovers on MAE.</p>
+<p>MAPE is the row to slow down on, because it looks like the cure. Divide top and bottom by a and watch what is left: the unit is gone, and the offset is still there as b over a. Do that second equals sign at the board. Same forecast, Celsius or Fahrenheit, two different scores, because b over a is not zero. Cancelling the unit is necessary and not sufficient.</p>
+<p>MASE is the row that holds. Q is built from differences, so the b cancels inside every term exactly as it did in the error, and what is left is a times Q. Now both floors of the fraction carry the same a: the numerator because errors do, the denominator because it is an error too. An error over an error, and neither a nor b ever reaches the score. That is the licence for what Day 1 did when it pooled 148 retail series with different turnovers into one ranking.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -398,30 +442,8 @@ z_t - z_{t-1} &amp;= (a\,y_t + b) - (a\,y_{t-1} + b) = a\,(y_t - y_{t-1})
       }</style></aside>
 </div>
 </section>
-<section id="that-denominator-is-a-forecast-so-mase-is-a-ratio" class="slide level2">
-<h2>That denominator is a forecast, so MASE is a ratio</h2>
-<p><span class="math inline">\(Q\)</span> is not an arbitrary normaliser. Every term in it is an error the <strong>naive</strong> forecast makes in-sample: last value carried forward, one step at a time.</p>
-<p><span class="math display">\[\text{MASE} \;=\; \frac{\text{your MAE}}{\text{the naive forecast's own MAE}}\]</span></p>
-<div class="cardbox teal">
-<p>Below <span class="math inline">\(1\)</span> beats the benchmark. Exactly <span class="math inline">\(1\)</span> ties it.</p>
-</div>
-<aside class="notes">
-<p>This is the slide that makes MASE readable rather than just well-behaved. The absolute lag-one differences in Q are exactly the errors the naive forecast makes on the training set, so the ratio has a meaning you can say out loud, and 1.0 is the line.</p>
-<p>Warn them the seasonal naive will score above 1 on this data, and that this is not a contradiction: forecasting 24 months out is harder than the one-step in-sample errors sitting in the denominator.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="this-course-scores-against-the-seasonal-naive" class="slide level2">
-<h2>This course scores against the seasonal naive</h2>
+<section id="the-seasonal-naive-is-the-benchmark-when-m-12" class="slide level2">
+<h2>The seasonal naive is the benchmark when <span class="math inline">\(m = 12\)</span></h2>
 <p>Step back a whole season instead of one period:</p>
 <p><span class="math display">\[Q_m = \frac{1}{T-m}\sum_{t=m+1}^{T} \lvert y_t - y_{t-m} \rvert,
 \qquad m = 12\]</span></p>
@@ -430,7 +452,7 @@ z_t - z_{t-1} &amp;= (a\,y_t + b) - (a\,y_{t-1} + b) = a\,(y_t - y_{t-1})
 </div>
 <aside class="notes">
 <p>Nothing about MASE is seasonal. The seasonal naive is just the strongest free benchmark when the series has a period, so every mase() call in the labs passes seasonality=12 and this is the Q they all use.</p>
-<p>Make the m equals 1 point at the board rather than reading the card: the sum collapses to the lag-one differences from two slides back, so the room is looking at one definition with a knob on it, not a second metric to remember.</p>
+<p>Make the m equals 1 point at the board rather than reading the card: the sum collapses to the lag-one differences from the Q slide, so the room is looking at one definition with a knob on it, not a second metric to remember.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -450,7 +472,7 @@ z_t - z_{t-1} &amp;= (a\,y_t + b) - (a\,y_{t-1} + b) = a\,(y_t - y_{t-1})
 <p>Same benchmark, same cancellation, squared throughout.</p>
 <div class="fragment">
 <div class="cardbox teal">
-<p>MASE reports the typical miss in benchmark units. RMSSE reports the same with the worst months weighted heaviest, so a model can win one and lose the other.</p>
+<p>MASE reports the typical miss in benchmark units. RMSSE reports the same with the worst misses weighted heaviest, so a model can win one and lose the other.</p>
 </div>
 <aside class="notes">
 <p>Keep this short: it is one slide because it is one idea already taught, run through a square. Point at the denominator and note it is now a root mean square of the benchmark’s errors rather than a mean absolute one, so the cancellation argument two slides back goes through unchanged.</p>
@@ -527,9 +549,9 @@ z_t - z_{t-1} &amp;= (a\,y_t + b) - (a\,y_{t-1} + b) = a\,(y_t - y_{t-1})
           display:block!important;
       }</style></aside>
 </section>
-<section id="on-this-one-window-the-stl-route-wins-every-metric" class="slide level2">
-<h2>On this one window the STL route wins every metric</h2>
-<div id="57d4ddfe" class="cell" data-fig-width="10" data-execution_count="2">
+<section id="on-this-window-stl-wins-every-metric" class="slide level2">
+<h2>On this window, STL wins every metric</h2>
+<div id="712ef68c" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>                   MAE    RMSE  MAPE %   MASE  RMSSE
 Mean            173.67  175.55   51.82  12.66   9.09
@@ -561,10 +583,10 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 <section>
 <section id="b.-one-split-is-not-evidence" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
 <h1>B. One split is not evidence</h1>
-<p>Ch 5.10 · Rolling-origin cross-validation</p>
+<p>Rolling-origin cross-validation</p>
 </section>
-<section id="one-test-window-is-one-lucky-or-unlucky-year" class="slide level2">
-<h2>One test window is one lucky, or unlucky, year</h2>
+<section id="one-window-is-one-lucky-year" class="slide level2">
+<h2>One window is one lucky year</h2>
 <div class="flowrow">
 <p><span class="flownode coral"><span class="flowtitle">One split</span><span class="flownote">24 months, scored once</span></span> <span class="flownode coral"><span class="flowtitle">One number per model</span><span class="flownote">no error bar</span></span> <span class="flownode navy"><span class="flowtitle">No ranking</span><span class="flownote">whatever those two years did is baked in</span></span></p>
 </div>
@@ -592,7 +614,7 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 <section id="score-the-model-eight-times-not-once" class="slide level2">
 <h2>Score the model eight times, not once</h2>
 <p>The <strong>origin</strong> is where training stops and the forecast starts. Move it forward a year at a time: eight training sets, eight forecasts, eight scores.</p>
-<div id="9bc1fd4e" class="cell" data-fig-width="9" data-execution_count="3">
+<div id="d372c3ea" class="cell" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -619,14 +641,14 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
           display:block!important;
       }</style></aside>
 </section>
-<section id="only-one-of-the-three-knobs-comes-from-the-business" class="slide level2">
-<h2>Only one of the three knobs comes from the business</h2>
+<section id="one-knob-comes-from-the-business" class="slide level2">
+<h2>One knob comes from the business</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a><span class="co"># Rolling-origin CV on the spine:</span></span>
 <span id="cb2-2"><a></a>cv <span class="op">=</span> sf.cross_validation(</span>
 <span id="cb2-3"><a></a>    df<span class="op">=</span>spine,</span>
 <span id="cb2-4"><a></a>    h<span class="op">=</span><span class="dv">12</span>,          <span class="co"># Forecast horizon matched to business need</span></span>
 <span id="cb2-5"><a></a>    step_size<span class="op">=</span><span class="dv">12</span>,  <span class="co"># Steps between successive origins</span></span>
-<span id="cb2-6"><a></a>    n_windows<span class="op">=</span><span class="dv">8</span>,   <span class="co"># Number of evaluation folds (if less than h, then we overlap)</span></span>
+<span id="cb2-6"><a></a>    n_windows<span class="op">=</span><span class="dv">8</span>,   <span class="co"># folds (overlap if step_size &lt; h)</span></span>
 <span id="cb2-7"><a></a>    level<span class="op">=</span>LEVELS,  <span class="co"># the quantile ladder, spent in part D</span></span>
 <span id="cb2-8"><a></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><code>h</code> is the planning horizon. The other two are what the series affords.</p>
@@ -645,9 +667,9 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
           display:block!important;
       }</style></aside>
 </section>
-<section id="eight-folds-keep-the-ranking-and-move-the-winner" class="slide level2">
-<h2>Eight folds keep the ranking and move the winner</h2>
-<div id="9cbe41e0" class="cell" data-fig-width="10" data-execution_count="4">
+<section id="eight-folds-move-the-winner" class="slide level2">
+<h2>Eight folds move the winner</h2>
+<div id="e6ce1de9" class="cell" data-fig-width="10" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -677,7 +699,7 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 <section>
 <section id="c.-does-the-band-keep-its-promise" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
 <h1>C. Does the band keep its promise?</h1>
-<p>Ch 5.9 · Checking an interval</p>
+<p>Checking an interval</p>
 </section>
 <section id="an-80-band-is-a-claim-you-can-check" class="slide level2">
 <h2>An 80% band is a claim you can check</h2>
@@ -739,7 +761,7 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 </div>
 <aside class="notes">
 <p>Coverage is arithmetic, not statistics. Count the hits, divide by the attempts. 78 out of 100 against a claimed 80 is a band doing its job. 62 is a band that lied narrow, and a plan built on it is surprised far more often than the number led anyone to expect. 95 is the failure people forget is a failure: the band is honest and useless, too wide to act on.</p>
-<p>Note the count in the denominator, because the next slide needs it. That is why lecture 1’s 96% and this deck’s 77% are the same interval, measured twice: 24 attempts against 96.</p>
+<p>Note the count in the denominator, because the next slide needs it: 24 attempts is not just a small sample, it is a sample with an error bar, and the next slide sizes it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -753,9 +775,46 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
       }</style></aside>
 </div>
 </section>
-<section id="only-the-seasonal-naives-band-is-close-to-honest" class="slide level2">
-<h2>Only the seasonal naive’s band is close to honest</h2>
-<div id="59723309" class="cell" data-fig-width="9" data-execution_count="5">
+<section id="why-one-test-window-is-misleading" class="slide level2">
+<h2>Why one test window is misleading</h2>
+<p><span class="math display">\[\text{SE} = \sqrt{\frac{p(1-p)}{n}} = \sqrt{\frac{0.8 \times 0.2}{24}} \approx 8\%\]</span></p>
+<p><span class="math display">\[\Longrightarrow \qquad \text{95% CI on 80% coverage: } [64\%, 96\%]\]</span></p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="cardbox navy">
+<p><span class="card-title">Single Holdout (<span class="math inline">\(n = 24\)</span>)</span> Coverage measures <strong>96%</strong> by chance alone. You cannot validate coverage on a single slice.</p>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="cardbox teal">
+<p><span class="card-title">8-Fold CV (<span class="math inline">\(n = 96\)</span>)</span></p>
+<ul>
+<li><strong>Gaussian</strong>: 77%</li>
+<li><strong>Bootstrap</strong>: 61%</li>
+<li><strong>Conformal</strong>: 83%</li>
+</ul>
+<p><em>Methods separate cleanly.</em></p>
+</div>
+</div></div>
+<p><a href="#/sec-sampling">Where that <span class="math inline">\(\pm 8\%\)</span> comes from</a></p>
+<aside class="notes">
+<p>A nominal 80% interval easily measures anywhere from 64% to 96% on a single 24-point holdout by chance alone (and points clump rather than being independent coin flips).</p>
+<p>The bootstrap’s 61% is the i.i.d. assumption being punished: pooling 1980s residuals (SD 8.5) with 2010s (SD 26.2) makes the draw pool too tight. Restricting the pool to recent residuals restores coverage to ~87-91%.</p>
+<p>Over 8 rolling origins, we actually get enough points to evaluate reliability.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-seasonal-naives-band-is-honest" class="slide level2">
+<h2>The seasonal naive’s band is honest</h2>
+<div id="6a0e0d6f" class="cell" data-fig-width="9" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -809,14 +868,14 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 <section>
 <section id="d.-scoring-the-whole-distribution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
 <h1>D. Scoring the whole distribution</h1>
-<p>Ch 5.9 · Quantile loss, Winkler, CRPS</p>
+<p>Quantile loss, Winkler, CRPS</p>
 </section>
 <section id="a-band-is-two-quantiles" class="slide level2">
 <h2>A band is two quantiles</h2>
 <p>The <span class="math inline">\(\alpha\)</span>-quantile <span class="math inline">\(\hat{q}_\alpha\)</span> is the value the forecast puts <span class="math inline">\(\alpha\)</span> of its probability below:</p>
 <p><span class="math display">\[\mathbb{P}(y \le \hat{q}_\alpha) = \alpha\]</span></p>
 <div class="fragment">
-<div id="0997487b" class="cell" data-execution_count="6">
+<div id="73775206" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stdout">
 <pre><code>LEVELS   : [20, 40, 60, 80, 95]
 QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code></pre>
@@ -846,7 +905,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 </section>
 <section id="a-quantile-miss-must-cost-more-on-one-side" class="slide level2">
 <h2>A quantile miss must cost more on one side</h2>
-<p>If you forecast the 90th percentile, the actual should come in below it nine times out of ten. Landing below is the job, not a failure.</p>
+<p>If you forecast the <span class="math inline">\(0.9\)</span> quantile, the actual should come in below it nine times out of ten. Landing below is the job, not a failure.</p>
 <p><span class="math display">\[L_\alpha(\hat{q}, y) = \begin{cases}
 \alpha \, (y - \hat{q}) &amp; \text{if } y \ge \hat{q} \quad \text{(underestimated)} \\
 (1 - \alpha) \, (\hat{q} - y) &amp; \text{if } y &lt; \hat{q} \quad \text{(overestimated)}
@@ -859,7 +918,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 </section>
 <section id="at-alpha-0.5-quantile-loss-is-mae" class="slide level2">
 <h2>At <span class="math inline">\(\alpha = 0.5\)</span>, quantile loss is MAE</h2>
-<div id="8e353650" class="cell" data-fig-width="8.5" data-execution_count="7">
+<div id="aa8ea7ac" class="cell" data-fig-width="8.5" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -872,8 +931,8 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 <p>Put <span class="math inline">\(\alpha = 0.5\)</span> in both lines: each side is <span class="math inline">\(0.5\lvert y - \hat{q}\rvert\)</span>. That is MAE, halved. Minimising it finds the median forecast.</p>
 </div>
 </section>
-<section id="winkler-prices-an-interval-as-two-quantile-losses" class="slide level2">
-<h2>Winkler prices an interval as two quantile losses</h2>
+<section id="the-winkler-score-is-two-quantile-losses-summed" class="slide level2">
+<h2>The Winkler score is two quantile losses, summed</h2>
 <p>Write <span class="math inline">\(c\)</span> for what a band claims, so <span class="math inline">\(c = 0.8\)</span> here. It leaves <span class="math inline">\(1-c\)</span> outside, split between the tails, and its edges are <span class="math inline">\(\hat{q}_{(1-c)/2}\)</span> and <span class="math inline">\(\hat{q}_{(1+c)/2}\)</span>: the <span class="math inline">\(0.10\)</span> and <span class="math inline">\(0.90\)</span> quantiles again.</p>
 <p><span class="math display">\[\text{Winkler}([\ell, u], y) =
 \frac{L_{(1-c)/2}(\ell, y) + L_{(1+c)/2}(u, y)}{(1-c)/2}\]</span></p>
@@ -980,7 +1039,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 <h2>Narrow is not the same as good</h2>
 <p><strong>Mean width</strong> is Winkler’s <span class="math inline">\(u - \ell\)</span>, the height of the 80% band, averaged over all 96 scored points:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a>width80 <span class="op">=</span> (cv[<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-hi-80"</span>] <span class="op">-</span> cv[<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-lo-80"</span>]).mean()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div id="3fdbdfb2" class="cell" data-fig-width="10" data-execution_count="8">
+<div id="2ae51faa" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -1012,7 +1071,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 <section>
 <section id="e.-ways-a-good-harness-still-lies" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
 <h1>E. Ways a good harness still lies</h1>
-<p>Ch 13 · Leakage, and the traps that survive it</p>
+<p>Leakage, and the traps that survive it</p>
 </section>
 <section id="leakage-is-a-model-seeing-its-own-future" class="slide level2">
 <h2>Leakage is a model seeing its own future</h2>
@@ -1132,9 +1191,40 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-
-
 </div>
+</section>
+<section id="sec-sampling" class="slide level2" data-visibility="uncounted">
+<h2>Reminder: a rate measured on 24 points wanders</h2>
+<div id="bfa919b6" class="cell" data-fig-width="9.5" data-execution_count="9">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="04_forecast_evaluation_and_cv_files/figure-revealjs/cell-10-output-1.png" width="1035" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>Every window here came from a perfect 80% band. Anything from 64% to 96% is what that band looks like on 24 points. <a href="#/sec-sampling" onclick="history.back(); return false;">Back</a></p>
+</div>
+<aside class="notes">
+<p>Off the flow, after the closing slide: you get here from the link on the single-window slide, and Back returns to it.</p>
+<p>The simulation is rigged in the band’s favour on purpose. Every one of these 4000 windows came from a band that is exactly honest: each point lands inside with probability 0.8, no model error, no autocorrelation, nothing. The spread is measurement noise and nothing else.</p>
+<p>Read the width off the axis. A perfect band measures anywhere from about 64% to 96% on 24 points, which is the interval on the slide behind, and the formula there is where those numbers come from.</p>
+<p>So the conclusion is the one the deck needs: a 96% coverage reading on a single window is not a wide band, and a 64% reading is not a narrow one. Neither is evidence. Ninety-six scored points is the smallest thing worth reading, and that is what the eight folds bought.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+
+
 </section></section>
     </div>
   <div class="quarto-auto-generated-content" style="display: none;">

@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-08-27">
+  <meta name="dcterms.date" content="2026-09-03">
   <title>Exponential Smoothing &amp; ETS</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -206,7 +206,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-08-27</p>
+  <p class="date">2026-09-03</p>
 </section>
 <section id="day-2-ended-with-a-floor.-today-we-go-after-it" class="slide level2">
 <h2>Day 2 ended with a floor. Today we go after it</h2>
@@ -230,7 +230,7 @@
 </div>
 </div>
 <aside class="notes">
-<p>Open by putting yesterday’s last slide back up in words. They left with a a scoring harness they wrote themselves and a seasonal naive on top of everything it measured, at MASE 1.18 and scaled CRPS 0.031. And they left with the reason to keep going: those residuals are nowhere near white noise, so there is structure in this series that none of the five benchmarks captured.</p>
+<p>Open by putting yesterday’s last slide back up in words. They left with a scoring harness they wrote themselves and a seasonal naive on top of everything it measured, at MASE 1.18 and scaled CRPS 0.031. And they left with the reason to keep going: those residuals are nowhere near white noise, so there is structure in this series that none of the five benchmarks captured.</p>
 <p>Today is one model, taught properly, and then one framework that runs a dozen of them for you. The order matters: by the time the framework appears this afternoon, every model inside it is one they have either built or watched get built.</p>
 <p>Set the expectation about the result honestly, because it is coming in Part E and it is not a landslide. ETS will beat the floor on the point forecast by about half a percent and lose to it on the distribution. That is a normal result in this field, and diagnosing it is the whole exercise.</p>
 <style type="text/css">
@@ -335,7 +335,7 @@
 </section>
 <section id="ses-on-its-own-gives-you-a-flat-line" class="slide level2">
 <h2>SES on its own gives you a flat line</h2>
-<div id="b8ee9ec2" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="d07b0d76" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -374,8 +374,7 @@
 <p>That is the SES level equation unchanged: step from what you predicted towards what you saw. Only the prediction learned a slope.</p>
 </div>
 <aside class="notes">
-<p>Read the three lines in order and point at what changed. The level update now starts from where the trend said it would be rather than from where it was, and that box is the only difference from SES. The second line is the level equation’s twin, applied to the slope: a step from the old slope towards the slope the level just revealed. Then the last line spends them, and it is no longer flat, because h has something to multiply.</p>
-<p>Then do the box properly, because it is the sentence the whole family is built on. Take the forecast line, set h to 1, and rewind it one month: the forecast Holt made last month for this month is l minus one plus b minus one, which is exactly what is in the box. So the level equation reads alpha times what you saw plus one minus alpha times what you had predicted.</p>
+<p>The slide already shows the h = 1 derivation; the only new thing is the box. The level update now starts from where the trend said it would be, not where it was, and that box is the only difference from SES.</p>
 <p>That is word for word the SES level equation, because in SES the one-step forecast was just the level. Nothing about the update changed when the trend arrived; the prediction inside it got better. Say that out loud, because Part C adds seasonality and the level equation will survive that too.</p>
 <p>Beta-star is a second smoothing parameter with the same meaning as alpha: how fast does the model revise its belief about the slope when the data disagrees. It is fitted alongside alpha and the two initial states.</p>
 <p>The pattern is the thing to notice. Every state in this family is updated by the same move: a weighted step from what you believed towards what you just saw.</p>
@@ -394,7 +393,7 @@
 </section>
 <section id="holt-adds-a-slope-but-not-a-december" class="slide level2">
 <h2>Holt adds a slope but not a December</h2>
-<div id="0cbb7b16" class="cell" data-fig-width="10" data-execution_count="3">
+<div id="ca352859" class="cell" data-fig-width="10" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -409,7 +408,7 @@
 <aside class="notes">
 <p>The line now rises, which is progress you can see. Over 24 months it climbs from about 356 to about 373, which is roughly the right slope for this series.</p>
 <p>And it is still a straight line through a series that visibly swings by 30 percent between February and December. The residuals from this model would fail every diagnostic in yesterday’s lecture, for a reason the picture already gives away.</p>
-<p>Two states means two things remembered. Nothing here knows what month it is.</p>
+<p>Two states means two things remembered. Nothing here knows where it is in the cycle.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -424,7 +423,7 @@
 </section>
 <section id="extrapolate-a-straight-line-far-enough-and-it-lies" class="slide level2">
 <h2>Extrapolate a straight line far enough and it lies</h2>
-<div id="eba49349" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="58952441" class="cell" data-fig-width="10" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -458,7 +457,7 @@
 <p><span class="math display">\[\hat{y}_{t+h|t} \;\longrightarrow\; \ell_t + \frac{\phi}{1-\phi}\,b_t\]</span></p>
 <aside class="notes">
 <p>Same move as the SES slide, pointed the other way. There they unrolled the recursion backwards over the history and the weights fell out. Here you unroll the forecast forwards over the horizon, and what falls out is the flattening they just watched.</p>
-<p>The undamped line adds a whole slope for every month you go out, h of them, forever. Damping multiplies the slope by phi once per step, so month one adds phi, month two adds phi squared, and so on. That is a geometric series, and a geometric series with ratio below 1 has a finite sum.</p>
+<p>The slide does the unrolling; the point is that a geometric series with ratio below 1 has a finite sum, so the forecast has a ceiling.</p>
 <p>Write the ceiling on the board if it helps: phi over one minus phi. It is worth computing one value live, because the numbers surprise people. At 0.9 the model can only ever add nine slopes to the current level, no matter how far out you ask. That is a hard cap on the forecast, chosen by one parameter.</p>
 <p>Then set up the next slide’s bullet about 0.8. Phi of 0.8 caps the whole forecast at four slopes, which on monthly data is gone inside half a year. That is why fitted phi almost always lands high, between 0.8 and 0.98, and why anything much lower means the trend has effectively been switched off.</p>
 <style type="text/css">
@@ -553,7 +552,7 @@
 </section>
 <section id="holt-winters-has-the-right-shape" class="slide level2">
 <h2>Holt-Winters has the right shape</h2>
-<div id="6442e85d" class="cell" data-fig-width="10" data-execution_count="5">
+<div id="7d6e276d" class="cell" data-fig-width="10" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -729,7 +728,7 @@
 </section>
 <section id="the-season-changes-the-score.-the-trend-does-not" class="slide level2">
 <h2>The season changes the score. The trend does not</h2>
-<div id="2e55ae58" class="cell" data-fig-width="9" data-execution_count="6">
+<div id="0f222f54" class="cell" data-fig-width="9" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -759,7 +758,7 @@
 </section>
 <section id="what-it-picked-has-no-trend-term" class="slide level2">
 <h2>What it picked has no trend term</h2>
-<div id="5b794cb3" class="cell" data-execution_count="7">
+<div id="a1be743d" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-stdout">
 <pre><code>selected      : ETS(M,N,A)
 alpha (level) : 0.525
@@ -788,7 +787,7 @@ gamma (season): 0.321</code></pre>
 </section>
 <section id="the-states-it-learned-are-a-decomposition" class="slide level2">
 <h2>The states it learned are a decomposition</h2>
-<div id="edc4d253" class="cell" data-fig-width="10" data-execution_count="8">
+<div id="f953108b" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -880,7 +879,7 @@ gamma (season): 0.321</code></pre>
 </section>
 <section id="ets-wins-on-one-window-and-ties-over-eight-folds" class="slide level2">
 <h2>ETS wins on one window and ties over eight folds</h2>
-<div id="f462466e" class="cell" data-fig-width="10" data-execution_count="9">
+<div id="5de97078" class="cell" data-fig-width="10" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -911,7 +910,7 @@ gamma (season): 0.321</code></pre>
 </section>
 <section id="its-80-band-covers-87.5" class="slide level2">
 <h2>Its 80% band covers 87.5%</h2>
-<div id="199db4e6" class="cell" data-fig-width="9" data-execution_count="10">
+<div id="0cf68f6a" class="cell" data-fig-width="9" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -942,7 +941,7 @@ gamma (season): 0.321</code></pre>
 </section>
 <section id="the-wider-band-scores-worse" class="slide level2">
 <h2>The wider band scores worse</h2>
-<div id="5eeca9eb" class="cell" data-fig-width="10" data-execution_count="11">
+<div id="40de3416" class="cell" data-fig-width="10" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>

@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-08-27">
+  <meta name="dcterms.date" content="2026-09-03">
   <title>ACF, Decomposition &amp; Features</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -206,7 +206,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-08-27</p>
+  <p class="date">2026-09-03</p>
 </section>
 <section id="eyeballing-cannot-be-tested-and-does-not-scale" class="slide level2">
 <h2>Eyeballing cannot be tested, and does not scale</h2>
@@ -260,8 +260,10 @@
 <li class="fragment"><strong><span class="math inline">\(r_{12}\)</span></strong> <span class="math inline">\(\rightarrow\)</span> correlation with same month last year (seasonality)</li>
 <li class="fragment">Plot <span class="math inline">\(r_k\)</span> against <span class="math inline">\(k\)</span> and you have a <strong>correlogram</strong>, the ACF plot</li>
 </ul>
+<p><a href="#/sec-correlation">What a correlation looks like</a></p>
 <aside class="notes">
 <p>If you have ever done a scatterplot of x against y, you have done this. The only new thing is that x and y are the same column, offset by k.</p>
+<p>The link goes to an uncounted refresher at the end of the deck, four scatters at four values of r. Take it if the room hesitates here, and skip it if the formula landed: the rest of the segment reads r off a plot rather than computing one.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -280,7 +282,7 @@
 <ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1">
-<div id="952e0a55" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="450c3648" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -331,6 +333,7 @@
 <li class="fragment">A spike inside the bounds is indistinguishable from noise</li>
 <li class="fragment">With 36 lags, ~1–2 spikes outside the bounds can occur by chance</li>
 </ul>
+<p><a href="#/sec-sampling">Why the bound has a <span class="math inline">\(\sqrt{T}\)</span> in it</a></p>
 </div>
 </section>
 <section id="slow-decay-the-spine-acf-is-dominated-by-trend" class="slide level2">
@@ -339,7 +342,7 @@
 <ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1">
-<div id="9fb3df3d" class="cell" data-fig-width="9" data-execution_count="3">
+<div id="3ee077c6" class="cell" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -381,7 +384,7 @@
 <ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1">
-<div id="e004af67" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="0ca9f88d" class="cell" data-fig-width="10" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -479,11 +482,11 @@
 <ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1">
-<div id="e90da23f" class="cell" data-fig-width="10" data-execution_count="5">
+<div id="1d53c822" class="cell" data-fig-width="10" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-6-output-1.png" width="1112" height="430"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-6-output-1.png" width="1112" height="320"></p>
 </figure>
 </div>
 </div>
@@ -494,7 +497,7 @@
 <span id="cb4-2"><a></a><span class="co"># Log transform: a multiplicative series becomes additive on the log scale</span></span>
 <span id="cb4-3"><a></a>yt <span class="op">=</span> np.log(spine[<span class="st">"y"</span>].to_numpy())</span>
 <span id="cb4-4"><a></a></span>
-<span id="cb4-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.8</span>))</span>
+<span id="cb4-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">2.8</span>))</span>
 <span id="cb4-6"><a></a>P.plot_series(spine, ax<span class="op">=</span>axes[<span class="dv">0</span>], title<span class="op">=</span><span class="st">"Original: expanding swing"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>)</span>
 <span id="cb4-7"><a></a>P.plot_series(spine.assign(y<span class="op">=</span>yt), ax<span class="op">=</span>axes[<span class="dv">1</span>], color<span class="op">=</span>P.ORANGE,</span>
 <span id="cb4-8"><a></a>              ylabel<span class="op">=</span><span class="st">"log turnover"</span>, title<span class="op">=</span><span class="st">"Log scale: constant swing"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -504,7 +507,7 @@
 <ul>
 <li class="fragment">When the swing grows with the level, take a <strong>log transform</strong> before decomposing</li>
 <li class="fragment">On the log scale a multiplicative series is <strong>additive</strong>: the swing stops growing</li>
-<li class="fragment">Forecasting on it? Back-transforming returns the <strong>median</strong>, not the mean (Ch 5.6)</li>
+<li class="fragment">Back-transforming returns the <strong>median</strong>, not the mean (Ch 5.6)</li>
 </ul>
 <aside class="notes">
 <p>Deck 1 named the diagnosis: the swing grows with the level, so the series is multiplicative, and the fix is the log transform. This slide is that fix, applied: the annual swing is now a constant size, and the sixfold trend has become a near-straight climb. Everything after this slide in the segment runs on the log-transformed series.</p>
@@ -529,7 +532,7 @@
 <ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-5-1">
-<div id="bff599b7" class="cell" data-fig-width="10" data-execution_count="6">
+<div id="aebd963e" class="cell" data-fig-width="10" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -610,7 +613,7 @@
 <p><strong>By periodicity</strong> (<span class="math inline">\(S_{t+m} = S_t\)</span>), any <span class="math inline">\(m\)</span> consecutive terms are that same full set:</p>
 <p><span class="math display">\[\frac{1}{m}\sum_{j=-k}^{k} S_{t+j} = \frac{1}{m}(\underbrace{S_1 + S_2 + \dots + S_m}_{\text{sums to } 0}) = \mathbf{0}\]</span></p>
 <div class="cardbox teal">
-<p>True at every <span class="math inline">\(t\)</span>, whatever month the window happens to start on.</p>
+<p>True at every <span class="math inline">\(t\)</span>, wherever the window starts.</p>
 </div>
 <aside class="notes">
 <p>Two separate facts, and students conflate them. The first is a convention we impose to make the decomposition identifiable: shift 5 out of S and into T and the fit is unchanged, so the seasonal component is pinned down only once we demand it average to zero over a cycle. Classical decomposition enforces it explicitly, in the centring step of stage 3.</p>
@@ -637,7 +640,7 @@
 <ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-6-1">
-<div id="cfe882ed" class="cell" data-fig-width="7.5" data-execution_count="7">
+<div id="b1bf642d" class="cell" data-fig-width="7.5" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -704,7 +707,7 @@
 <ul id="tabset-7" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-7-1">Plot</a></li><li><a href="#tabset-7-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-7-1">
-<div id="0594449a" class="cell" data-fig-width="10" data-execution_count="8">
+<div id="169e4f4c" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -748,7 +751,7 @@
 <ul id="tabset-8" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-8-1">Plot</a></li><li><a href="#tabset-8-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-8-1">
-<div id="9a4cf2eb" class="cell" data-fig-width="9" data-execution_count="9">
+<div id="3e3fb0fd" class="cell" data-fig-width="9" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -802,11 +805,11 @@
 <ul id="tabset-9" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-9-1">Plot</a></li><li><a href="#tabset-9-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-9-1">
-<div id="f1885124" class="cell" data-fig-width="9.5" data-execution_count="10">
+<div id="658dd359" class="cell" data-fig-width="9.5" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-11-output-1.png" width="1057" height="452"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-11-output-1.png" width="1057" height="408"></p>
 </figure>
 </div>
 </div>
@@ -814,7 +817,7 @@
 </div>
 <div id="tabset-9-2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a></a><span class="co"># Dataset: Transformed spine turnover (dcmp = STL components of transformed spine)</span></span>
-<span id="cb9-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">4.0</span>))</span>
+<span id="cb9-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.6</span>))</span>
 <span id="cb9-3"><a></a>P.adjusted_plot(dcmp, dcmp[<span class="st">"transformed turnover"</span>],</span>
 <span id="cb9-4"><a></a>                dcmp[<span class="st">"transformed turnover"</span>] <span class="op">-</span> dcmp[<span class="st">"seasonal"</span>], ax<span class="op">=</span>ax,</span>
 <span id="cb9-5"><a></a>                title<span class="op">=</span><span class="st">"Observed vs. seasonally adjusted ($y_t - S_t$)"</span>,</span>
@@ -854,8 +857,8 @@
 </div>
 </div>
 </section>
-<section id="two-numbers-summarise-a-whole-series" class="slide level2">
-<h2>Two numbers summarise a whole series</h2>
+<section id="two-strengths-summarize-a-whole-series" class="slide level2">
+<h2>Two strengths summarize a whole series</h2>
 <p>Using STL component variances:</p>
 <p><span class="math display">\[F_T = \max\left(0,\ 1 - \frac{\text{Var}(R_t)}{\text{Var}(T_t + R_t)}\right) \qquad F_S = \max\left(0,\ 1 - \frac{\text{Var}(R_t)}{\text{Var}(S_t + R_t)}\right)\]</span></p>
 <div class="fragment">
@@ -885,7 +888,7 @@
 <ul id="tabset-10" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-10-1">Plot</a></li><li><a href="#tabset-10-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-10-1">
-<div id="cdcf675d" class="cell" data-fig-width="9.5" data-execution_count="11">
+<div id="74ab9b95" class="cell" data-fig-width="9.5" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -996,9 +999,74 @@
 <div class="cardbox teal">
 <p>Tomorrow: Baseline models, prediction intervals, and honest evaluation.</p>
 </div>
-
-
 </div>
+</section>
+<section id="sec-correlation" class="slide level2" data-visibility="uncounted">
+<h2>Reminder: a correlation is a shape</h2>
+<p>Two numbers measured on the same thing. Multiply each one’s distance from its own average: <strong>same side, positive; opposite sides, negative.</strong> Average that, scale by the spreads, and <span class="math inline">\(r\)</span> is what comes out.</p>
+<div id="18651d1f" class="cell" data-fig-width="10" data-execution_count="12">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-13-output-1.png" width="1089" height="230"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p><span class="math inline">\(r\)</span> measures one thing: how close the cloud is to a straight line. <span class="math inline">\(+1\)</span> and <span class="math inline">\(-1\)</span> are the two perfect lines, <span class="math inline">\(0\)</span> is no line at all. <a href="#/sec-correlation" onclick="history.back(); return false;">Back</a></p>
+</div>
+<aside class="notes">
+<p>Off the flow rather than hidden: it sits after the closing slide, so nothing in the talk walks into it, and it is not counted in the slide numbers. You get here by clicking the link on the ACF slide. Back returns to wherever you came from, and Alt+Left does the same.</p>
+<p>Say the top line before the panels, because it is the half the ACF slide never states. Two numbers on the same thing, and the question is whether they sit on the same side of their own averages at the same time. Multiply the two deviations: both above, positive; both below, negative times negative, also positive; one of each, negative. Average that and scale it, and the answer is between -1 and +1 no matter what the units were.</p>
+<p>Point back at the ACF formula while you say it. That numerator is exactly this product, and the only thing the ACF changes is that the second number is the same series 12 months ago.</p>
+<p>Then the panels: four clouds, one generator, and the only thing that changes is r. Read them left to right and the room gets its calibration: 0.95 is a line with a bit of scatter, 0.5 is a trend you would argue about, 0.0 is a blob, and negative just means the line goes the other way.</p>
+<p>The two things to say out loud. r only sees straight lines, so a perfect curve can score near zero. And r says nothing about the slope: a steep line and a shallow one both score 1.</p>
+<p>Then make the one connection that matters here: the ACF is this same number, computed on a scatter of the series against itself k steps back. Nothing else is new.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="sec-sampling" class="slide level2" data-visibility="uncounted">
+<h2>Reminder: a statistic moves on its own</h2>
+<div id="23d85982" class="cell" data-fig-width="9.5" data-execution_count="13">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-14-output-1.png" width="1035" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>Every one of these series is pure noise, so the true <span class="math inline">\(r_1\)</span> is <span class="math inline">\(0\)</span>. The spread is the measurement, not the series. <a href="#/sec-sampling" onclick="history.back(); return false;">Back</a></p>
+</div>
+<aside class="notes">
+<p>Off the flow, after the closing slide, reached by the link on the bounds slide. Back returns there.</p>
+<p>This is the one idea behind every square root of n in the course, so it is worth the sixty seconds. Two thousand series, every one of them white noise by construction, so the true lag-1 autocorrelation is exactly zero. Measure it on 441 months anyway and you get the histogram: almost never zero, usually within about a tenth of it.</p>
+<p>The dashed lines are the bound from the slide, and about 95% of the simulations land inside them. That is what the bound is: not a claim about this series, but the range luck alone produces when there is nothing there.</p>
+<p>So a spike inside the bound is not evidence of no correlation, and it is not evidence of correlation either. It is a spike you cannot tell apart from noise. Longer series, narrower bound, because the square root of T is in the denominator.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+
+
 </section></section>
     </div>
   <div class="quarto-auto-generated-content" style="display: none;">
