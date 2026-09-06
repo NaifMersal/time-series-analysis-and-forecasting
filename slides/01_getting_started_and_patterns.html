@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-03">
+  <meta name="dcterms.date" content="2026-09-06">
   <title>Getting Started &amp; Time Series Patterns</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -206,7 +206,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-03</p>
+  <p class="date">2026-09-06</p>
 </section>
 <section id="where-we-are-going" class="slide level2">
 <h2>Where we are going</h2>
@@ -411,7 +411,7 @@
 <ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1">
-<div id="bf77fbcb" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="76a72394" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -491,7 +491,7 @@
 <ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1">
-<div id="0b2a4616" class="cell" data-fig-width="9.5" data-execution_count="3">
+<div id="eb3547d3" class="cell" data-fig-width="9.5" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -589,7 +589,7 @@
 <ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1">
-<div id="1173d74c" class="cell" data-fig-width="9.5" data-execution_count="4">
+<div id="d8db5225" class="cell" data-fig-width="9.5" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -632,7 +632,7 @@
 <ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1">
-<div id="5690e250" class="cell" data-fig-width="10" data-execution_count="5">
+<div id="c52746eb" class="cell" data-fig-width="10" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -678,7 +678,7 @@
 <ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-5-1">
-<div id="2d4d054a" class="cell" data-fig-width="10" data-execution_count="6">
+<div id="3745e2f3" class="cell" data-fig-width="10" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -700,65 +700,13 @@
 <p>Differences in the horizontal means highlight the pure seasonal pattern.</p>
 </div>
 </section>
-<section id="strong-trend-obscures-raw-month-to-month-means" class="slide level2">
-<h2>Strong trend obscures raw month-to-month means</h2>
-<div class="panel-tabset">
-<ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-6-1">
-<div id="326429c0" class="cell" data-fig-width="10" data-execution_count="7">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-8-output-1.png" width="1046" height="386"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-6-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (D.spine(), 1982-2018):</span></span>
-<span id="cb6-2"><a></a><span class="co"># sp = D.add_calendar(spine)</span></span>
-<span id="cb6-3"><a></a>fig, axes <span class="op">=</span> P.subseries_plot(sp, <span class="st">"month"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>,</span>
-<span id="cb6-4"><a></a>                             season_labels<span class="op">=</span>P.MONTH_LABELS,</span>
-<span id="cb6-5"><a></a>                             title<span class="op">=</span><span class="st">"Spine turnover by month, 1982 to 2018"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</div>
-</div>
-<div class="callout callout-important callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>Trend Obscures Month-to-Month Means</strong></p>
-</div>
-<div class="callout-content">
-<p>When trend growth is this large (6x), seasonal differences appear tiny until trend is removed with <strong>decomposition</strong> (next deck).</p>
-</div>
-</div>
-</div>
-<aside class="notes">
-<p>Ask the room which month is highest here. Nobody can tell. Then flip back two slides to the seasonal plot, where December is obvious. Same data, different subtraction.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
 <section id="verify-timestamp-continuity-before-fitting-models" class="slide level2">
 <h2>Verify timestamp continuity before fitting models</h2>
-<div id="3c17cfed" class="cell" data-execution_count="8">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a></a>gaps <span class="op">=</span> spine[<span class="st">"ds"</span>].diff().dt.days</span>
-<span id="cb7-2"><a></a><span class="bu">print</span>(<span class="st">"Inferred frequency :"</span>, pd.infer_freq(spine[<span class="st">"ds"</span>]))</span>
-<span id="cb7-3"><a></a><span class="bu">print</span>(<span class="st">"Duplicate stamps   :"</span>, spine[<span class="st">"ds"</span>].duplicated().<span class="bu">sum</span>())</span>
-<span id="cb7-4"><a></a><span class="bu">print</span>(<span class="st">"Gaps &gt; 1 month     :"</span>, <span class="bu">int</span>((gaps <span class="op">&gt;</span> <span class="dv">32</span>).<span class="bu">sum</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="79014d62" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a>gaps <span class="op">=</span> spine[<span class="st">"ds"</span>].diff().dt.days</span>
+<span id="cb6-2"><a></a><span class="bu">print</span>(<span class="st">"Inferred frequency :"</span>, pd.infer_freq(spine[<span class="st">"ds"</span>]))</span>
+<span id="cb6-3"><a></a><span class="bu">print</span>(<span class="st">"Duplicate stamps   :"</span>, spine[<span class="st">"ds"</span>].duplicated().<span class="bu">sum</span>())</span>
+<span id="cb6-4"><a></a><span class="bu">print</span>(<span class="st">"Gaps &gt; 1 month     :"</span>, <span class="bu">int</span>((gaps <span class="op">&gt;</span> <span class="dv">32</span>).<span class="bu">sum</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Inferred frequency : MS
 Duplicate stamps   : 0

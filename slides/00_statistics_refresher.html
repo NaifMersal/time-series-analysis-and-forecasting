@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-03">
+  <meta name="dcterms.date" content="2026-09-06">
   <title>A Statistics Refresher</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,6 +31,72 @@
       margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
       vertical-align: middle;
     }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; font-weight: bold; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
   <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
@@ -140,19 +206,19 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-03</p>
+  <p class="date">2026-09-06</p>
 </section>
-<section id="the-course-assumes-five-ideas.-here-is-where-they-come-from" class="slide level2">
-<h2>The course assumes five ideas. Here is where they come from</h2>
+<section id="the-course-assumes-five-ideas.-this-deck-builds-them" class="slide level2">
+<h2>The course assumes five ideas. This deck builds them</h2>
 <div class="flowrow">
-<p><span class="flownode navy"><span class="flowtitle">A forecast is a range</span><span class="flownote">not a number</span></span> <span class="flownode teal"><span class="flowtitle">An 80% interval</span><span class="flownote">is a pair of cuts</span></span> <span class="flownode coral"><span class="flowtitle">i.i.d.</span><span class="flownote">and how each half breaks</span></span> <span class="flownode purple"><span class="flowtitle">A test of a claim</span><span class="flownote">24 lags become one number</span></span> <span class="flownode navy"><span class="flowtitle">The p-value</span><span class="flownote">1e-240 means not finished</span></span></p>
+<p><span class="flownode navy"><span class="flowtitle">Distribution</span><span class="flownote">shape, centre, width</span></span> <span class="flownode teal"><span class="flowtitle">Quantile</span><span class="flownote">a cut in a sorted list</span></span> <span class="flownode coral"><span class="flowtitle">i.i.d.</span><span class="flownote">two claims, two failures</span></span> <span class="flownode purple"><span class="flowtitle">Test</span><span class="flownote">ten checks, one number</span></span> <span class="flownode navy"><span class="flowtitle">p-value</span><span class="flownote">and its misreadings</span></span></p>
 </div>
 <div class="fragment">
 <div class="cardbox teal">
-<p>This deck is read alone. No slide depends on a speaker, so every one of the five lands the first time.</p>
+<p>This deck is read alone, and it assumes nothing about forecasting. Every picture on it is a measured human height, because a height needs no explaining.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. If taught in an expansion hour, take about forty-five minutes. The five nodes are the five segments; the pointer table at the end maps each back to the course slide that needs it. Do not restate the concepts here; the segments do that.</p>
+<p>Delivery mode only. If taught in an expansion hour, take about thirty minutes. The five nodes are the five segments; the pointer table at the end maps each back to the course slide that needs it. Do not restate the concepts here; the segments do that.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -167,36 +233,13 @@
 </div>
 </section>
 <section>
-<section id="a.-the-distribution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
-<h1>A. The distribution</h1>
-<p>The range, the random variable, the shape, and the cuts that make a band</p>
+<section id="a.-randomness-has-a-shape" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>A. Randomness has a shape</h1>
+<p>The random variable, the distribution, and the two numbers that summarize it</p>
 </section>
-<section id="a-point-forecast-is-one-number-and-the-future-is-not" class="slide level2">
-<h2>A point forecast is one number, and the future is not</h2>
-<p>A point forecast is a single centre, usually a mean or a median.</p>
-<div class="fragment">
-<p>The future value has not been observed yet. Until it is, it is still random, and one number cannot represent a range of plausible outcomes.</p>
-<div class="cardbox coral">
-<p>A forecast without a range is half an answer. The range is the forecast; the point is one summary of it.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The course moment this unlocks: a forecast is a range, not a number (deck 3, segment C). The next slide names the object that holds the range.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="before-it-is-observed-the-future-is-a-random-variable" class="slide level2">
-<h2>Before it is observed, the future is a random variable</h2>
-<p>Capital <span class="math inline">\(Y\)</span> marks a value not yet observed; lowercase <span class="math inline">\(y\)</span> is what it turns out to be.</p>
+<section id="before-it-is-measured-a-value-is-a-random-variable" class="slide level2">
+<h2>Before it is measured, a value is a random variable</h2>
+<p>Capital <span class="math inline">\(Y\)</span> marks a value not yet known; lowercase <span class="math inline">\(y\)</span> is what it turns out to be.</p>
 <table class="caption-top">
 <thead>
 <tr class="header">
@@ -206,24 +249,20 @@
 </thead>
 <tbody>
 <tr class="odd">
-<td><span class="math inline">\(Y_{T+h}\)</span></td>
-<td>the future value, still random</td>
+<td><span class="math inline">\(Y\)</span></td>
+<td>the height of the next person you measure: still random</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\(y_{T+h}\)</span></td>
-<td>the same value, once observed</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(\hat{y}_{T+h}\)</span></td>
-<td>the point forecast, one number</td>
+<td><span class="math inline">\(y\)</span></td>
+<td>the same height, once measured: a number</td>
 </tr>
 </tbody>
 </table>
 <div class="cardbox teal">
-<p>A random variable is the whole set of values <span class="math inline">\(Y\)</span> could take, before it is seen. The point forecast is one number chosen from that set.</p>
+<p>A random variable is the whole set of values <span class="math inline">\(Y\)</span> could take, before it is seen. Statistics is the study of that set.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The capital/lowercase distinction is the one that trips people later, so give it a sentence. The point forecast is a summary of the random variable, not the random variable itself.</p>
+<p>Delivery mode only. The capital and lowercase distinction is the one that trips people later, so give it a sentence. The next slide names the sample every picture in this deck is drawn on.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -236,22 +275,21 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-distribution-is-the-shape-of-that-randomness" class="slide level2">
-<h2>The distribution is the shape of that randomness</h2>
-<div id="36e17317" class="cell" data-fig-width="9" data-execution_count="2">
+<section id="every-picture-here-is-drawn-on-the-same-799-heights" class="slide level2">
+<h2>Every picture here is drawn on the same 799 heights</h2>
+<div id="91d39f82" class="cell" data-fig-width="9" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-3-output-1.png" width="980" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-3-output-1.png" width="978" height="307"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cardbox teal">
-<p>A distribution is the full set of plausible values, not one. Its picture is a histogram of many draws.</p>
-</div>
+<p>The 799 men of a national health survey, each one measured standing against a board rather than asked. Before it is anything else it is a pile of 799 numbers, and every idea here is a question asked of them.</p>
+<p><span style="font-size:0.62em">NHANES I Epidemiologic Follow-up Study · <a href="#/sec-data">where these numbers come from</a></span></p>
 <aside class="notes">
-<p>Delivery mode only. The histogram is the distribution made visible. The point forecast sits somewhere inside it; the band spans most of it. The next slide shows the shape is stable across many simulations.</p>
+<p>Delivery mode only. The survey is the NHANES follow-up study, and the heights are measured to a fraction of a centimetre. That matters more than it sounds: a sample rounded to the inch piles onto a lattice, and segment D’s test then rejects it on the rounding alone. One sample, five questions: what shape, cut where, one population or two, and what a test of the claim says.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -264,22 +302,22 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-same-recipe-gives-5000-futures-and-they-share-one-shape" class="slide level2">
-<h2>The same recipe gives 5,000 futures, and they share one shape</h2>
-<div id="1dd3737d" class="cell" data-fig-width="10" data-execution_count="3">
+<section id="a-distribution-is-the-shape-of-the-whole-set-of-values" class="slide level2">
+<h2>A distribution is the shape of the whole set of values</h2>
+<div id="f6f1c2ba" class="cell" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-4-output-1.png" width="1048" height="340"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-4-output-1.png" width="979" height="362"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
-<p>Repeated simulation gives a stable shape. That shape is the distribution, and it does not depend on which 8 paths you happened to look at.</p>
+<p>A distribution is the full set of plausible values and how often each occurs. Its picture is a histogram; the mean is one number inside it.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The left panel is 8 paths; the right is all 5000 cut at the quantiles. The shape is the same in both, which is the point: the distribution is a property of the recipe, not of one draw.</p>
+<p>Delivery mode only. Same numbers as the previous slide, the pile tipped into bins. The histogram is the distribution made visible. The next slide puts two numbers on it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -292,22 +330,32 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-shape-is-the-forecast-the-line-is-just-its-centre" class="slide level2">
-<h2>The shape is the forecast, the line is just its centre</h2>
-<div id="0577a3ff" class="cell" data-fig-width="10" data-execution_count="4">
+<section id="the-mean-is-the-centre-the-sd-is-the-width" class="slide level2">
+<h2>The mean is the centre, the SD is the width</h2>
+<div id="872489f3" class="cell" data-fig-width="9.5" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-5-output-1.png" width="1112" height="496"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-5-output-1.png" width="1034" height="296"></p>
 </figure>
 </div>
 </div>
 </div>
+<div class="columns">
+<div class="column" style="width:40%;">
+<div style="font-size:0.72em">
+<p><span class="math display">\[\bar{y} = \frac{1}{n}\sum_{i=1}^{n} y_i\]</span></p>
+</div>
+</div><div class="column" style="width:60%;">
+<div class="fragment" style="font-size:0.72em">
+<p><span class="math display">\[s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(y_i - \bar{y})^2}\]</span></p>
+</div>
+</div></div>
 <div class="cardbox teal">
-<p>The band is the forecast. The line down the middle is just its most likely value.</p>
+<p><span class="math inline">\(\bar{y}\)</span> is 175.3 cm, the centre of the pile; <span class="math inline">\(s\)</span> is 6.9 cm, the typical distance from it. <span class="math inline">\(s^2\)</span> is the <strong>variance</strong>: that width squared, and the form that adds up on Day 1.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. This is the segment’s payoff. The band is the object the course scores; the point is one summary. The next segment asks how to cut the band from the distribution.</p>
+<p>Delivery mode only. Read the picture before the formulas: the SD is a width, and the shaded bands and the shares they cover are what makes it one. Then the formulas, left to right in words, because the course writes both, and the mean before the SD because the SD is built out of it. The bar means averaged and the hat, two segments from now, means estimated. If anyone asks why the SD divides by n-1 rather than n: the deviations are measured from the sample’s own mean rather than the true one, so they come out slightly too small, and the smaller divisor puts that back. Worth saying that a tall person is not an error, they are the tail of the shape. Say the variance out loud even though nothing here uses it: on Day 1 independent errors add variances rather than SDs, and that is where the square comes back. The next slide is the curve those two numbers pin exactly.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -319,28 +367,117 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
+</section>
+<section id="the-bell-curve-is-those-two-numbers-and-nothing-else" class="slide level2">
+<h2>The bell curve is those two numbers and nothing else</h2>
+<div id="e54c06c7" class="cell" data-fig-width="9" data-execution_count="5">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-6-output-1.png" width="989" height="186"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><span class="math display">\[Y \sim N(\mu,\ \sigma^2)\]</span></p>
+<p>Read <span class="math inline">\(\sim\)</span> as <strong>is distributed as</strong>: <span class="math inline">\(\mu\)</span> the centre, <span class="math inline">\(\sigma\)</span> the width.</p>
+<ul>
+<li class="fragment">A bell puts 68% of its values inside one SD, and 95% inside two</li>
+<li class="fragment">These men put 68% and 96% there: close, and measured</li>
+</ul>
+<div class="cardbox teal">
+<p>Two numbers, one whole shape. Those 68% and 95% are shares of it, and a share of a shape has a name of its own.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The gap between the histogram and the curve is the price of the assumption, and it is visible here rather than asserted. Segment D comes back and tests this claim properly. The one line of notation is the line every model in the course is written in, so read it out: Y is distributed as a normal with centre mu and width sigma. Greek because the pair describes the bell rather than any sample, which is the distinction segment D sharpens. The squared sigma inside the bracket is the variance from the last slide, and the bracket is where the course always puts it. The next slide names the shares it just quoted.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="a-probability-is-a-share-of-the-whole-pile" class="slide level2">
+<h2>A probability is a share of the whole pile</h2>
+<p><span class="math inline">\(P(\text{something})\)</span> is the share of the pile where that something is true, a number between 0 and 1.</p>
+<div data-tbl-colwidths="[34,48,18]">
+<table class="caption-top">
+<colgroup>
+<col style="width: 34%">
+<col style="width: 48%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Notation</th>
+<th>In words</th>
+<th>Here</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(P(Y \le 180)\)</span></td>
+<td>the next man measures 180 cm or less</td>
+<td>0.76</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(P(Y &gt; 180)\)</span></td>
+<td>he measures more</td>
+<td>0.24</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(P(\lvert Y - \bar{y} \rvert \le s)\)</span></td>
+<td>he lands within one SD of the centre</td>
+<td>0.68</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="fragment">
+<div class="cardbox coral">
+<p>Capital <span class="math inline">\(Y\)</span> is doing the work it was introduced for: a probability is a question about the value <em>before</em> it is measured. What people usually quote about a height is the other direction, a cut.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. Nothing here is new arithmetic, it is a name and a bracket for shares the last two slides already read off the picture: the third row is that same 68%, counted off these men. Say that the two rows either side of 180 cm sum to 1, because a probability is a share of one whole pile. This slide exists because segment E argues about this notation, and the misreadings there are about what is inside the bracket. The next segment stops summarizing the shape and starts cutting it.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
 </section></section>
 <section>
 <section id="b.-cutting-a-distribution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
 <h1>B. Cutting a distribution</h1>
-<p>The quantile, the percentile, and why an 80% interval is a pair of cuts</p>
+<p>The median, the quantile, the percentile, and what an 80% range is</p>
 </section>
 <section id="the-median-is-the-cut-that-leaves-half-on-each-side" class="slide level2">
 <h2>The median is the cut that leaves half on each side</h2>
-<div id="0cb83c2c" class="cell" data-fig-width="9.5" data-execution_count="5">
+<div id="2cfadc50" class="cell" data-fig-width="9.5" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-6-output-1.png" width="1035" height="296"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-7-output-1.png" width="1035" height="393"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
-<p>The median is a position in a sorted list, not a formula. Sort the values; the median is the one with half below and half above.</p>
+<p>The median is a position in a sorted list, not a formula. Sort the 799 heights; the median is number 400, at 175 cm, with half the people below and half above.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. Start from the median because the room already owns it. The next slide changes one number and the median becomes a general quantile.</p>
+<p>Delivery mode only. Start from the median because the room already owns it. Left panel is the sorted list, right panel the same numbers as a histogram. The next slide changes one number and the median becomes a general quantile.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -355,25 +492,25 @@
 </section>
 <section id="a-quantile-is-the-same-cut-with-a-knob" class="slide level2">
 <h2>A quantile is the same cut, with a knob</h2>
-<div id="45e68bdc" class="cell" data-fig-width="9.5" data-execution_count="6">
+<div id="1d996128" class="cell" data-fig-width="9.5" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-7-output-1.png" width="1035" height="296"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-8-output-1.png" width="1035" height="283"></p>
 </figure>
 </div>
 </div>
 </div>
 <ul>
-<li class="fragment">The <span class="math inline">\(0.5\)</span> quantile is the median: position <span class="math inline">\(0.5n\)</span></li>
-<li class="fragment">The <span class="math inline">\(0.9\)</span> quantile is position <span class="math inline">\(0.9n\)</span>: 90% of the values sit below it</li>
-<li class="fragment">The <span class="math inline">\(0.1\)</span> quantile is position <span class="math inline">\(0.1n\)</span>: 10% sit below it</li>
+<li class="fragment">The <span class="math inline">\(0.5\)</span> quantile is the median: position 400 of 799</li>
+<li class="fragment">The <span class="math inline">\(0.9\)</span> quantile is position 719, the height 184 cm</li>
+<li class="fragment">The <span class="math inline">\(0.1\)</span> quantile is position 80, the height 167 cm</li>
 </ul>
 <div class="cardbox teal">
-<p>One rule, one number. A quantile is a position in a sorted list, and the number is the knob.</p>
+<p>One rule, one number. A quantile is a position in a sorted list, and the number on the front is the knob.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The median is the 0.5 quantile; every other quantile is the same sorted list read at a different position. Say “half the list”, not “half the range”, because on skewed data the midpoint of the range is nowhere near the median.</p>
+<p>Delivery mode only. Same picture as the previous slide with the pair of cuts added, so the knob is the only thing that changed. Say “half the list”, not “half the range”: on a skewed sample the midpoint of the range is nowhere near the median.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -386,22 +523,25 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="an-80-interval-is-a-pair-of-cuts" class="slide level2">
-<h2>An 80% interval is a pair of cuts</h2>
-<div id="016b01d4" class="cell" data-fig-width="9.5" data-execution_count="7">
+<section id="an-80-range-is-a-pair-of-cuts" class="slide level2">
+<h2>An 80% range is a pair of cuts</h2>
+<p>An 80% range leaves 10% of the people in each tail, so its two ends are the <span class="math inline">\(0.1\)</span> and <span class="math inline">\(0.9\)</span> quantiles: 167 cm and 184 cm here.</p>
+<div class="fragment">
+<p>A 95% range leaves 2.5% in each tail, so its ends are the <span class="math inline">\(0.025\)</span> and <span class="math inline">\(0.975\)</span> quantiles, 161 cm and 188 cm. Same rule, different knob.</p>
+<div id="2d6d775f" class="cell" data-fig-width="9.5" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-8-output-1.png" width="1035" height="296"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-9-output-1.png" width="1035" height="272"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
-<p>The 80% interval is the span between the <span class="math inline">\(0.1\)</span> and <span class="math inline">\(0.9\)</span> quantiles. Two cuts, one band.</p>
+<p>Every interval the course later puts around a forecast is a pair of cuts like these. Nothing else changes between an 80% one and a 95% one.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The 80% interval leaves 10% in each tail, so its bounds are the 0.1 and 0.9 quantiles. The 95% interval leaves 2.5% in each tail, so its bounds are the 0.025 and 0.975 quantiles. Same rule, different knob.</p>
+<p>Delivery mode only. This is the slide deck 3’s interval segment and deck 4’s CRPS both assume. Worth saying out loud that the two cuts need not be symmetric around the mean, and on a skewed sample they are not.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -413,66 +553,18 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</section>
-<section id="crps-integrates-a-ladder-of-cuts" class="slide level2">
-<h2>CRPS integrates a ladder of cuts</h2>
-<div id="ce8ed68d" class="cell" data-fig-width="8.5" data-execution_count="8">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-9-output-1.png" width="947" height="342"></p>
-</figure>
 </div>
-</div>
-</div>
-<div class="cardbox teal">
-<p>CRPS scores the whole distribution by integrating the quantile loss over a ladder of cuts. Each cut is priced by its own slope.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The course moment this unlocks: CRPS integrates a ladder of quantiles. The pinball loss is the price of one cut; CRPS is the integral of that price over the whole ladder. The next slide names the percentile, which is the same cut read as a share.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
 </section>
 <section id="a-percentile-is-the-same-cut-read-as-a-share" class="slide level2">
 <h2>A percentile is the same cut, read as a share</h2>
-<p>The 90th percentile is the value below which 90% of the data fall.</p>
+<p>The 90th percentile is the height below which 90% of the people fall. The <span class="math inline">\(0.9\)</span> quantile and the 90th percentile are the same number, 184 cm.</p>
 <div class="fragment">
-<p>A quantile is a position in a sorted list. A percentile is the same position, read as a share of the data. The <span class="math inline">\(0.9\)</span> quantile and the 90th percentile are the same number.</p>
-<div class="cardbox teal">
-<p>Quantile: a position. Percentile: the same position, read as a share. One object, two names.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The distinction is naming, not substance. The course uses “quantile” for the position and “percentile” for the share; they are the same cut. The next slide names the gap this segment opens.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="quantiles-describe-one-distribution" class="slide level2">
-<h2>Quantiles describe one distribution</h2>
-<p>A quantile is a position in one sorted list. It says nothing about where the next value comes from.</p>
+<p>A quantile is a position in one sorted list. It says nothing about where the <em>next</em> value comes from.</p>
 <div class="cardbox coral">
-<p>The distribution tells you the shape of one draw. It does not tell you whether the next draw comes from the same shape.</p>
+<p>A distribution tells you the shape of one sample. It does not tell you whether the next value is drawn from that same shape, or whether the sample was collected in a way that lets you ask.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. This is the gap the segment opens. A quantile is a property of one distribution; it says nothing about whether the future error comes from the same distribution as the past ones. That is the i.i.d. assumption, and it is the next segment.</p>
+<p>Delivery mode only. Quantile and percentile are one object with two names, so do not spend time on the distinction. The second half of the slide is the gap: every method in the course that reuses past values assumes the next one is drawn from the same distribution, and that assumption has a name.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -484,50 +576,28 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</section>
-<section id="to-build-a-band-from-past-errors-they-must-be-exchangeable" class="slide level2">
-<h2>To build a band from past errors, they must be exchangeable</h2>
-<p>The bootstrap and conformal both assume the past errors stand in for the future ones.</p>
-<div class="flowrow">
-<p><span class="flownode navy"><span class="flowtitle">Past errors</span><span class="flownote">the pool</span></span> <span class="flownode teal"><span class="flowtitle">Draw from the pool</span><span class="flownote">with replacement</span></span> <span class="flownode purple"><span class="flowtitle">Simulate forward</span><span class="flownote">one path at a time</span></span> <span class="flownode navy"><span class="flowtitle">Cut the quantiles</span><span class="flownote">the band</span></span></p>
 </div>
-<div class="cardbox coral">
-<p>The assumption doing the work: the past errors are exchangeable with the future ones. That is i.i.d., and it is the next segment.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The flowrow is the bootstrap in four steps. The assumption is exchangeability: shuffle the past errors and the future error is still comparable. That is i.i.d., and the next segment takes it apart.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
 </section></section>
 <section>
 <section id="c.-i.i.d." class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
 <h1>C. i.i.d.</h1>
-<p>Independent, then identically distributed, then each one breaking on the spine</p>
+<p>Independent, then identically distributed, then each one breaking on this survey</p>
 </section>
 <section id="i.i.d.-is-two-claims-and-they-fail-differently" class="slide level2">
 <h2>i.i.d. is two claims, and they fail differently</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <p><strong>Independent</strong></p>
-<p>The last error tells you nothing about the next.</p>
+<p>Each value tells you nothing about the next one.</p>
 </div><div class="column" style="width:50%;">
 <p><strong>Identically distributed</strong></p>
-<p>One spread for every era, 1982 to 2018.</p>
+<p>Every value in the sample comes from the same distribution.</p>
 </div></div>
 <div class="cardbox coral">
-<p>They are separate claims, and each breaks its own way. Independence fails through autocorrelation. Identical distribution fails through a changing variance regime.</p>
+<p>They are separate claims, and each breaks its own way. One careless survey breaks the first. A different careless survey breaks the second.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The two claims are the whole segment. The next two slides take independence apart; the two after that take identical distribution apart. Do not conflate them; the 61% story lives in the second.</p>
+<p>Delivery mode only. The two claims are the whole segment. The next two slides take independence apart; the two after that take identical distribution apart. Do not conflate them: the deck’s whole i.i.d. story is that a sample can satisfy one and fail the other.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -540,22 +610,24 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="independent-means-the-last-one-tells-you-nothing" class="slide level2">
-<h2>Independent means the last one tells you nothing</h2>
-<div id="c5dcfb12" class="cell" data-fig-width="9" data-execution_count="9">
+<section id="independent-means-one-says-nothing-about-the-other" class="slide level2">
+<h2>Independent means one says nothing about the other</h2>
+<div id="93a608a8" class="cell" data-fig-width="9" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-10-output-1.png" width="979" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-10-output-1.png" width="980" height="318"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
-<p>If <span class="math inline">\(e_t\)</span> and <span class="math inline">\(e_{t-1}\)</span> are independent, the scatter of one against the other has no shape. Knowing the last error says nothing about the next.</p>
+<p>Take 605 pairs of men from different families and plot each pair. If the two are independent the cloud has no tilt, and the correlation sits at -0.02 on a scale running from <span class="math inline">\(-1\)</span> to <span class="math inline">\(+1\)</span>.</p>
 </div>
+<div class="fragment">
+<p>Now pair each man with his own brother instead. What happens to the cloud?</p>
 <aside class="notes">
-<p>Delivery mode only. The scatter is the definition made visible. White noise has no shape, which is what independence looks like. The next slide shows the naive’s residuals do have structure, which is the failure.</p>
+<p>Delivery mode only. These are real men out of Galton’s 1886 study, paired at random across families. The scatter is the definition made visible, and the clean case is seen before the broken one. The next slide keeps the same men and the same number of pairs, and changes only who is paired with whom.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -567,27 +639,29 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
+</div>
 </section>
-<section id="the-naives-errors-still-know-what-month-it-is" class="slide level2">
-<h2>The naive’s errors still know what month it is</h2>
-<div id="535e3e4b" class="cell" data-fig-width="9" data-execution_count="10">
+<section id="pair-each-man-with-his-own-brother-instead" class="slide level2">
+<h2>Pair each man with his own brother instead</h2>
+<div id="399db77c" class="cell" data-fig-width="9" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-11-output-1.png" width="1002" height="287"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-11-output-1.png" width="980" height="285"></p>
 </figure>
 </div>
 </div>
 </div>
 <ul>
-<li class="fragment">Lags 12 and 24 (orange) stand at 0.68 and 0.58, against a bound of 0.096</li>
-<li class="fragment">The errors are not independent: the season is still in them</li>
+<li class="fragment">The same 605 pairs, now correlating at +0.39</li>
+<li class="fragment">Read one brother’s height and you can guess the other’s</li>
 </ul>
 <div class="cardbox coral">
-<p>Independence fails through autocorrelation. The naive’s residuals still know what month it is.</p>
+<p>Independence fails when one value carries information about another. Same men, same histogram, different pairing.</p>
 </div>
+<p><span style="font-size:0.62em">Galton (1886), 934 children in 205 families · <a href="#/sec-data">where these numbers come from</a></span></p>
 <aside class="notes">
-<p>Delivery mode only. The orange spikes at 12 and 24 are the failure. The seasonal pattern went through the model and came out untouched. This is the first half of i.i.d. breaking. The next two slides take the second half apart.</p>
+<p>Delivery mode only. The tilt is the failure, and the last sentence is the part that matters: a broken independence claim is invisible in a histogram, which is why it needs its own picture. This is Galton’s own finding, and the deck is using it for the reason he collected it. On Day 1 the pair stops being two brothers and becomes this month and last month. The next two slides take the second half of i.i.d. apart.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -600,22 +674,24 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="identically-distributed-means-one-spread-for-every-era" class="slide level2">
-<h2>Identically distributed means one spread for every era</h2>
-<div id="7450b96a" class="cell" data-fig-width="9" data-execution_count="11">
+<section id="identically-distributed-means-one-shape-throughout" class="slide level2">
+<h2>Identically distributed means one shape throughout</h2>
+<div id="0728a753" class="cell" data-fig-width="9.5" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-12-output-1.png" width="980" height="296"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-12-output-1.png" width="1035" height="318"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
-<p>If the spread is the same in 1985 and 2015, one pool stands for both. That is identically distributed: one <span class="math inline">\(\sigma\)</span> for the whole series.</p>
+<p>Split the men in two and look at each half. If both sit at the same level with the same spread, one distribution stands for all of them, and the histogram has one hump.</p>
 </div>
+<div class="fragment">
+<p>Now split the survey by something that is not arbitrary.</p>
 <aside class="notes">
-<p>Delivery mode only. The rolling SD is the definition made visible. If it is flat, the spread is constant and one pool is honest. The next slide shows it is not flat on this series.</p>
+<p>Delivery mode only. Two panels, one claim: the boxes are level, so a single mean and a single SD are honest for the whole sample. The split is arbitrary on purpose, because any split of one population gives this picture. The next slide is the same figure on a sample that holds two.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -627,118 +703,25 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
+</div>
 </section>
-<section id="the-spread-tripled-so-the-pool-mixes-two-series" class="slide level2">
-<h2>The spread tripled, so the pool mixes two series</h2>
-<div id="1424909d" class="cell" data-fig-width="9.5" data-execution_count="12">
+<section id="one-survey-two-populations-and-one-bell-for-both" class="slide level2">
+<h2>One survey, two populations, and one bell for both</h2>
+<div id="9d7a163f" class="cell" data-fig-width="9.5" data-execution_count="12">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-13-output-1.png" width="1057" height="342"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-13-output-1.png" width="1035" height="296"></p>
 </figure>
 </div>
 </div>
 </div>
-<ul>
-<li class="fragment">The residual SD went 8.5 to 26.2: <strong>3x</strong> as tall</li>
-<li class="fragment">A pooled pool is too tight for recent data: it draws 1980s-sized errors into a 2019 forecast</li>
-</ul>
+<p>The same survey also measured 830 women. Two overlapping populations, and a pooled SD of 9.1 cm against 6.9 and 5.8 inside the groups.</p>
 <div class="cardbox coral">
-<p>Identical distribution fails through a changing variance regime. The pool mixes two series.</p>
+<p>Identical distribution fails when one sample holds two populations. Its pooled 80% range, 157 to 181 cm, is right for nobody.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The two boxes are the finding. The left is the 1980s spread; the right is the 2010s spread, three times taller. A pool mixing the two is too tight for recent data. The next slide shows what that does to coverage.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="pool-1982-with-2018-and-coverage-falls-to-61" class="slide level2">
-<h2>Pool 1982 with 2018 and coverage falls to 61%</h2>
-<div id="19475bdd" class="cell" data-fig-width="8" data-execution_count="13">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-14-output-1.png" width="892" height="298"></p>
-</figure>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Full pool: the 80% band covers <strong>61%</strong> across 8 folds</li>
-<li class="fragment">Recent pool: the same band covers <strong>89%</strong></li>
-<li class="fragment">A pool that mixes two spreads is too tight for the recent one</li>
-</ul>
-<div class="cardbox coral">
-<p>The pooled pool under-covers because it is too tight. It draws 1980s-sized errors into a 2019 forecast.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The 61% is the i.i.d. assumption being punished, measured the way Day 2 measures it: 8 rolling folds. The next slide shows the mechanism on a single window.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-mechanism-on-one-window-the-band-is-too-tight" class="slide level2">
-<h2>The mechanism, on one window: the band is too tight</h2>
-<div id="0e679fdc" class="cell" data-fig-width="10" data-execution_count="14">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-15-output-1.png" width="1088" height="307"></p>
-</figure>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Full pool: 80% band covers <strong>88%</strong> of this holdout</li>
-<li class="fragment">Recent pool: the same band covers <strong>100%</strong></li>
-<li class="fragment">One window is noisy; the 8-fold number is the honest one</li>
-</ul>
-<aside class="notes">
-<p>Delivery mode only. The left band is the pooled one and it is too tight, so it misses more. The right band is sized to the recent spread. The single window flatters the full pool here; the 8-fold number does not.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="draw-from-recent-errors-only-and-it-recovers-to-89" class="slide level2">
-<h2>Draw from recent errors only and it recovers to 89%</h2>
-<div id="63c55714" class="cell" data-fig-width="10" data-execution_count="15">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-16-output-1.png" width="1112" height="386"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cardbox teal">
-<p>Restricting the pool to the last 120 residuals restores coverage. The band is wider, and wider is the honest answer here.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The fix is the knob: resid_tail. The band widens because it is now sized to the recent spread, not the pooled one. Coverage recovers because the pool is no longer too tight.</p>
+<p>Delivery mode only. Nothing is wrong with either group; what is wrong is one bell standing for both. This is the failure the course pays for later: on Day 2 a band built from every error a model ever made is meant to cover 80% and covers 61%, for exactly this reason. A subtler real version sits in the same file, since these men lose height with age, from 176 cm in their late twenties to 172 in their late sixties. Both failures in this segment were read off a picture, and the next segment is what to do when eyeballing is not enough.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -756,24 +739,57 @@
 <h1>D. Testing a claim</h1>
 <p>H0 and H1, the test statistic, the null distribution, alpha, the decision</p>
 </section>
-<section id="twenty-four-lag-checks-by-eye-become-one-number" class="slide level2">
-<h2>Twenty-four lag checks by eye become one number</h2>
-<p>Reading 24 ACF bars by eye is unreliable. A test pools them into one number.</p>
-<div class="callout callout-important callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>The course moment</strong></p>
-</div>
-<div class="callout-content">
-<p>Day 2’s Ljung-Box slide states H0, the statistic, the chi-squared reference distribution and the decision rule on one slide. This segment builds that slide, one piece at a time.</p>
-</div>
-</div>
+<section id="a-claim-worth-checking-before-we-check-it" class="slide level2">
+<h2>A claim worth checking, before we check it</h2>
+<p>Suppose these men come from a bell centred on 175 cm with a standard deviation of 7 cm.</p>
+<div class="fragment">
+<p>That 175 is a <strong>parameter</strong>, a fact about every man alive that nobody will ever measure. The 175.3 cm these 799 came out at is a <strong>statistic</strong>.</p>
+<div class="cardbox teal">
+<p>Eyeballing one against the other cannot say whether the gap between them is real or luck. The rest of this segment is how you ask properly.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The course moment this unlocks: 24 lag checks by eye become one number (deck 3, segment B). The next slide names the claim the test makes.</p>
+<p>Delivery mode only. The course moment this unlocks: 24 lag checks by eye become one number (deck 3, segment B). Here it is ten slices instead of 24 lags, and the machinery is the same. Say out loud that the two numbers are stated before the data is looked at rather than fitted to it, because that is what keeps the degrees of freedom at nine three slides from now. The next slide is the alphabet that distinction is written in.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="greek-is-what-you-cannot-measure-latin-is-what-you-counted" class="slide level2">
+<h2>Greek is what you cannot measure, Latin is what you counted</h2>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th></th>
+<th>parameter, in Greek</th>
+<th>statistic, in Latin</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>centre</td>
+<td><span class="math inline">\(\mu\)</span> = 175 cm, claimed</td>
+<td><span class="math inline">\(\bar{y}\)</span> = 175.3 cm, measured</td>
+</tr>
+<tr class="even">
+<td>width</td>
+<td><span class="math inline">\(\sigma\)</span> = 7 cm, claimed</td>
+<td><span class="math inline">\(s\)</span> = 6.9 cm, measured</td>
+</tr>
+</tbody>
+</table>
+<div class="cardbox teal">
+<p>A <strong>hat</strong> marks a parameter that was estimated from data rather than known: <span class="math inline">\(\hat{\sigma}\)</span> is a guess at <span class="math inline">\(\sigma\)</span>, so it is a statistic like any other. Day 1 puts a hat on almost everything.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The alphabet rule the whole course runs on, and it takes fifteen seconds: Greek for what you can never measure, Latin for what you counted. The hat is the part that pays off soonest, because on Day 1 sigma-hat is the width of the residuals and every interval in the course is built from it. The next slide turns the claim into something countable.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -786,21 +802,78 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-claim-is-that-the-residuals-are-white-noise" class="slide level2">
-<h2>The claim is that the residuals are white noise</h2>
+<section id="the-claim-is-a-prediction-you-can-count" class="slide level2">
+<h2>The claim is a prediction you can count</h2>
+<div id="0a605d1c" class="cell" data-fig-width="9" data-execution_count="13">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-14-output-1.png" width="981" height="373"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cardbox teal">
+<p>Cut the claimed bell into 10 slices that each hold the same share. The cuts are quantiles, from the last segment, and the claim now predicts a count: about 80 men per slice.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. Equal shares are the whole trick: every slice expects the same count, so the reader compares ten numbers against one number instead of against a table. The outer slices are wide and short because what is equal between slices is area, not width. The next slide counts the sample into them.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="every-slice-is-a-separate-check-the-claim-has-to-pass" class="slide level2">
+<h2>Every slice is a separate check the claim has to pass</h2>
+<div id="c177c047" class="cell" data-fig-width="9" data-execution_count="14">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-15-output-1.png" width="980" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>If the claim is right, each slice should hold about 80 of the 799 men. The orange blocks are the gaps, and no single one of them looks alarming.</p>
+<div class="cardbox coral">
+<p>Ten separate checks, and with ten chances one gap looks large by luck alone reasonably often. Judging them one at a time is how you talk yourself into anything.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The multiple-comparisons point is why a test exists at all, so do not skip it. Ten bars on the screen is what makes pooling them into one number feel necessary rather than arbitrary. The next slide names the claim formally.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="name-the-claim-and-then-its-opposite" class="slide level2">
+<h2>Name the claim, and then its opposite</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <p><strong><span class="math inline">\(H_0\)</span>: the null</strong></p>
-<p>The first 24 residual autocorrelations are all zero.</p>
+<p>The men come from the claimed bell, so every slice holds about 80 of them.</p>
 </div><div class="column" style="width:50%;">
 <p><strong><span class="math inline">\(H_1\)</span>: the alternative</strong></p>
-<p>At least one of them is not zero.</p>
+<p>They do not. At least one slice is off by more than luck explains.</p>
 </div></div>
 <div class="cardbox teal">
-<p>The null is white noise: no autocorrelation at any lag. The alternative is that some lag still has structure in it.</p>
+<p>The null is the boring version of the world, because that is the one a single number can be measured against.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The null is the claim the test checks. White noise means the residuals are uncorrelated, which is what a finished model leaves behind. The next slide names the statistic that pools the lags.</p>
+<p>Delivery mode only. Note the asymmetry as you read the columns: the test can reject the null and can fail to reject it, but it cannot confirm it, which is the fence at the end of segment E. The next slide builds the number the two columns get decided by.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -813,15 +886,62 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-test-statistic-pools-the-squared-lags" class="slide level2">
-<h2>The test statistic pools the squared lags</h2>
-<p><span class="math display">\[Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}\]</span></p>
-<p><span class="math inline">\(r_k\)</span>: the lag-<span class="math inline">\(k\)</span> autocorrelation · <span class="math inline">\(T\)</span>: the number of residuals · <span class="math inline">\(\ell\)</span>: the number of lags tested, 24 here</p>
+<section id="the-ten-gaps-pool-into-one-number" class="slide level2">
+<h2>The ten gaps pool into one number</h2>
+<div class="columns">
+<div class="column" style="width:30%;">
+<div class="fragment">
+<p><span style="font-size:0.7em">one slice’s gap</span></p>
+<p><span class="math display">\[O_i - E_i\]</span></p>
+</div>
+</div><div class="column" style="width:32%;">
+<div class="fragment">
+<p><span style="font-size:0.7em">short and long both count</span></p>
+<p><span class="math display">\[(O_i - E_i)^2\]</span></p>
+</div>
+</div><div class="column" style="width:38%;">
+<div class="fragment">
+<p><span style="font-size:0.7em">scaled by what was expected</span></p>
+<p><span class="math display">\[\frac{(O_i - E_i)^2}{E_i}\]</span></p>
+</div>
+</div></div>
+<div class="fragment">
+<p><span class="math display">\[Q = \sum_{i=1}^{k}\frac{(O_i - E_i)^2}{E_i}\]</span></p>
 <div class="cardbox teal">
-<p><span class="math inline">\(Q\)</span> sums the squared autocorrelations, weighted by <span class="math inline">\(T\)</span>. One number, pooled from 24 lags.</p>
+<p><span class="math inline">\(Q\)</span> is the orange blocks from the last slide, squared, scaled and added over all 10 slices. Ten checks in, one number out. If the claim is true, what should it come out at?</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The statistic is the pooling made explicit. Each lag’s squared autocorrelation is weighted by <span class="math inline">\(T\)</span> and summed. The next slide names the shape <span class="math inline">\(Q\)</span> has if the null is true.</p>
+<p>Delivery mode only. Build it one step at a time and read each step out: the gap in a slice, squared so a short slice and a long slice both add to it, then divided by E so a gap of ten counts for less where more people were expected. O is the men counted in slice i, E is the 80 the claim predicts, k is the 10 slices. Nothing new arrives here, it is the orange blocks from the last slide with the arithmetic named. Worth saying that Q grows with the number of people measured, because segment E’s last slide is built on exactly that. Take the closing question seriously before advancing: most rooms answer zero.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</div>
+</section>
+<section id="simulate-the-claim-being-true-and-q-still-wobbles" class="slide level2">
+<h2>Simulate the claim being true and Q still wobbles</h2>
+<div id="288baebc" class="cell" data-fig-width="9" data-execution_count="15">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-16-output-1.png" width="981" height="318"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Invent 20,000 surveys of 799 men drawn from the claimed bell, so the claim is true by construction. Every one of them still lands its slices a little off, so every one of them still has a <span class="math inline">\(Q\)</span>.</p>
+<div class="cardbox teal">
+<p><span class="math inline">\(Q\)</span> is never zero, even when nothing is wrong. It averages 9.0. What the men’s <span class="math inline">\(Q\)</span> has to be compared against is this whole pile, not zero.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. The key idea, and the one people skip: under a true null Q is still a random variable. This is the slide that earns the next one, so do not rush it. Nothing about the real men has been used yet; these are invented surveys of an invented population that obeys the claim exactly. The next slide puts a name on the pile.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -834,9 +954,9 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="under-the-null-q-has-a-known-shape" class="slide level2">
-<h2>Under the null, Q has a known shape</h2>
-<div id="a2ff70a2" class="cell" data-fig-width="9" data-execution_count="16">
+<section id="that-wobble-is-the-chi-squared-distribution" class="slide level2">
+<h2>That wobble is the chi-squared distribution</h2>
+<div id="adef67aa" class="cell" data-fig-width="9" data-execution_count="16">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -845,11 +965,15 @@
 </div>
 </div>
 </div>
+<ul>
+<li class="fragment">Its one setting is the degrees of freedom, 9 here rather than 10</li>
+<li class="fragment">Nine slice counts and the total fix the tenth, so only 9 can move</li>
+</ul>
 <div class="cardbox teal">
-<p>If <span class="math inline">\(H_0\)</span> is true, <span class="math inline">\(Q\)</span> follows a chi-squared distribution with 24 degrees of freedom. That shape is the reference.</p>
+<p>This is the null distribution of <span class="math inline">\(Q\)</span>, and it is a <strong>sampling distribution</strong>: the spread a number picks up purely from being computed on a sample. Knowing it is what turns one number into a decision.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The null distribution is the reference the observed <span class="math inline">\(Q\)</span> is measured against. The next slide names alpha, which sets where the rejection region begins.</p>
+<p>Delivery mode only. The curve is not a new claim, it is a name for the histogram already on the screen, and it lies on it because the claim was stated in advance rather than fitted to the men. Fitting the centre and the width instead spends two more degrees of freedom: simulated the same way, that pile averages 7.4 rather than 9.0, and the deck would owe the room a correction. Say “sampling distribution” out loud, because the picture returns twice: on Day 1 as the plus-or-minus 1.96 over root T band on an ACF, and on Day 2 as the standard error of a coverage rate. Same idea, different statistic each time. The next slide cuts this shape at 5%.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -862,42 +986,52 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="alpha-is-the-false-alarm-rate-you-accept" class="slide level2">
-<h2>Alpha is the false-alarm rate you accept</h2>
-<p><span class="math inline">\(\alpha = 0.05\)</span> means you accept a 5% chance of a false alarm: rejecting <span class="math inline">\(H_0\)</span> when it is true.</p>
-<div class="cardbox teal">
-<p>Alpha is set before the data is looked at. It is the price of a false alarm, and 0.05 is the course’s choice.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. Alpha is the significance level. It is the probability of a Type I error: rejecting the null when it is true. The next slide names the critical value, which is where the top 5% begins.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-critical-value-is-where-the-top-5-begins" class="slide level2">
-<h2>The critical value is where the top 5% begins</h2>
-<div id="78d0dc19" class="cell" data-fig-width="9" data-execution_count="17">
+<section id="the-critical-value-is-where-the-top-5-begins" class="slide level2" data-auto-animate="true">
+<h2 data-id="quarto-animate-title">The critical value is where the top 5% begins</h2>
+<p>Alpha is the false-alarm rate you accept: <span class="math inline">\(\alpha = 0.05\)</span> means accepting a 5% chance of rejecting the claim when it is true. It is fixed before the data is looked at.</p>
+<div id="4c52bcbd" class="cell" data-fig-width="9" data-execution_count="17">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-18-output-1.png" width="981" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-18-output-1.png" width="989" height="252"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Of those invented surveys, 5.1% landed past 16.9: alpha, counted.</p>
+<div class="cardbox teal">
+<p>The critical value is the 95th percentile of the null: a quantile, cut from segment B. Reject <span class="math inline">\(H_0\)</span> if <span class="math inline">\(Q\)</span> lands past 16.9.</p>
+</div>
+<aside class="notes">
+<p>Delivery mode only. Alpha is a choice, not a property of the data, and 0.05 is this course’s. Name the link back to segment B out loud: the critical value is a quantile of the null distribution, the same cut in a different sorted list. If anyone has read ahead, head off the collision: deck 4 reuses the letter alpha for a quantile level rather than a false-alarm rate, so its alpha runs over the whole ladder from 0.025 to 0.975 and means the cut itself. Same letter, unrelated job. The next slide is the verdict on the honest survey.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-mens-q-lands-inside-the-wobble" class="slide level2" data-auto-animate="true">
+<h2 data-id="quarto-animate-title">The men’s Q lands inside the wobble</h2>
+<div id="db2cfcd0" class="cell" data-fig-width="9" data-execution_count="18">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-19-output-1.png" width="989" height="252"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
-<p>The critical value is the 95th percentile of the null. Reject <span class="math inline">\(H_0\)</span> if <span class="math inline">\(Q\)</span> lands past it.</p>
+<p><span class="math inline">\(Q\)</span> is 3.6 against a critical value of 16.9. These men are indistinguishable from the claim, which is not the same as showing the claim is true.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The critical value is the boundary between the acceptance and rejection regions. The next slide shows where the seasonal naive’s <span class="math inline">\(Q\)</span> lands.</p>
+<p>Delivery mode only. Same picture as the slide before it, so the observed line drops onto a chart the room is already reading. Say “indistinguishable from”, never “accept H0”: this sample is also indistinguishable from a claim of 175.4, and both cannot be true. Worth naming that this is real measured data passing a real test, not a sample built to pass one. The next slide runs the same test on the same survey with its women added back in.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -910,82 +1044,26 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-seasonal-naives-q-lands-far-out-in-the-tail" class="slide level2">
-<h2>The seasonal naive’s Q lands far out in the tail</h2>
-<div id="7ce3d0a8" class="cell" data-fig-width="9" data-execution_count="18">
+<section id="add-the-women-back-and-q-lands-far-out-in-the-tail" class="slide level2">
+<h2>Add the women back and Q lands far out in the tail</h2>
+<div id="31c79e6e" class="cell" data-fig-width="9" data-execution_count="19">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-19-output-1.png" width="981" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-20-output-1.png" width="980" height="318"></p>
 </figure>
 </div>
 </div>
 </div>
+<ul>
+<li class="fragment">The shortest slice expected 163 people and got 684</li>
+<li class="fragment"><span class="math inline">\(Q\)</span> is 1,906, so the claim is rejected</li>
+</ul>
 <div class="cardbox coral">
-<p>The observed <span class="math inline">\(Q\)</span> is enormous. The residuals are not white noise; the model is not finished.</p>
+<p>The same test, the same claim, one sample holding two populations. One number now says what segment C needed two pictures to show.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The observed <span class="math inline">\(Q\)</span> is far out in the tail, past the critical value. The decision is to reject the null. The next slide names the warning that prevents the misreading this slide invites.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="a-small-p-value-says-detectable-not-large" class="slide level2">
-<h2>A small p-value says detectable, not large</h2>
-<p>Ljung-Box on 405 residuals finds tiny autocorrelation. A small <span class="math inline">\(p\)</span>-value says the effect is detectable, not that it is large.</p>
-<div class="cardbox coral">
-<p><span class="math inline">\(p\)</span> does not rank models. The seasonal naive is the best of the benchmarks and has the smallest <span class="math inline">\(p\)</span>, because its one-step residual is a year-on-year change while the naive’s is a month-on-month one.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The warning is the point. A small <span class="math inline">\(p\)</span>-value means the effect is detectable at this sample size, not that the effect is large. The next slide names the language that prevents the other misreading.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="failing-to-reject-is-not-accepting" class="slide level2">
-<h2>Failing to reject is not accepting</h2>
-<p><span class="math inline">\(p \ge 0.05\)</span> means the residuals are indistinguishable from white noise. It does not mean <span class="math inline">\(H_0\)</span> is true.</p>
-<div class="cardbox teal">
-<p>The course says “indistinguishable from white noise”, not “accept <span class="math inline">\(H_0\)</span>”. Failing to reject is not accepting.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The language matters. Failing to reject means the data did not provide strong enough evidence to rule out the null. It does not prove the null is true. The next slide names the scope of the test.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-test-is-a-passfail-not-a-score" class="slide level2">
-<h2>The test is a pass/fail, not a score</h2>
-<p>The Ljung-Box test says whether the model is finished. It does not say how good it is.</p>
-<div class="cardbox teal">
-<p>A pass/fail on whether a model is finished, not a score. The ranking comes from the evaluation harness, not from the <span class="math inline">\(p\)</span>-value.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. The scope is the point. The test is a gate, not a leaderboard. The next segment takes the <span class="math inline">\(p\)</span>-value apart, because the course quotes 1e-240 as settled and the reader needs to know what that number is.</p>
+<p>Delivery mode only. The verdict, and the payoff of the segment: the test caught the failure segment C had to eyeball. Worth noting what it cannot catch: this test looks only at the shape, so a sample with the right shape and the wrong pairs, which is Galton’s brothers two segments ago, sails through it. A test answers one question. The next segment takes apart the number the verdict was read off.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1001,17 +1079,24 @@
 <section>
 <section id="e.-the-p-value" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
 <h1>E. The p-value</h1>
-<p>What it is, read off the null distribution, and the three misreadings</p>
+<p>What it is, how to read it off the null, and the misreadings</p>
 </section>
-<section id="the-p-value-how-often-this-extreme-would-happen-under-h0" class="slide level2">
-<h2>The p-value: how often this extreme would happen under H0</h2>
+<section id="the-p-value-is-how-often-this-extreme-happens-under-h0" class="slide level2">
+<h2>The p-value is how often this extreme happens under H0</h2>
+<div class="fragment strike" data-fragment-index="1">
+<p><span class="math display">\[p = P\big(Q \ge Q_{\text{obs}}\big)\]</span></p>
+</div>
+<div class="fragment" data-fragment-index="1">
 <p><span class="math display">\[p = P\big(Q \ge Q_{\text{obs}} \;\big|\; H_0\big)\]</span></p>
-<p>The <span class="math inline">\(p\)</span>-value is the probability, calculated assuming <span class="math inline">\(H_0\)</span> is true, of obtaining a statistic at least as extreme as the one observed.</p>
+</div>
+<p>How often a statistic at least this extreme turns up, when the claim is true.</p>
+<div class="fragment">
+<p>Read the bar as <strong>given</strong>: <span class="math inline">\(P(A \mid B)\)</span> is how often <span class="math inline">\(A\)</span> happens <em>among the cases where <span class="math inline">\(B\)</span> holds</em>, which is not how often <span class="math inline">\(A\)</span> happens.</p>
 <div class="cardbox teal">
-<p><span class="math inline">\(p\)</span> conditions on <span class="math inline">\(H_0\)</span>. It is not a statement about whether <span class="math inline">\(H_0\)</span> is true; it is a statement about how surprising the data would be if <span class="math inline">\(H_0\)</span> were true.</p>
+<p><span class="math inline">\(p\)</span> conditions on <span class="math inline">\(H_0\)</span>. It measures how surprising the data would be if the claim were true, and nothing else.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The definition is the whole slide. <span class="math inline">\(p\)</span> is a tail area under the null distribution, measured at the observed value. The next slide shows how to read it off the null.</p>
+<p>Delivery mode only. The first line is what most people carry around, and it is struck out for a reason: the probability of a statistic this extreme is not a quantity anyone can compute without saying under what. Read the second line out in words, left to right, including the bar as “given”. The P is segment A’s, a share of a pile, and the only new mark is the bar, so spend the time there: it restricts which pile is being shared out. Concretely, the pile is the 20,000 invented surveys segment D simulated, every one of which obeys the claim. The conditioning is the whole slide, and the two misreadings later both come from dropping it. The next slide reads p off the picture.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1023,23 +1108,25 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
+</div>
 </section>
 <section id="read-it-off-the-null-distribution-at-the-observed-value" class="slide level2">
 <h2>Read it off the null distribution, at the observed value</h2>
-<div id="2b643bf6" class="cell" data-fig-width="9" data-execution_count="19">
+<div id="601b726a" class="cell" data-fig-width="9" data-execution_count="20">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-20-output-1.png" width="981" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-21-output-1.png" width="981" height="318"></p>
 </figure>
 </div>
 </div>
 </div>
+<p>Or count it instead: 94% of the 20,000 invented surveys produced a <span class="math inline">\(Q\)</span> at least this big. The area and the count are the same number.</p>
 <div class="cardbox teal">
-<p>The <span class="math inline">\(p\)</span>-value is the tail area beyond the observed <span class="math inline">\(Q\)</span>, under the null distribution. Here it is 9e-241.</p>
+<p>The <span class="math inline">\(p\)</span>-value is the tail area beyond the observed <span class="math inline">\(Q\)</span>, under the null. Here it is 0.94, so a <span class="math inline">\(Q\)</span> this big or bigger happens 94% of the time when the claim is true.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The <span class="math inline">\(p\)</span>-value is the tail area under the null curve to the right of the observed <span class="math inline">\(Q\)</span>. Here that tail is off the axis, so the chart marks the observed <span class="math inline">\(Q\)</span> off-scale and states the <span class="math inline">\(p\)</span>-value as a number. The next slide names the first misreading.</p>
+<p>Delivery mode only. Same chart as the segment’s critical-value slide, now with the tail as the quantity of interest rather than the threshold. This is also where the alpha of 0.05 and the p-value connect: p past the threshold and Q past the critical value are the same statement. The next slides are the misreadings.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1054,12 +1141,23 @@
 </section>
 <section id="p-is-not-the-probability-that-h0-is-true" class="slide level2">
 <h2>p is not the probability that H0 is true</h2>
-<p>The most common misreading: <span class="math inline">\(p\)</span> is not <span class="math inline">\(P(H_0 \text{ is true})\)</span>.</p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>What <span class="math inline">\(p\)</span> measures</strong></p>
+<p><span class="math display">\[P(\text{data this extreme} \mid H_0)\]</span></p>
+<p>A share of the 20,000 invented surveys, every one of which obeys the claim.</p>
+</div><div class="column" style="width:50%;">
+<p><strong>What people hear</strong></p>
+<p><span class="math display">\[P(H_0 \mid \text{data})\]</span></p>
+<p>A verdict on the claim itself. Different question, and answering it needs a prior.</p>
+</div></div>
+<div class="fragment">
+<p>Nor is it the probability that the result happened by chance: that would be <span class="math inline">\(P(\text{data})\)</span>, with no bar at all.</p>
 <div class="cardbox coral">
-<p><span class="math inline">\(p\)</span> conditions on <span class="math inline">\(H_0\)</span> being true. It does not measure the probability that <span class="math inline">\(H_0\)</span> is true. Those are different questions.</p>
+<p>Both misreadings drop the conditioning bar. <span class="math inline">\(p\)</span> is a tail area under an assumed null, not a verdict on the null and not a probability of the data.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The misreading is the point. <span class="math inline">\(p\)</span> is a tail area under the null; it is not a posterior probability of the null. The next slide names the second misreading.</p>
+<p>Delivery mode only. These are the two most common misreadings and they have the same cause, which is why they share a slide. If the room wants the probability the claim is true, that is a Bayesian question and it needs a prior. The next slide is the third misreading, and it needs a picture.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1071,47 +1169,25 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</section>
-<section id="p-is-not-the-probability-the-result-happened-by-chance" class="slide level2">
-<h2>p is not the probability the result happened by chance</h2>
-<p><span class="math inline">\(p\)</span> is not <span class="math inline">\(P(\text{data})\)</span>. It is <span class="math inline">\(P(\text{data this extreme} \mid H_0)\)</span>.</p>
-<div class="cardbox coral">
-<p>The result did not “happen by chance”. The <span class="math inline">\(p\)</span>-value is how often a statistic this extreme would occur if <span class="math inline">\(H_0\)</span> were true.</p>
 </div>
-<aside class="notes">
-<p>Delivery mode only. The second misreading. “By chance” is not a probability; it is a story. The <span class="math inline">\(p\)</span>-value is a tail area, not a story. The next slide names the third misreading.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
 </section>
-<section id="a-small-p-does-not-mean-a-large-effect" class="slide level2">
-<h2>A small p does not mean a large effect</h2>
-<div id="77db5adf" class="cell" data-fig-width="9" data-execution_count="20">
+<section id="a-small-p-means-detectable-not-large" class="slide level2">
+<h2>A small p means detectable, not large</h2>
+<p>One wrong claim, 1.8 cm below what these men measure, tested on all 799 of them and then on the first 50. Same error both times: how far apart can the two <span class="math inline">\(p\)</span>-values be?</p>
+<div id="7487604b" class="cell" data-fig-width="9.5" data-execution_count="21">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-21-output-1.png" width="980" height="342"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-22-output-1.png" width="1035" height="318"></p>
 </figure>
 </div>
 </div>
 </div>
-<ul>
-<li class="fragment"><span class="math inline">\(r = 0.12\)</span> at <span class="math inline">\(T = 417\)</span>: p = 0.01 (detectable)</li>
-<li class="fragment"><span class="math inline">\(r = 0.30\)</span> at <span class="math inline">\(T = 40\)</span>: p = 0.06 (not detectable)</li>
-</ul>
 <div class="cardbox coral">
-<p>Detectable is not the same as large. A tiny effect at a large sample size is detectable; a large effect at a small sample size is not.</p>
+<p>6e-09 against 0.57. <span class="math inline">\(p\)</span> answers a question about sample size as much as about the size of the difference, so it ranks nothing. Never sort competing claims by <span class="math inline">\(p\)</span>.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The third misreading. The <span class="math inline">\(p\)</span>-value depends on both the effect size and the sample size. A tiny <span class="math inline">\(r\)</span> at 417 months is detectable; a large <span class="math inline">\(r\)</span> at 40 months is not. The next slide is the course payoff.</p>
+<p>Delivery mode only. Both panels lean the same way, too few short men and too many tall ones, because it is one set of men measured against one wrong claim; only how many were counted changed. This is the T factor in the Q formula coming back. Say the reverse out loud too: on a very large sample, a difference too small to care about will still reject. The no-ranking fence in the card is the one that bites on Day 2, where the best benchmark model in the course has the smallest p of any of them, because p answers a question about detectability rather than quality.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1124,14 +1200,14 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="a-tiny-p-means-the-model-is-not-finished-not-very-wrong" class="slide level2">
-<h2>A tiny p means the model is not finished, not very wrong</h2>
-<p><span class="math inline">\(p \approx 10^{-240}\)</span> means structure is left on the table. It does not mean the model is very wrong.</p>
+<section id="a-tiny-p-means-unfinished-not-very-wrong" class="slide level2">
+<h2>A tiny p means unfinished, not very wrong</h2>
+<p>The pooled survey’s <span class="math inline">\(Q\)</span> is 1,906, so far into the tail that its <span class="math inline">\(p\)</span> underflows to zero. That does not make the claim worthless: it means one bell cannot describe two populations, and the test can tell.</p>
 <div class="cardbox teal">
-<p>The floor is beatable. The seasonal naive’s residuals fail Ljung-Box at <span class="math inline">\(p \approx 10^{-240}\)</span>, so there is signal in this series that nothing on Day 2 captured. That is why Day 3 exists.</p>
+<p>Every method in this course leaves something behind, and a test is how you find out whether it is more than luck. A tiny <span class="math inline">\(p\)</span> means unfinished.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The course payoff. The tiny <span class="math inline">\(p\)</span>-value is the opening for Day 3: the floor is beatable because the residuals are not white noise. The next segment maps each idea back to the course slide that needs it.</p>
+<p>Delivery mode only. The payoff of the deck. Both halves matter: unfinished, because something is left unaccounted for; not worthless, because the same claim described the men perfectly well two slides ago. On Day 2 the p is about 1e-240 for the hardest benchmark in the course to beat, and that pair of facts is the opening for Day 3. The next slide maps every idea back into the decks.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1145,12 +1221,12 @@
       }</style></aside>
 </section></section>
 <section>
-<section id="f.-where-each-of-these-lands" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h1>F. Where each of these lands</h1>
+<section id="f.-where-each-idea-lands" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
+<h1>F. Where each idea lands</h1>
 <p>The pointer table back into decks 2, 3 and 4</p>
 </section>
-<section id="five-ideas-five-course-slides-that-need-them" class="slide level2">
-<h2>Five ideas, five course slides that need them</h2>
+<section id="five-ideas-and-the-course-slides-that-need-them" class="slide level2 smaller">
+<h2>Five ideas, and the course slides that need them</h2>
 <table class="caption-top">
 <colgroup>
 <col style="width: 50%">
@@ -1164,32 +1240,32 @@
 </thead>
 <tbody>
 <tr class="odd">
-<td>Distribution</td>
-<td>A forecast is a range, not a number (deck 3, segment C)</td>
+<td>Distribution, mean, SD</td>
+<td><span class="math inline">\(e_t \sim N(0, \sigma^2)\)</span>, and so the Gaussian interval (deck 3)</td>
 </tr>
 <tr class="even">
 <td>Quantile, percentile</td>
-<td>An 80% interval is the 10th to the 90th; CRPS integrates a ladder (deck 3, segment C)</td>
+<td>An 80% interval is the <span class="math inline">\(0.1\)</span> and <span class="math inline">\(0.9\)</span> quantiles; CRPS integrates a ladder of them (decks 3 and 4)</td>
 </tr>
 <tr class="odd">
 <td>i.i.d.</td>
-<td>The bootstrap pools 1982 errors with 2018 errors and coverage falls to 61% (deck 4)</td>
+<td>Pooling 1982 errors with 2018 errors drops bootstrap coverage to 61% (deck 4)</td>
 </tr>
 <tr class="even">
-<td>Hypothesis testing</td>
-<td>24 lag checks by eye become one number (deck 3, segment B)</td>
+<td>Hypothesis testing, and the sampling distribution under it</td>
+<td>24 lag checks by eye become one number (deck 3); the same simulated pile is the <span class="math inline">\(\pm 1.96/\sqrt{T}\)</span> band on an ACF (deck 2) and the standard error of a coverage rate (deck 4)</td>
 </tr>
 <tr class="odd">
 <td>The p-value</td>
-<td><span class="math inline">\(p \approx 10^{-240}\)</span>, so the floor is beatable, so Day 3 exists (deck 3, segment B)</td>
+<td><span class="math inline">\(p \approx 10^{-240}\)</span>, so the floor is beatable, so Day 3 exists (deck 3)</td>
 </tr>
 </tbody>
 </table>
 <div class="cardbox teal">
-<p>Each idea is taught once here and once in the course. The pointer table is the map back.</p>
+<p>On Day 1 the sample stops being measured heights and becomes the errors a forecast makes. The five checks under <strong>Before Day 1</strong> in the Day 1 notebook rehearse these, one per segment.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The pointer table is the close. Each concept maps back to the course slide that assumes it. The next slide is the final payoff.</p>
+<p>Delivery mode only. The close. Worth saying that the segments are not equally load-bearing: i.i.d. and the p-value are the two the course quotes as settled and never rebuilds, which is why this deck exists. The word “residual” appears nowhere in this deck on purpose; Day 1 introduces it, and this table is the handover. Point at the notebook before leaving: exercises 0.1 to 0.5 are this deck in the same order, on the same heights.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1202,14 +1278,41 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-floor-is-beatable-and-now-you-can-say-why" class="slide level2">
-<h2>The floor is beatable, and now you can say why</h2>
-<p><span class="math inline">\(p \approx 10^{-240}\)</span> means the seasonal naive is not finished. The 61% means the pool was stale.</p>
-<div class="cardbox teal">
-<p>The floor is beatable, and now you can say why. The residuals are not white noise, and the bootstrap’s pool was too tight. Both are fixable, and Day 3 fixes the first.</p>
-</div>
+<section id="sec-data" class="slide level2 smaller" data-visibility="uncounted">
+<h2>Where these heights come from</h2>
+<table class="caption-top">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>file</th>
+<th>what it is</th>
+<th>what the deck does with it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>nhefs_heights.csv</code></td>
+<td>NHANES I Epidemiologic Follow-up Study: 1,629 adults, height measured to a fraction of a centimetre rather than asked</td>
+<td>its 799 men are every picture here; its two populations are segment C’s second failure</td>
+</tr>
+<tr class="even">
+<td><code>galton_children.csv</code></td>
+<td>Galton (1886): 934 children in 205 families, inches converted to centimetres</td>
+<td>segment C’s brother pairs. The one file that records who is related to whom</td>
+</tr>
+</tbody>
+</table>
+<p>Public domain, and committed under <code>coursekit/data/</code> so the course runs offline. Refresh from Rdatasets: <a href="https://vincentarelbundock.github.io/Rdatasets/csv/causaldata/nhefs.csv"><code>causaldata/nhefs.csv</code></a> · <a href="https://vincentarelbundock.github.io/Rdatasets/csv/HistData/GaltonFamilies.csv"><code>HistData/GaltonFamilies.csv</code></a></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a>D.height_survey()  <span class="co"># the men     D.height_survey_pooled()  # and the women</span></span>
+<span id="cb1-2"><a></a>D.brother_pairs()  <span class="co"># real kinship, and unrelated_pairs() as its control</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><a href="#/sec-data" onclick="history.back(); return false;">Back</a></p>
 <aside class="notes">
-<p>Delivery mode only. The final payoff. The two numbers are the lesson: the <span class="math inline">\(p\)</span>-value says the model is not finished, and the 61% says the pool was stale. Both are the opening for the rest of the course.</p>
+<p>Off the flow rather than hidden: it sits after the closing slide, so nothing in the talk walks into it, and it is not counted in the slide numbers. You get here from the source line under the sample strip, or the one under the brother scatter. Back returns to whichever of the two you came from.</p>
+<p>The measured-not-reported point is the one worth making if anyone asks why these two files: a survey that asks people their height, or rounds it to the inch, piles the values onto a lattice, and segment D’s test then rejects it on the rounding alone. Galton’s own heights do exactly that, which is why he is used only for the pairs.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;

@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-03">
+  <meta name="dcterms.date" content="2026-09-06">
   <title>Forecast Evaluation &amp; Cross-Validation</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -201,12 +201,12 @@
 
 <section id="title-slide" data-background-image="../slides_template/assets/anim.svg" data-background-opacity="0.15" data-background-size="cover" class="quarto-title-block center">
   <h1 class="title">Forecast Evaluation &amp; Cross-Validation</h1>
-  <p class="subtitle">Day 2 · Lecture 2 · fpppy Ch 5.8–5.10, Ch 13</p>
+  <p class="subtitle">Day 2 · Lecture 3 · fpppy Ch 5.8–5.10, Ch 13</p>
 
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-03</p>
+  <p class="date">2026-09-06</p>
 </section>
 <section id="you-have-5-forecasts.-which-is-best" class="slide level2">
 <h2>You have 5 forecasts. Which is best?</h2>
@@ -232,7 +232,7 @@
 <aside class="notes">
 <p>Yesterday ended with five forecast lines on one chart and no way to choose between them. Eyeballing a chart is not a method: the eye rewards the line that looks smooth, and smoothness is not accuracy.</p>
 <p>This lecture builds the thing that chooses, in five steps. A score for a point forecast, then enough test windows to trust the score, then a check on the band, then a score for the whole distribution rather than the point, and finally the ways a careful team still fools itself.</p>
-<p>The harness is the deliverable, and say so now: Lab D writes it, and every model on Day 3 is scored by it without a line of new plumbing.</p>
+<p>The harness is the deliverable, and say so now: Lab E writes it, and every model on Day 3 is scored by it without a line of new plumbing.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -551,7 +551,7 @@
 </section>
 <section id="on-this-window-stl-wins-every-metric" class="slide level2">
 <h2>On this window, STL wins every metric</h2>
-<div id="712ef68c" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="fc199e38" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>                   MAE    RMSE  MAPE %   MASE  RMSSE
 Mean            173.67  175.55   51.82  12.66   9.09
@@ -614,7 +614,7 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 <section id="score-the-model-eight-times-not-once" class="slide level2">
 <h2>Score the model eight times, not once</h2>
 <p>The <strong>origin</strong> is where training stops and the forecast starts. Move it forward a year at a time: eight training sets, eight forecasts, eight scores.</p>
-<div id="d372c3ea" class="cell" data-fig-width="9" data-execution_count="3">
+<div id="a1eb1cb4" class="cell" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -669,7 +669,7 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 </section>
 <section id="eight-folds-move-the-winner" class="slide level2">
 <h2>Eight folds move the winner</h2>
-<div id="e6ce1de9" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="f8d47798" class="cell" data-fig-width="10" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -683,7 +683,7 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 </div>
 <aside class="notes">
 <p>Notice the right panel: for the seasonal naive, individual fold MASE ranges from 0.71 to 1.90. The single split was lucky or unlucky; the 8-fold average is what to trust.</p>
-<p>The one line students get wrong in Lab D: the denominator has to be rebuilt per fold, from that fold’s own training history, or the score is measured against data the model was not allowed to see.</p>
+<p>The one line students get wrong in Lab E: the denominator has to be rebuilt per fold, from that fold’s own training history, or the score is measured against data the model was not allowed to see.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -814,7 +814,7 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 </section>
 <section id="the-seasonal-naives-band-is-honest" class="slide level2">
 <h2>The seasonal naive’s band is honest</h2>
-<div id="6a0e0d6f" class="cell" data-fig-width="9" data-execution_count="5">
+<div id="726df52c" class="cell" data-fig-width="9" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -829,7 +829,7 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 <aside class="notes">
 <p>The dashed line is the claim from the last slide; the bars are what the 96 scored points did about it.</p>
 <p>The mean model scores exactly 0%. Not “poorly”, zero. On a series that grew sixfold, an interval centred on the historical average never touches the last few years at all, and that is worth pausing on: a model can be so wrong that its uncertainty estimate is not even wrong in an interesting way.</p>
-<p>The seasonal naive’s 77% against its claimed 80% is the honest result here, and 96% on the single window in lecture 1 is the same interval measured badly.</p>
+<p>The seasonal naive’s 77% against its claimed 80% is the honest result here, and 96% on the single window in lecture 2 is the same interval measured badly.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -873,9 +873,9 @@ STL + drift       9.62   12.30    3.01   0.70   0.64</code></pre>
 <section id="a-band-is-two-quantiles" class="slide level2">
 <h2>A band is two quantiles</h2>
 <p>The <span class="math inline">\(\alpha\)</span>-quantile <span class="math inline">\(\hat{q}_\alpha\)</span> is the value the forecast puts <span class="math inline">\(\alpha\)</span> of its probability below:</p>
-<p><span class="math display">\[\mathbb{P}(y \le \hat{q}_\alpha) = \alpha\]</span></p>
+<p><span class="math display">\[P(y \le \hat{q}_\alpha) = \alpha\]</span></p>
 <div class="fragment">
-<div id="73775206" class="cell" data-execution_count="6">
+<div id="af156841" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stdout">
 <pre><code>LEVELS   : [20, 40, 60, 80, 95]
 QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code></pre>
@@ -918,7 +918,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 </section>
 <section id="at-alpha-0.5-quantile-loss-is-mae" class="slide level2">
 <h2>At <span class="math inline">\(\alpha = 0.5\)</span>, quantile loss is MAE</h2>
-<div id="aa8ea7ac" class="cell" data-fig-width="8.5" data-execution_count="7">
+<div id="811d1f33" class="cell" data-fig-width="8.5" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -1022,7 +1022,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 </div>
 <aside class="notes">
 <p>Exactly the move from part A, applied one level up. CRPS in dollars of turnover cannot be pooled across 148 retail series; divided by the benchmark’s own CRPS it can.</p>
-<p>Walk the call, because Lab D writes it: the models argument is a dict mapping each model to its ten quantile columns, and quantiles has to be in the same order. If the two lists drift apart the function returns a number that is wrong and still positive, which is why they live in coursekit.scoring rather than in the notebook.</p>
+<p>Walk the call, because Lab E writes it: the models argument is a dict mapping each model to its ten quantile columns, and quantiles has to be in the same order. If the two lists drift apart the function returns a number that is wrong and still positive, which is why they live in coursekit.scoring rather than in the notebook.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1039,7 +1039,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 <h2>Narrow is not the same as good</h2>
 <p><strong>Mean width</strong> is Winkler’s <span class="math inline">\(u - \ell\)</span>, the height of the 80% band, averaged over all 96 scored points:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a>width80 <span class="op">=</span> (cv[<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-hi-80"</span>] <span class="op">-</span> cv[<span class="ss">f"</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-lo-80"</span>]).mean()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div id="2ae51faa" class="cell" data-fig-width="10" data-execution_count="8">
+<div id="af79662d" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -1140,8 +1140,8 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
           display:block!important;
       }</style></aside>
 </section>
-<section id="rightarrow-lab-d-score-them-honestly" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Lab D · Score them honestly</h2>
+<section id="rightarrow-lab-e-score-them-honestly" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab E · Score them honestly</h2>
 <p>Open <code>labs/02_day2_toolbox_and_evaluation.ipynb</code></p>
 <table class="caption-top">
 <tbody>
@@ -1160,7 +1160,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 <div class="fragment">
 <p><em>29 minutes. The notebook carries the instructions; work down it in order.</em></p>
 <div class="cardbox teal">
-<p>Same notebook as Lab C, pick up at Exercise 2.4. <strong>2.5 writes <code>labs/leaderboard.csv</code></strong>, which every Day 3 model plugs into. Do not skip it.</p>
+<p>Same notebook as Labs C and D, pick up at Exercise 2.4. <strong>2.5 writes <code>labs/leaderboard.csv</code></strong>, which every Day 3 model plugs into. Do not skip it.</p>
 </div>
 </div>
 </section>
@@ -1195,7 +1195,7 @@ QUANTILES: [0.025 0.1   0.2   0.3   0.4   0.6   0.7   0.8   0.9   0.975]</code><
 </section>
 <section id="sec-sampling" class="slide level2" data-visibility="uncounted">
 <h2>Reminder: a rate measured on 24 points wanders</h2>
-<div id="bfa919b6" class="cell" data-fig-width="9.5" data-execution_count="9">
+<div id="a6c799af" class="cell" data-fig-width="9.5" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>

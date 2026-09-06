@@ -9,8 +9,8 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-03">
-  <title>Benchmarks, Residuals &amp; Prediction Intervals</title>
+  <meta name="dcterms.date" content="2026-09-06">
+  <title>Prediction Intervals</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -200,21 +200,22 @@
     <div class="slides">
 
 <section id="title-slide" data-background-image="../slides_template/assets/anim.svg" data-background-opacity="0.15" data-background-size="cover" class="quarto-title-block center">
-  <h1 class="title">Benchmarks, Residuals &amp; Prediction Intervals</h1>
-  <p class="subtitle">Day 2 · Lecture 1 · fpppy Ch 5.1–5.7</p>
+  <h1 class="title">Prediction Intervals</h1>
+  <p class="subtitle">Day 2 · Lecture 2 · fpppy Ch 5.5</p>
 
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-03</p>
+  <p class="date">2026-09-06</p>
 </section>
-<section id="the-day-2-plan" class="slide level2">
-<h2>The Day 2 plan</h2>
-<p>Day 1 found that seasonality separates retail series, not trend. Today we build the floor a model must beat, and the way to prove a forecast is real.</p>
+<section id="the-residual-checklist-has-one-item-left" class="slide level2">
+<h2>The residual checklist has one item left</h2>
+<p>Lecture 1 fitted five models and let each one’s residuals name the next. Four checks came out of it, and three have already been answered.</p>
 <ul>
-<li class="fragment"><strong>Five models</strong>, each one answering what the last one’s errors gave away</li>
-<li class="fragment"><strong>Residual diagnostics</strong>: the instrument that names the missing term</li>
-<li class="fragment"><strong>Prediction intervals</strong>: the Gaussian formula, why it fails, and two repairs</li>
+<li class="fragment"><strong>Uncorrelated:</strong> failed, on all five - a message about the model</li>
+<li class="fragment"><strong>Zero mean:</strong> failed on the seasonal naive, biased +7.9</li>
+<li class="fragment"><strong>Constant variance:</strong> failed - the spread runs 8.5 to 26.2</li>
+<li class="fragment"><strong>Normal:</strong> untested. This lecture opens with it, and never gets it back</li>
 </ul>
 <div class="fragment">
 <div class="callout callout-important callout-titled callout-style-default">
@@ -226,15 +227,14 @@
 <p><strong>A forecast without a range is half an answer</strong></p>
 </div>
 <div class="callout-content">
-<p>Segments C, D and E are all about that range.</p>
+<p>The point forecast does not change again today. Only the band around it does.</p>
 </div>
 </div>
 </div>
 <aside class="notes">
-<p>Pick Day 1 back up rather than restarting. Yesterday’s sweep found trend strength above 0.96 across 148 series, so trend told you nothing and seasonal strength was what separated them. If seasonality is the signal, the model to beat is the one that does nothing but repeat last year’s season - and that is where we start.</p>
-<p>Say what the day produces: a leaderboard with real numbers in it that Day 3 has to beat. Nobody leaves with a model today; they leave with the scoreboard.</p>
-<p>Pace: about 50 slides in an hour, so most get a minute or less. The formula slides (three baselines, k, sigma) are 45 seconds each - one line of prose, one equation, move on.</p>
-<p>Segment A is a loop, not a list, and it is the thing to protect if the clock slips: fit a model, read its residual ACF, let the fault name the next. It turns three times and hands the fourth to segment B. Each turn is a question to the room, so it runs long when the room is engaged - that is the right place for the time to go. To buy some back, the donors are the four-benchmark overlay and the code slide, both of which the lab repeats.</p>
+<p>One slide of pickup, not a re-teach. The room has just come back from Exercise 2.2, where they ran this checklist themselves on the drift method, so ask what their verdicts were rather than reading the bullets out.</p>
+<p>The split in the list is the thing to say out loud. Uncorrelated and zero mean are instructions: go back and change the model, which is what lecture 1’s segment A did three times. Constant variance is not - it leaves the point forecast exactly where it was and only tells you the width is wrong. That is this lecture’s whole subject, and it is why the fourth check gets three different answers instead of one.</p>
+<p>Name the destination now: three ways to build a band, each spending a different assumption, and by the end they choose by the assumption rather than by the width.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -249,637 +249,8 @@
 </div>
 </section>
 <section>
-<section id="a.-four-simple-models-set-the-floor" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
-<h1>A. Four simple models set the floor</h1>
-<p>Ch 5.1-5.4 · Fit one, diagnose it, let the fault name the next</p>
-</section>
-<section id="every-chart-today-is-drawn-from-one-retail-series" class="slide level2">
-<h2>Every chart today is drawn from one retail series</h2>
-<div id="a6749952" class="cell" data-fig-width="10" data-execution_count="2">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-3-output-1.png" width="1112" height="364"></p>
-</figure>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Monthly retail sales in Victoria, Australia, in <strong>millions of dollars</strong></li>
-<li class="fragment">441 months, April 1982 to December 2018, no gaps and no missing values</li>
-</ul>
-<aside class="notes">
-<p>Say what the data is before any model touches it, because every chart for the next two lectures is drawn from this one series and the room should be able to name it. Victorian takeaway food turnover: how much Australians spent on takeaway in one state, month by month, measured in millions of dollars. The y axis on every chart today is those millions.</p>
-<p>Point at the shape while it is bare. It grows about sixfold, the swings grow with it, and December is the spike. All three facts come back later: the growth is what defeats the seasonal naive, the growing swings are what defeat the Gaussian interval, and December is what defeats the plain naive.</p>
-<p>Leave the split for the next slide. This one is the series, bare.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-last-24-months-are-held-out-and-never-shuffled" class="slide level2">
-<h2>The last 24 months are held out, and never shuffled</h2>
-<div id="1982ceb5" class="cell" data-fig-width="10" data-execution_count="3">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-4-output-1.png" width="1112" height="331"></p>
-</figure>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment"><strong>Split in time, never at random</strong>: a shuffle trains on 2018 to predict 2017</li>
-<li class="fragment"><strong><span class="math inline">\(h = 24\)</span> came from the decision</strong>, not from the data: a two-year plan needs two years</li>
-</ul>
-<div class="cardbox teal">
-<p><code>train, test = D.train_test(spine, h=24)</code></p>
-</div>
-<aside class="notes">
-<p>Every number in the next two lectures rests on this slide, so say both the rule and the reason out loud.</p>
-<p>The rule: the split is chronological. The train_test_split everybody has typed a hundred times shuffles rows, which here hands the model 2018 and asks it about 2017 - a score that comes back excellent and meaningless. Lecture 2 returns to this as leakage, with two subtler versions.</p>
-<p>Then h. Twenty-four is a planning choice, not a statistical one: this series is used for two-year budgeting. If the decision were quarterly, h would be 3 and a different model might win. Ask the room what horizon their work needs.</p>
-<p>Say the last line as a discipline: the test set is spent once. Everything to lecture 2 is fitted on the 417 months, and the 24 are looked at only when there is a score to report.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="every-formula-here-is-built-from-four-symbols" class="slide level2">
-<h2>Every formula here is built from four symbols</h2>
-<table class="caption-top">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Symbol</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">\(T\)</span></td>
-<td>the <strong>forecast origin</strong>, the last observed time</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(h\)</span></td>
-<td>the <strong>forecast horizon</strong>, steps ahead</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(m\)</span></td>
-<td>the <strong>seasonal period</strong>, 12 for monthly data</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(\hat{y}_{a\mid b}\)</span></td>
-<td>the forecast <strong>of</strong> time <span class="math inline">\(a\)</span>, made <strong>from</strong> data up to time <span class="math inline">\(b\)</span></td>
-</tr>
-</tbody>
-</table>
-<div class="cardbox teal">
-<p>The origin stays at <span class="math inline">\(T\)</span> all segment, so we drop the bar and write <span class="math inline">\(\hat{y}_{T+h}\)</span>. It comes back whenever the origin moves.</p>
-</div>
-<aside class="notes">
-<p>Four symbols carry the whole segment, and the room already knows two of them from Day 1. T is where we stand, h is how far ahead we look, m is the length of one cycle. Every formula in this segment uses nothing else.</p>
-<p>Spend a sentence on the bar, because it is the only one that is new and it is the one that trips people later. Read it out loud as “of, given”: y-hat T+h given T is the forecast of the value at T+h, made knowing everything up to T. Segment A never moves the origin, so the bar is dropped there and the formulas stay short. The residual slide needs y-hat t given t-1, one step from yesterday, and segment E needs e t+h given t, where the origin slides. Same notation, three uses.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="three-baselines-start-by-ignoring-the-calendar" class="slide level2">
-<h2>Three baselines start by ignoring the calendar</h2>
-<p><strong>The mean.</strong> Average everything, use it for every horizon:</p>
-<p><span class="math display">\[\hat{y}_{T+h} = \bar{y} = \frac{1}{T}\sum_{t=1}^{T} y_t\]</span></p>
-<div class="fragment">
-<p><strong>The naive.</strong> Take the last observation, use it for every horizon:</p>
-<p><span class="math display">\[\hat{y}_{T+h} = y_T\]</span></p>
-</div>
-<div class="fragment">
-<p><strong>The drift.</strong> The naive, tilted by the line through the first and last point:</p>
-<p><span class="math display">\[\hat{y}_{T+h} = y_T + \dfrac{h}{T-1}(y_T - y_1)\]</span></p>
-<aside class="notes">
-<p>45 seconds each, and they are a set, not items 1-3 of a list of four: none of them has a term for the calendar, and that shared blind spot is what the next four slides are about.</p>
-<p>The mean uses all T observations, so on a series that has grown sixfold it sits far below where the series is now. The naive uses one observation, which at least puts it at the right level. The drift is the naive with a slope bolted on - the line through the first and last observation, extended.</p>
-<p>Point at drift’s denominator, because it returns in segment C: T-1 rather than T because T observations have T-1 gaps between them, and that same T-1 turns up in its interval width formula for exactly the same reason.</p>
-<p>Read the card and stop. The room should be able to tell you, before the next slide, that none of them can produce a December.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="two-of-the-three-at-least-start-in-the-right-place" class="slide level2">
-<h2>Two of the three at least start in the right place</h2>
-<div id="c2efa631" class="cell" data-fig-width="10" data-execution_count="4">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-5-output-1.png" width="1112" height="562"></p>
-</figure>
-</div>
-</div>
-</div>
-<aside class="notes">
-<p>Point at the flat pink line first. That is the mean, and on a series that has grown sixfold it is visibly hopeless, which is the point of showing it. It is not a straw man: it is the reason a scale-free metric exists at all, and lecture 2 uses it.</p>
-<p>The green naive line is flat too, but it starts from the right place. Then the drift, which is the only line on the slide with any growth in it - and ask the room what month the drift line thinks it is. It has no idea, and you can see that it has no idea, because it is straight.</p>
-<p>Ask which one they would rather ship, then ask what is still wrong with the best of the three. The answer they will give, in some form, is that these are straight lines through data that is obviously not straight. Hold that thought: the next three slides turn it into a measurement.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="residuals-flatter-forecast-errors-do-not" class="slide level2">
-<h2>Residuals flatter, forecast errors do not</h2>
-<p><strong>Residual</strong> (<span class="math inline">\(e_t\)</span>): one-step error on <strong>training</strong> data</p>
-<p><span class="math display">\[e_t = y_t - \hat{y}_{t|t-1}\]</span></p>
-<div class="columns">
-<div class="column" style="width:50%;">
-<div class="cardbox">
-<p><span class="card-title">Residuals (<span class="math inline">\(e_t\)</span>)</span></p>
-<ul>
-<li><p>In-sample training errors</p></li>
-<li><p><strong>Flattering</strong> to the model</p></li>
-</ul>
-</div>
-</div><div class="column" style="width:50%;">
-<div class="cardbox teal">
-<p><span class="card-title">Forecast Errors (<span class="math inline">\(e_{T+h}\)</span>)</span></p>
-<ul>
-<li><p>Out-of-sample holdout errors</p></li>
-<li><p><strong>Honest</strong> evidence</p></li>
-</ul>
-</div>
-</div></div>
-<div class="fragment">
-<div class="cardbox navy">
-<p>Naive: <span class="math inline">\(e_t = y_t - y_{t-1}\)</span>, the raw one-step change.</p>
-</div>
-<aside class="notes">
-<p>The holdout has not happened yet. The only evidence a model has already given you is what it got wrong on the training data, and that is what we are about to read.</p>
-<p>The bar is the one from the notation table, with the origin moved: yhat_{t|t-1} is the forecast of y_t made from data up to t-1.</p>
-<p>Residuals flatter, forecast errors do not. Everything in this segment is residuals. Everything in lecture 2 is forecast errors.</p>
-<p>For the naive the residual is simple subtraction: this step minus the one before. That is what makes it possible to say where the error came from, rather than only how big it was.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="the-naives-errors-still-know-what-month-it-is" class="slide level2">
-<h2>The naive’s errors still know what month it is</h2>
-<div id="d49eb87c" class="cell" data-fig-width="9" data-execution_count="5">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-6-output-1.png" width="1002" height="287"></p>
-</figure>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Lags 12 and 24 (orange) stand at 0.68 and 0.58, against a bound of 0.10</li>
-<li class="fragment">Day 1 named that shape: a spike every <span class="math inline">\(m\)</span> lags is <strong>seasonality, still in there</strong></li>
-</ul>
-<aside class="notes">
-<p>The first diagnosis of the day and the template for every one after, so go slowly. Send them back to Day 1’s table of five ACF shapes first - it was built to read a series and reads residuals unchanged, because residuals are just another series.</p>
-<p>Ask what shape is on the screen and wait. Somebody will say the spikes at 12 and 24, and that is the entire finding: the seasonal pattern went through the model and came out untouched.</p>
-<p>Say the size out loud, because “significant” is doing real work. Bounds at plus or minus 0.10; the orange spikes at 0.68 and 0.58, six or seven times that. Not a marginal call.</p>
-<p>Land the card, noting the fix was named by the diagnostic rather than guessed at. Somebody usually asks whether drift’s slope handles this - take a show of hands before you turn the slide.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="drift-fixes-the-mean-and-nothing-else" class="slide level2">
-<h2>Drift fixes the mean and nothing else</h2>
-<div id="564e4354" class="cell" data-fig-width="8" data-execution_count="6">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-7-output-1.png" width="879" height="307"></p>
-</figure>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Drift’s residual <strong>is</strong> the naive’s, less the constant slope 0.77: same spread, same every lag</li>
-<li class="fragment">Mean residual moves from +0.77 to +0.00, and lags 12 and 24 do not move at all</li>
-<li class="fragment">A trend term fixed the bias. It could not fix a fault that was never about trend</li>
-</ul>
-<aside class="notes">
-<p>Two correlograms that are the same picture - let the room hunt for the difference before you say there is not one. The only thing that moves is the number under each panel: +0.77 to +0.00. Every bar is identical.</p>
-<p>The algebra is one line, worth the board. Drift’s fitted value is last month plus a fixed slope, so its residual is the naive’s shifted down by a constant - exactly, to machine precision. A constant shift changes the mean and nothing else, which is why the spreads match to four figures and every autocorrelation is identical.</p>
-<p>So drift did what it was asked and zeroed the bias, and the spikes at 12 and 24 sit where they sat, because a straight line has nothing to say about December.</p>
-<p>That closes the question the last slide opened: the tilt we had does not buy a calendar. Note what just got spent - drift is the only benchmark with a trend term and it is now behind us, which is the reason segment B exists.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-seasonal-naive-repeats-last-years-same-month" class="slide level2">
-<h2>The seasonal naive repeats last year’s same month</h2>
-<p><span class="math display">\[\hat{y}_{T+h} = y_{T+h-m(k+1)}, \qquad k = \left\lfloor \frac{h-1}{m} \right\rfloor\]</span></p>
-<p>Monthly data, so <span class="math inline">\(m = 12\)</span>: one seasonal cycle is one year.</p>
-<ul>
-<li class="fragment"><span class="math inline">\(k+1\)</span> is how many seasonal cycles back the forecast reaches</li>
-<li class="fragment"><span class="math inline">\(h = 1 \dots 12\)</span>: <span class="math inline">\(k = 0\)</span>, so it copies last year’s same month</li>
-<li class="fragment"><span class="math inline">\(h = 13 \dots 24\)</span>: <span class="math inline">\(k = 1\)</span>, so it steps back a second year</li>
-</ul>
-<div class="fragment">
-<div class="cardbox teal">
-<p>The staircase in segment C is built on this <span class="math inline">\(k\)</span>: flat within each block of <span class="math inline">\(m = 12\)</span> months, one step up per seasonal cycle.</p>
-</div>
-<aside class="notes">
-<p>Say m out loud before the formula: the data is monthly, so one cycle is 12 months, and m = 12 everywhere in this deck. Everything else on the slide is that substitution.</p>
-<p>k is zero whenever the horizon stays inside one cycle, so for h up to 12 the seasonal naive is just “last year’s same month”. k only starts counting at h = 13, and that is exactly where its prediction interval takes its first step up. At h = 24 it is still 1, so the second year is copied whole: k changes once per cycle, not once per step. Segment C uses the same k for the same reason, so give this slide a real minute: the staircase later has no floor without it.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="all-four-simple-models-and-the-floor-they-set" class="slide level2">
-<h2>All four simple models, and the floor they set</h2>
-<div id="2cb997b0" class="cell" data-fig-width="10" data-execution_count="7">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-8-output-1.png" width="1112" height="441"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cardbox teal">
-<p><strong>Objective evidence</strong>: what proves a complex model adds value.</p>
-</div>
-<aside class="notes">
-<p>The full picture, and the one to photograph. One line added to the earlier chart, and it is the first forecast today with the shape of the data in it - let the room see the orange track the December peaks before any number is quoted.</p>
-<p>Name what just happened, because it is the method of the whole segment: we did not pick this model, the residual ACF picked it. Read the error, name the missing term, add it, look again.</p>
-<p>The room now has four models and two visible facts: one has the season, another has the trend, none has both. Do not resolve it - the residual check two slides on earns the resolution.</p>
-<p>Turn the card into a question to take back to work: what is the simple baseline, and by how much did we beat it? Ask a senior room whether their last model review answered it.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="fit-four-models-at-once-in-code" class="slide level2">
-<h2>Fit four models at once in code</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="im">from</span> statsforecast <span class="im">import</span> StatsForecast</span>
-<span id="cb1-2"><a></a><span class="im">from</span> statsforecast.models <span class="im">import</span> (HistoricAverage, Naive,</span>
-<span id="cb1-3"><a></a>                                  SeasonalNaive, RandomWalkWithDrift)</span>
-<span id="cb1-4"><a></a></span>
-<span id="cb1-5"><a></a>sf <span class="op">=</span> StatsForecast(models<span class="op">=</span>[HistoricAverage(), Naive(),</span>
-<span id="cb1-6"><a></a>                           SeasonalNaive(season_length<span class="op">=</span><span class="dv">12</span>),</span>
-<span id="cb1-7"><a></a>                           RandomWalkWithDrift()], freq<span class="op">=</span>D.FREQ)</span>
-<span id="cb1-8"><a></a>fc <span class="op">=</span> sf.forecast(df<span class="op">=</span>train, h<span class="op">=</span>H, level<span class="op">=</span>[<span class="dv">80</span>, <span class="dv">95</span>], fitted<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb1-9"><a></a>fv <span class="op">=</span> sf.forecast_fitted_values()      <span class="co"># the residuals we just read</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<aside class="notes">
-<p>Four models, about four lines each, no tuning, one second to run. This is the cell exercise 2.1 opens with.</p>
-<p>The one argument to point at is fitted=True, because it is the difference between a forecast and a diagnosis. Without it you get fc and nothing else; with it, forecast_fitted_values gives you the in-sample fitted values whose residuals the last five slides were built on.</p>
-<p>On many series the seasonal naive is genuinely tough to beat, and by the end of today they will have watched it beat a decomposition model over eight folds. Do not let these sound like toys.</p>
-<p>Then flag the turn: the floor is set, and the rest of the segment asks one question - is the winner any good?</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-winners-residuals-sit-high-and-fan-out" class="slide level2">
-<h2>The winner’s residuals sit high and fan out</h2>
-<div class="r-stack">
-<div id="e88d422a" class="cell" data-fig-width="9.5" data-execution_count="8">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-9-output-1.png" width="1057" height="364"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="fragment" data-fragment-index="1">
-<div id="796d0950" class="cell" data-fig-width="9.5" data-execution_count="9">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-10-output-1.png" width="1057" height="364"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div class="fragment" data-fragment-index="2">
-<div id="656ad86e" class="cell" data-fig-width="9.5" data-execution_count="10">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-11-output-1.png" width="1057" height="364"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="fragment" data-fragment-index="1">
-<ul>
-<li>The dashed line is the mean, +7.9: 68% of the errors sit <strong>above</strong> zero</li>
-</ul>
-</div>
-<div class="fragment" data-fragment-index="2">
-<ul>
-<li>Each box is a decade’s typical miss: 8.5, then 26.2, <strong>3x as tall</strong></li>
-</ul>
-</div>
-<aside class="notes">
-<p>Put the bare panel up and say nothing. Ask what is wrong with it before you click - both faults are visible with no annotation, which is why the slide arrives with nothing drawn on it.</p>
-<p>The first answer will be that it sits mostly above zero. Click once: the mean line and its bullet arrive together, so their answer is now drawn on the picture they gave it about. The second fault needs a prompt - the left third is thin, the right third is tall. Click again for the boxes.</p>
-<p>Say what the boxes are, because “SD” alone is a statistic and this is a quantity: each is a typical month’s miss drawn as a height, in the millions the y axis is in. Early on the model was out by about 8.5; by the 2010s, 26.2. The right box is 3x the height of the left, and that height is the finding.</p>
-<p>Do not name the four properties or diagnose either fault here - segment B’s grid does that once, at the end. But say the two are going to different places. The next slide takes the bias. The widening is not a missing-term problem, nothing in segment A will touch it, and it is why one sigma cannot size a band. Tell the room you are parking it, so nobody waits for a fix.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-season-is-gone-but-the-decay-is-not" class="slide level2">
-<h2>The season is gone, but the decay is not</h2>
-<div id="80eb3938" class="cell" data-fig-width="9" data-execution_count="11">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-12-output-1.png" width="1002" height="320"></p>
-</figure>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Lags 12 and 24 (orange) now fall <strong>inside</strong> the bounds at -0.03 and +0.04</li>
-<li class="fragment">The orange spikes the naive had are gone: the calendar term worked</li>
-<li class="fragment">What is left decays smoothly from 0.85. Day 1 named that shape too: <strong>trend</strong></li>
-</ul>
-<aside class="notes">
-<p>Say the comparison out loud - the pair is the argument. Earlier the orange lags were 0.68 and 0.58; now -0.03 and +0.04, both inside the bounds. Students skate past that, so make it count: it is the first time today a diagnosis has been confirmed by a later measurement rather than asserted.</p>
-<p>Then the black bars: a smooth decay from 0.85. Same table, different row. The season came out completely and something with the trend signature stayed in.</p>
-<p>That also answers the panel’s first fault. A model with no growth term under-forecasts a growing series, so the errors sit above zero and the mean is +7.9. The correlogram named the missing term; the mean residual measured what it costs.</p>
-<p>Now the reason drift was spent early. A missing term is named and no benchmark on the list supplies it: drift has the slope and cannot produce a December, the seasonal naive has the calendar and cannot grow, and neither patches into the other. The next model is a different kind of object, and that is segment B. Take the card from the room rather than reading it to them.</p>
-<p>If asked why r_1 is near 1: neighbouring months share almost all of their shortfall, because the level moves slowly. It decays to nothing by lag 11 because eleven months is long enough for the level to have moved on.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section></section>
-<section>
-<section id="b.-one-model-with-both-terms" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
-<h1>B. One model with both terms</h1>
-<p>Ch 5.7, 5.4 · The decomposition route, and the verdict on all five</p>
-</section>
-<section id="decomposition-is-also-a-forecasting-method" class="slide level2 smaller">
-<h2>Decomposition is also a forecasting method</h2>
-<p><strong>1 · STL splits the series</strong>, and the three parts group into two:</p>
-<p><span class="math display">\[y_t = \underbrace{T_t + R_t}_{A_t,\;\text{seasonally adjusted}} + \underbrace{S_t}_{\text{season}}\]</span></p>
-<div class="fragment">
-<p><strong>2 · Forecast each part</strong> with the simple model that suits it:</p>
-<p><span class="math display">\[\underbrace{\hat{A}_{T+h} = A_T + \frac{h}{T-1}(A_T - A_1)}_{\text{drift}}
-\qquad
-\underbrace{\hat{S}_{T+h} = S_{T+h-m(k+1)}}_{\text{seasonal naive}}\]</span></p>
-</div>
-<div class="fragment">
-<p><strong>3 · Add them back:</strong></p>
-<p><span class="math display">\[\hat{y}_{T+h} = \hat{A}_{T+h} + \hat{S}_{T+h}\]</span></p>
-</div>
-<div class="fragment">
-<div class="cardbox teal">
-<p><code>MSTL(season_length=12, trend_forecaster=RandomWalkWithDrift())</code> runs all three steps in one call.</p>
-</div>
-<aside class="notes">
-<p>The answer the room worked out just before the divider. Build it one fragment at a time, saying the step before showing the algebra.</p>
-<p>Step 1 is Day 1’s decomposition regrouped: trend plus remainder is the seasonally adjusted series A_t, and S_t is everything else. If anyone reads T_t as the forecast origin, that is Day 1’s trend-cycle - subscripted t, one value per time step, not the single origin T.</p>
-<p>Step 2 is the payoff, so point at it rather than reading it. Both formulas are benchmarks they already have with y swapped for a part, and they are the exact two the residual checks named: drift on the part with trend and no season, the seasonal naive on the part that is nothing but season. Each model is finally pointed at the component it is good at.</p>
-<p>Step 3 adds them back, and the card says it is one constructor call.</p>
-<p>trend_forecaster is pinned to drift on purpose - the default is AutoETS (Day 3), and no Day 3 model should quietly win a Day 2 comparison.</p>
-<p>The plus sign assumes additive seasonality; multiplicative is handled by logging first.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</div>
-</section>
-<section id="stls-two-parts-forecast-separately-then-add" class="slide level2">
-<h2>STL’s two parts forecast separately, then add</h2>
-<div id="9008d1b1" class="cell" data-fig-width="10" data-execution_count="12">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-13-output-1.png" width="1112" height="496"></p>
-</figure>
-</div>
-</div>
-</div>
-<aside class="notes">
-<p>Walk the three panels from top to bottom: 1. Top panel: Seasonally adjusted series A_t. Drift extends it with a growth line. 2. Middle panel: Seasonal component S_t. Seasonal naive repeats last year’s shape. 3. Bottom panel: Summing both yields the recombined MSTL forecast (sky blue).</p>
-<p>The two top panels are the two diagnoses of segment A, drawn as pictures.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="on-this-window-the-decomposition-route-clears-the-floor" class="slide level2">
-<h2>On this window, the decomposition route clears the floor</h2>
-<div id="083e3b3a" class="cell" data-fig-width="10" data-execution_count="13">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-14-output-1.png" width="1112" height="364"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cardbox coral">
-<p>The seasonal naive repeats last year’s <strong>level</strong>; STL lets drift carry the growth.</p>
-</div>
-<aside class="notes">
-<p>Let the graph do the talking: the room should see the STL route tracking the actuals closer before any number is quoted. No score on this slide, lecture 2 defines the metric and scores it.</p>
-<p>Do not let this land as “STL wins”. It wins on THIS window. Lecture 2 scores it over eight rolling origins and the ordering flips. Flag that now, so the reversal reads as the lesson rather than as a contradiction.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="ljung-box-turns-24-lag-checks-into-one-test" class="slide level2">
-<h2>Ljung-Box turns 24 lag checks into one test</h2>
-<p><span class="math inline">\(H_0\)</span>: the first <span class="math inline">\(\ell = 24\)</span> residual autocorrelations are all zero.</p>
-<p><span class="math display">\[Q = T(T+2)\sum_{k=1}^{\ell}\frac{r_k^2}{T-k}
-\qquad Q \sim \chi^2_{\ell-K} \; \text{ under } H_0\]</span></p>
-<p><span class="math inline">\(r_k\)</span>: the lag-<span class="math inline">\(k\)</span> autocorrelation · <span class="math inline">\(K\)</span>: parameters estimated, 0 here · <span class="math inline">\(p\)</span>: how often a <span class="math inline">\(Q\)</span> this large would happen if <span class="math inline">\(H_0\)</span> were true</p>
-<ul>
-<li class="fragment"><span class="math inline">\(p &lt; 0.05\)</span>: autocorrelation is real <span class="math inline">\(\rightarrow\)</span> <strong>model is not finished</strong></li>
-<li class="fragment"><span class="math inline">\(p \ge 0.05\)</span>: residuals are indistinguishable from white noise</li>
-</ul>
-<aside class="notes">
-<p>Motivation from Day 1: with 24 individual lag bounds at 95%, expecting 1 spike by chance is normal. Every ACF this segment read was read by eye, and by eye is fine when a spike is seven times the bound. Ljung-Box pools all lags into a single test so the call does not have to be made by eye: - H_0: all autocorrelations up to lag l are zero. - Rule of thumb: l = 24 for seasonal monthly data (2m), K = 0 for benchmarks (no estimated params). - p is a probability, not a size: it says how surprising this Q would be if the residuals really were white noise.</p>
-<p>One sentence of warning before the next slide, because it prevents the misreading that slide invites: this is a pass/fail on whether a model is finished. It is not a score, and it does not rank models.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="every-baseline-fails-and-they-fail-differently" class="slide level2">
-<h2>Every baseline fails, and they fail differently</h2>
-<div id="c9c7c0ab" class="cell" data-fig-width="10" data-execution_count="14">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-15-output-1.png" width="1081" height="296"></p>
-</figure>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment">Every <span class="math inline">\(p\)</span> is far below 0.05: <strong>not one of the five is finished</strong></li>
-<li class="fragment">Read the shapes, not the <span class="math inline">\(p\)</span>: annual spikes mean a missing season, decay means a missing trend</li>
-<li class="fragment">STL + drift halves the spread, 12.7 to 6.5, and <strong>still fails</strong>: see lag 24</li>
-<li class="fragment">The residual checklist is four: <strong>uncorrelated · zero mean · constant variance · normal</strong></li>
-</ul>
-<aside class="notes">
-<p>Five panels in teaching order, left to right, so the eye walks the lecture’s path. Mean fails everything. Naive leaves the orange spikes. Seasonal naive kills the spikes and leaves the decay. Drift is the naive again. STL plus drift is the only panel with neither.</p>
-<p>Head off the misreading: a room reading a p column will rank by it. The seasonal naive has the smallest p of the four benchmarks and is the best of them - its one-step residual is a year-on-year change, the naive’s is month-on-month, so the two are not comparable. The column is pass/fail; the ranking comes from lecture 2.</p>
-<p>Do not oversell the last panel. STL plus drift is the best-behaved residual of the day and still not white noise: p is about 7e-06, and if asked where that comes from, point at the one orange bar at lag 24 below the bound. That gap is Day 3’s opening.</p>
-<p>Read the four verdicts off the last bullet, do not re-teach them. Uncorrelated and zero mean failed, constant variance failed, normal is untested and segment C opens with it. Say the split as an instruction: the first two are messages about the model, so go back and change it. Constant variance leaves the point forecast alone, so there is nothing to change - a different kind of finding, not a lesser one, and the reason one sigma cannot size a band.</p>
-<p>A stats-literate room reaches for a transform before you offer it. Logs, or Box-Cox at the spine’s lambda of about 0.07, would take constant variance off the list. Real fix, deliberately not today’s: today is what to do when the width is wrong. Day 3 opens with the transform.</p>
-<p>Exercise 2.2 runs this checklist on the drift method.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section></section>
-<section>
-<section id="c.-prediction-intervals" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h1>C. Prediction intervals</h1>
+<section id="a.-prediction-intervals" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>A. Prediction intervals</h1>
 <p>Ch 5.5 · Quantifying uncertainty</p>
 </section>
 <section id="the-future-is-a-range-not-a-point" class="slide level2">
@@ -914,17 +285,17 @@
 </section>
 <section id="the-seasonal-naives-prediction-interval" class="slide level2">
 <h2>The seasonal naive’s prediction interval</h2>
-<div id="e3a70b05" class="cell" data-fig-width="10" data-execution_count="15">
+<div id="c74f7365" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-16-output-1.png" width="1112" height="518"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-3-output-1.png" width="1112" height="518"></p>
 </figure>
 </div>
 </div>
 </div>
 <aside class="notes">
-<p>Make the room read the dashed actual line against the bands rather than admiring the shading. Ask how many of the 24 points fall inside the 80% band. It looks excellent here, and lecture 2 shows a single 24-point window cannot measure a coverage rate at all.</p>
+<p>Make the room read the dashed actual line against the bands rather than admiring the shading. Ask how many of the 24 points fall inside the 80% band. It looks excellent here, and lecture 3 shows a single 24-point window cannot measure a coverage rate at all.</p>
 <p>One sentence if you want one: the interval is the forecast, and the line down the middle is just its most likely value.</p>
 <p>Plant one thing without explaining it - the band is flat through 2017 then steps out at the start of 2018. Point, say “we will come back to that”, move on. Two slides later the recursion says why, and the room recognizes it rather than being told.</p>
 <style type="text/css">
@@ -941,7 +312,7 @@
 </section>
 <section id="every-model-says-something-known-plus-an-error" class="slide level2">
 <h2>Every model says: something known, plus an error</h2>
-<p>Segment A defined a residual as a subtraction:</p>
+<p>Lecture 1 defined a residual as a subtraction:</p>
 <p><span class="math display">\[e_t = y_t - \hat{y}_{t|t-1}\]</span></p>
 <div class="fragment">
 <p>Move the forecast across, and the same line becomes a <strong>recipe for making data</strong>:</p>
@@ -954,7 +325,7 @@
 <aside class="notes">
 <p>One line of algebra the room can do in its head, so do it in front of them. Write the residual definition, move the forecast across, stop.</p>
 <p>Read the second line as a recipe: any value is the forecast we could have made plus the error we then made. True by construction for every model here, which is why what follows applies to all five, not just the seasonal naive.</p>
-<p>The card is the map for the next twenty minutes - put it up and leave it up. The three methods only disagree about where e comes from: a normal with SD sigma-hat (segment C), the errors this model already made (D), or nothing specified and calibrate instead (E).</p>
+<p>The card is the map for the next twenty minutes - put it up and leave it up. The three methods only disagree about where e comes from: a normal with SD sigma-hat (segment A), the errors this model already made (B), or nothing specified and calibrate instead (E).</p>
 <p>Name the promotion out loud - it is the real move and easy to skate past. Until this slide a model was a rule for producing a number; now it is a claim about how the series is made. Every derivation from here is arithmetic on that sentence.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -1019,10 +390,10 @@ y_{T+h} &amp;= y_T + \textstyle\sum_{i=1}^{h} e_{T+i}
 <aside class="notes">
 <p>Board pace, not slide pace. The only derivation in the deck, and it pays for the whole next slide - let the room watch each line appear.</p>
 <p>Ask the title before you answer it. Sigma-hat was built from one-step residuals, so the last slide’s band is a one-step band, and the chart they have already seen runs out to twenty-four.</p>
-<p>The first line is the recipe with one substitution: the naive’s forecast for t is y_{t-1}, so y_t = y_{t-1} + e_t. Nothing new is assumed about the model, only about e. Same e as segment A, worth ten seconds: e_t was measured on training data, e_{T+1} is the same object at a time we have not reached. No new symbol.</p>
+<p>The first line is the recipe with one substitution: the naive’s forecast for t is y_{t-1}, so y_t = y_{t-1} + e_t. Nothing new is assumed about the model, only about e. Same e as lecture 1, worth ten seconds: e_t was measured on training data, e_{T+1} is the same object at a time we have not reached. No new symbol.</p>
 <p>Roll it forward and let them count. One step, one error; two steps, two. The pattern is visible before the third line lands, so ask for it.</p>
 <p>Land the last line deliberately: the VARIANCE is h sigma squared, not the standard deviation. Independent things add variances. Square root at the end and sigma root h falls out - which is why every formula on the next slide has a square root in it.</p>
-<p>If asked whether the errors really are independent: they are not, segment B measured exactly that, and the slide after next names all three assumptions. Bank the question and let it arrive.</p>
+<p>If asked whether the errors really are independent: they are not, lecture 1 measured exactly that, and the slide after next names all three assumptions. Bank the question and let it arrive.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1100,11 +471,11 @@ y_{T+h} &amp;= y_T + \textstyle\sum_{i=1}^{h} e_{T+i}
 </ol>
 <div class="fragment">
 <div class="cardbox coral">
-<p>Segment A failed the first two <strong>by looking</strong>. The third has never been checked.</p>
+<p>Lecture 1 failed the first two <strong>by looking</strong>. The third has never been checked.</p>
 </div>
 <aside class="notes">
 <p>Read the three out of the line the sigma-hat slide put up: i.i.d. is independent, so uncorrelated; identically distributed with one sigma is constant variance; the N is normal. The room wrote that line down two slides ago without noticing it was a list of assumptions - which is exactly how it happens in practice.</p>
-<p>Count them off on your fingers; the next two segments buy them back one at a time. Two were already measured in segment A, and normality is the one left open, which the next slide closes. Bootstrap buys back normality; conformal avoids specifying a shape but substitutes exchangeability. Distribution-free never means assumption-free.</p>
+<p>Count them off on your fingers; the next two segments buy them back one at a time. Two were already measured in lecture 1, and normality is the one left open, which the next slide closes. Bootstrap buys back normality; conformal avoids specifying a shape but substitutes exchangeability. Distribution-free never means assumption-free.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1120,11 +491,11 @@ y_{T+h} &amp;= y_T + \textstyle\sum_{i=1}^{h} e_{T+i}
 </section>
 <section id="not-normal-the-80-band-is-too-wide" class="slide level2">
 <h2>Not normal: the 80% band is too wide</h2>
-<div id="0211fb24" class="cell" data-fig-width="9" data-execution_count="16">
+<div id="eacdf6ba" class="cell" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-17-output-1.png" width="1094" height="329"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-4-output-1.png" width="1094" height="329"></p>
 </figure>
 </div>
 </div>
@@ -1134,10 +505,10 @@ y_{T+h} &amp;= y_T + \textstyle\sum_{i=1}^{h} e_{T+i}
 <li class="fragment">The errors’ own middle 80% (blue) spans 36; <span class="math inline">\(c = 1.28\)</span> claims 45</li>
 </ul>
 <aside class="notes">
-<p>The check segment A put off: normality was item 4 and the only one unmarked.</p>
+<p>The check lecture 1 put off: normality was item 4 and the only one unmarked.</p>
 <p>Left panel is constant variance: a rolling SD that climbs while the pooled sigma-hat sits flat through the middle of it. One number standing in for a spread that tripled, too big for the 1980s and too small for the 2010s.</p>
 <p>Right panel is a shape comparison, so make it one. The curve is a normal with the SAME SD as these residuals, so shape is the only thing that can differ. Trace where the bars leave it: well above in the middle, still there in the tails after the curve has gone flat. Too peaked and too fat-tailed at once, and no adjustment of the SD fixes that because the SD is already matched.</p>
-<p>Then the two pairs of vertical lines, where the abstraction turns into money. Orange is where a normal of this SD puts the central 80%; blue is where these errors actually put it - narrower by about a fifth (36 against 45), which is exactly what segment D’s bootstrap comes back with.</p>
+<p>Then the two pairs of vertical lines, where the abstraction turns into money. Orange is where a normal of this SD puts the central 80%; blue is where these errors actually put it - narrower by about a fifth (36 against 45), which is exactly what segment B’s bootstrap comes back with.</p>
 <p>Blue is also off-centre and someone will spot it: the +7.9 bias again. A symmetric plus-or-minus cannot represent that at all.</p>
 <p>The fat tails cut the other way further out: at 95% the errors’ own span is about a tenth WIDER, 76 against 69. Sharp peak, fat tails, so the 80% band shrinks and the 95% does not - saying it here makes the bootstrap comparison a confirmation rather than a surprise. All three assumptions now fail; the next two methods each buy one back.</p>
 <style type="text/css">
@@ -1153,14 +524,14 @@ y_{T+h} &amp;= y_T + \textstyle\sum_{i=1}^{h} e_{T+i}
       }</style></aside>
 </section></section>
 <section>
-<section id="d.-bootstrapped-intervals" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
-<h1>D. Bootstrapped intervals</h1>
+<section id="b.-bootstrapped-intervals" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
+<h1>B. Bootstrapped intervals</h1>
 <p>Ch 5.5 · Dropping the normality assumption</p>
 <p>Draw the errors this model already made, and simulate forward</p>
 <aside class="notes">
-<p>Roughly 34 minutes into the deck, with about 22 still to run before the real break at the deck boundary. Take two minutes here and let the room stand up. Segments D and E are the densest stretch of Day 2, and they land better on a room that has moved.</p>
+<p>Roughly 14 minutes into the deck, with about 25 still to run before the lab. Take two minutes here and let the room stand up. Segments B and C are the densest stretch of Day 2, and they land better on a room that has moved.</p>
 <p>Read the second line out loud before you move on; it is the whole procedure in one sentence, and the four slides after it are that sentence slowed down. Note the two verbs, because the segment splits on them: draw is the pool slide, simulate forward is the loop.</p>
-<p>The segment is one procedure taken a step per slide: the pool it draws from, the loop that turns a draw into a future, the quantile that turns 5,000 futures into a band, what that buys, and what it costs. It answers the question segment C put up when it flipped the residual definition around, so open by asking it again: where does e come from? Nothing on a slide here is used before the slide that builds it, so if the room is with you at each step there is nothing left to take on trust.</p>
+<p>The segment is one procedure taken a step per slide: the pool it draws from, the loop that turns a draw into a future, the quantile that turns 5,000 futures into a band, what that buys, and what it costs. It answers the question segment A put up when it flipped the residual definition around, so open by asking it again: where does e come from? Nothing on a slide here is used before the slide that builds it, so if the room is with you at each step there is nothing left to take on trust.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1175,11 +546,11 @@ y_{T+h} &amp;= y_T + \textstyle\sum_{i=1}^{h} e_{T+i}
 </section>
 <section id="the-pool-we-draw-from-is-the-errors-themselves" class="slide level2">
 <h2>The pool we draw from is the errors themselves</h2>
-<div id="898e6c74" class="cell" data-fig-width="9" data-execution_count="17">
+<div id="f3ee87c0" class="cell" data-fig-width="9" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-18-output-1.png" width="1035" height="362"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-5-output-1.png" width="1035" height="362"></p>
 </figure>
 </div>
 </div>
@@ -1192,7 +563,7 @@ y_{T+h} &amp;= y_T + \textstyle\sum_{i=1}^{h} e_{T+i}
 <p>Read the two panels as one move, left to right. Left is the errors as they happened: one dot per month, at its distance from zero. Right is the same dots with the dates thrown away. Trace one orange line across the gap with your finger - it is flat, because the value survives and the date does not.</p>
 <p>That flat line IS the assumption, so name it while it is on screen: a pool is what a series becomes once you decide the order does not matter. Everything in this segment is bought with that sentence.</p>
 <p>Make it physical: 405 numbers in a hat, reach in, read one out, put it back. The vertical rule on each of the six is the size of that error, in dollars - the number the next slide adds to a forecast. Point out that they are still in the cloud on the right: that is what with replacement looks like, and it is the second bullet before you say it.</p>
-<p>Then the right panel on its own. Same shape the normality check just failed on - sharp peak, long right tail. There it was evidence against a curve; here it is the thing we sample. Say the turn out loud: we stopped describing the shape and started using it. The recipe has not changed since segment C opened it; only the source of e has. Left to right in that panel means nothing; it is only spread so 405 dots do not sit on top of each other.</p>
+<p>Then the right panel on its own. Same shape the normality check just failed on - sharp peak, long right tail. There it was evidence against a curve; here it is the thing we sample. Say the turn out loud: we stopped describing the shape and started using it. The recipe has not changed since segment A opened it; only the source of e has. Left to right in that panel means nothing; it is only spread so 405 dots do not sit on top of each other.</p>
 <p>Someone will see the funnel on the left - the errors fan out as the series grows. Take it and park it: “good, hold that.” It is the closing slide of this segment, and it is the same growth the rolling SD showed two slides ago. Do not teach it here; the bootstrap has to win before it can be argued with.</p>
 <p>Justify with replacement rather than asserting it, and the second reason is the real one. Arithmetic: 5,000 futures of 24 months is 120,000 draws out of 405 numbers, so there is no other option. Honest: we are treating those 405 as a sample of the errors this model makes, not a list of what will happen. Without replacement would be dealing out the past in a new order, a different claim entirely.</p>
 <p>Have ready rather than teach: bootstrap_paths shifts the pool to mean zero first, so the +7.9 bias stays in the point forecast instead of sliding the band up with it.</p>
@@ -1231,9 +602,9 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </div>
 <aside class="notes">
 <p>Draw the loop with your hand as you read the title: forecast, add, feed back, round again. Say the card early - nothing here is specific to the seasonal naive, which is what makes the loop worth learning.</p>
-<p>The block is not a new claim: it is the recipe segment C opened with, run forward a step at a time. Every line has the same shape, and it is the shape they already agreed to.</p>
+<p>The block is not a new claim: it is the recipe segment A opened with, run forward a step at a time. Every line has the same shape, and it is the shape they already agreed to.</p>
 <p>Slow down on the conditioning bars, because that is where the whole segment turns. Line one forecasts from T, the end of the real data. Line two forecasts from T+1 - a value we made up one line ago. The model cannot tell a simulated value from a real one, so it just carries on, and from there the drawn errors compound: a value invented at step 1 is still inside every value after it.</p>
-<p>Concrete if the room wants one: the seasonal naive copies last year’s same month, so its first twelve months still reach into real observations and month 13 is the first to copy an invented one. It then carries month 1’s error on top of its own, and month 25 carries three. That is segment C’s k+1 arriving by simulation instead of by derivation - two routes, one arithmetic - and it is why the next slide’s fan steps once a year.</p>
+<p>Concrete if the room wants one: the seasonal naive copies last year’s same month, so its first twelve months still reach into real observations and month 13 is the first to copy an invented one. It then carries month 1’s error on top of its own, and month 25 carries three. That is segment A’s k+1 arriving by simulation instead of by derivation - two routes, one arithmetic - and it is why the next slide’s fan steps once a year.</p>
 <p>Land the last bullet cleanly and stop: one trip round the loop is one step, the whole loop is ONE path, and one path is not an interval. That is the question the next slide answers.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -1250,11 +621,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="sec-boot-band" class="slide level2">
 <h2>Repeat 5000 times, then cut each column</h2>
-<div id="ebc5ba10" class="cell" data-fig-width="10" data-execution_count="18">
+<div id="2a338749" class="cell" data-fig-width="10" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-19-output-1.png" width="1048" height="340"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-6-output-1.png" width="1048" height="340"></p>
 </figure>
 </div>
 </div>
@@ -1282,11 +653,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="dropping-normality-buys-a-fifth-off-the-80-band" class="slide level2">
 <h2>Dropping normality buys a fifth off the 80% band</h2>
-<div id="fc88957f" class="cell" data-fig-width="10" data-execution_count="19">
+<div id="592fa82c" class="cell" data-fig-width="10" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-20-output-1.png" width="1088" height="351"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-7-output-1.png" width="1088" height="351"></p>
 </figure>
 </div>
 </div>
@@ -1312,11 +683,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="the-bootstrap-trades-normality-for-i.i.d." class="slide level2">
 <h2>The bootstrap trades normality for i.i.d.</h2>
-<div id="0c7873fd" class="cell" data-fig-width="10" data-execution_count="20">
+<div id="063ee9e3" class="cell" data-fig-width="10" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-21-output-1.png" width="1088" height="285"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-8-output-1.png" width="1088" height="285"></p>
 </figure>
 </div>
 </div>
@@ -1348,14 +719,14 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
       }</style></aside>
 </section></section>
 <section>
-<section id="e.-conformal-prediction" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
-<h1>E. Conformal prediction</h1>
+<section id="c.-conformal-prediction" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
+<h1>C. Conformal prediction</h1>
 <p>Ch 5.5 · Assuming no distribution at all</p>
 <p>Collect the errors you actually made at each horizon, then take their quantile</p>
 <aside class="notes">
-<p>Roughly 50 minutes into the deck, with the lab next. This is the last segment of the intervals topic and the densest one. Take a breath before you start.</p>
-<p>Read the second line out loud before you move on, the way you read segment D’s. It is the whole procedure in one sentence, and the slides after it are that sentence slowed down.</p>
-<p>The segment is one procedure taken a step per slide: the problem with the bootstrap’s one pool, the toy that shows what an <span class="math inline">\(h\)</span>-step error is, the formula that takes a quantile, the grid that collects them, what that buys, what it costs, and the one line that gives any model an interval. It answers the question segment D left open: the bootstrap’s one pool mixes eras, so open by refusing the bootstrap’s win, the way its last slide refused the Gaussian’s. Nothing on a slide here is used before the slide that builds it, so if the room is with you at each step there is nothing left to take on trust.</p>
+<p>Roughly 22 minutes into the deck, with about 18 still to run. This is the last segment with new machinery in it, and the densest one. Take a breath first.</p>
+<p>Read the second line out loud before you move on, the way you read segment B’s. It is the whole procedure in one sentence, and the slides after it are that sentence slowed down.</p>
+<p>The segment is one procedure taken a step per slide: the problem with the bootstrap’s one pool, the toy that shows what an <span class="math inline">\(h\)</span>-step error is, the formula that takes a quantile, the grid that collects them, what that buys, what it costs, and the one line that gives any model an interval. It answers the question segment B left open: the bootstrap’s one pool mixes eras, so open by refusing the bootstrap’s win, the way its last slide refused the Gaussian’s. Nothing on a slide here is used before the slide that builds it, so if the room is with you at each step there is nothing left to take on trust.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1387,7 +758,7 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 <p>One way to build the set: roll the origin and record the error at each horizon. The next slide is that, on a toy.</p>
 </div>
 <aside class="notes">
-<p>Open by refusing the bootstrap’s win, the way segment D’s last slide refused the Gaussian’s. The bootstrap draws from one fixed pool of one-step residuals, and that pool is the assumption doing the damage: it mixes the 1980s and the 2010s in one hat, so a 2019 forecast can draw a 1985-sized error. Last segment’s headline was a fifth narrower than the Gaussian; on an honest pool it was wider than the Gaussian it beat. The win was a stale pool, not a sharper method.</p>
+<p>Open by refusing the bootstrap’s win, the way segment B’s last slide refused the Gaussian’s. The bootstrap draws from one fixed pool of one-step residuals, and that pool is the assumption doing the damage: it mixes the 1980s and the 2010s in one hat, so a 2019 forecast can draw a 1985-sized error. Last segment’s headline was a fifth narrower than the Gaussian; on an honest pool it was wider than the Gaussian it beat. The win was a stale pool, not a sharper method.</p>
 <p>Conformal’s answer is the card: don’t assume one pool. Instead of one pool of one-step errors shared by every horizon, collect the h-step errors this model has already been caught making, one set per horizon, and assume only exchangeability. That is the whole idea; the rest of the segment is the mechanism.</p>
 <p>The next slide is one way to build the set: roll the origin and record the error at each horizon. The toy there is the “how” this slide just promised.</p>
 <style type="text/css">
@@ -1405,11 +776,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="a-3-step-error-needs-an-origin-and-a-horizon" class="slide level2">
 <h2>A 3-step error needs an origin and a horizon</h2>
-<div id="d900d704" class="cell" data-fig-width="9" data-execution_count="21">
+<div id="0fb8b28c" class="cell" data-fig-width="9" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-22-output-1.png" width="1002" height="287"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-9-output-1.png" width="1002" height="287"></p>
 </figure>
 </div>
 </div>
@@ -1440,7 +811,7 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 <p><span class="math display">\[\hat{y}_{T+h|T} \pm Q_{1-\alpha}\big(|e_{t+h|t}|\big)\]</span></p>
 <ul>
 <li class="fragment"><span class="math inline">\(Q_{1-\alpha}\)</span> is the <span class="math inline">\((1-\alpha)\)</span> quantile of the errors just collected, so 80% takes <span class="math inline">\(\alpha = 0.2\)</span></li>
-<li class="fragment">One quantile <strong>per <span class="math inline">\(h\)</span></strong>, so band growth is measured, not assumed: segment C’s width formulas are not needed</li>
+<li class="fragment">One quantile <strong>per <span class="math inline">\(h\)</span></strong>, so band growth is measured, not assumed: segment A’s width formulas are not needed</li>
 <li class="fragment">No <span class="math inline">\(\hat{\sigma}\)</span> and no normal table, so this works on a model with <strong>no interval formula at all</strong></li>
 </ul>
 <div class="fragment">
@@ -1449,7 +820,7 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </div>
 <aside class="notes">
 <p>Exchangeability asks whether the calibration errors and the next error remain comparable when their order is shuffled. It permits dependence that i.i.d. forbids, but does not excuse a changing regime (e.g.&nbsp;non-constant variance over decades).</p>
-<p>The interval is an empirical quantile of collected absolute errors: no sigma-hat to estimate, no normal table to look up. Because the width comes out of the data at each h separately, the staircase, the square-root-h, the drift formula: none of segment C’s width machinery is needed. That is also why conformal intervals work on models that have no closed-form formula (ML models, neural nets, Day 3).</p>
+<p>The interval is an empirical quantile of collected absolute errors: no sigma-hat to estimate, no normal table to look up. Because the width comes out of the data at each h separately, the staircase, the square-root-h, the drift formula: none of segment A’s width machinery is needed. That is also why conformal intervals work on models that have no closed-form formula (ML models, neural nets, Day 3).</p>
 <p>The next slide collects those errors into a grid, one column per horizon, and cuts each column.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -1466,17 +837,17 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="collect-them-into-a-grid-then-cut-each-column" class="slide level2">
 <h2>Collect them into a grid, then cut each column</h2>
-<div id="0ece3dd3" class="cell" data-fig-width="10" data-execution_count="22">
+<div id="439dd135" class="cell" data-fig-width="10" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-23-output-1.png" width="1163" height="375"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-10-output-1.png" width="1163" height="375"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cardbox teal">
-<p>Segment D cut columns of futures it <strong>invented</strong>. This cuts columns of errors the model <strong>actually made</strong>. <a href="#/sec-quantile">What a quantile is</a></p>
+<p>Segment B cut columns of futures it <strong>invented</strong>. This cuts columns of errors the model <strong>actually made</strong>. <a href="#/sec-quantile">What a quantile is</a></p>
 </div>
 <aside class="notes">
 <p>Say the card first, because it is the only new idea on the slide. The move is the one they watched five minutes ago on the bootstrap band: stand at one horizon, look down the column, sort, cut. Nothing about that has changed. What changed is what is in the column.</p>
@@ -1498,11 +869,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="conformal-found-the-staircase-without-the-formula" class="slide level2">
 <h2>Conformal found the staircase without the formula</h2>
-<div id="3c4aa657" class="cell" data-fig-width="10" data-execution_count="23">
+<div id="715a83c9" class="cell" data-fig-width="10" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-24-output-1.png" width="1112" height="331"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-11-output-1.png" width="1112" height="331"></p>
 </figure>
 </div>
 </div>
@@ -1514,8 +885,8 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 <li class="fragment">Horizon to horizon it wanders, because each column holds 16 numbers</li>
 </ul>
 <aside class="notes">
-<p>This is the segment’s payoff, so do not let it go by as another chart. Segment C spent a whole slide deriving root k+1 from the seasonal naive’s recursion. This line was never shown that derivation, never told the period is twelve, never told there is a staircase. Ask the room where it steps before you say anything.</p>
-<p>Then the two pairs of dashed means. Year one 48.4 against 49.5, year two 70.0 against 70.0. Ratio 1.45 measured, 1.41 derived. Two completely different routes to the same number, which is the strongest evidence in the deck that segment C’s derivation was not bookkeeping.</p>
+<p>This is the segment’s payoff, so do not let it go by as another chart. Segment A spent a whole slide deriving root k+1 from the seasonal naive’s recursion. This line was never shown that derivation, never told the period is twelve, never told there is a staircase. Ask the room where it steps before you say anything.</p>
+<p>Then the two pairs of dashed means. Year one 48.4 against 49.5, year two 70.0 against 70.0. Ratio 1.45 measured, 1.41 derived. Two completely different routes to the same number, which is the strongest evidence in the deck that segment A’s derivation was not bookkeeping.</p>
 <p>Do not oversell it. The orange line is jagged and one horizon can be a third off its neighbour - it agrees on the average and disagrees everywhere. Say why in the same breath as the third bullet: 16 numbers per column, and a quantile of sixteen numbers moves when any one of them moves. The next slide is that sentence with a knob on it.</p>
 <p>If someone asks which is better here: neither, and that is the point. They agree because the assumption happens to hold well enough on this series. On a series where it does not, only one of them notices.</p>
 <style type="text/css">
@@ -1532,11 +903,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="more-origins-buy-a-steadier-band-from-a-staler-regime" class="slide level2">
 <h2>More origins buy a steadier band from a staler regime</h2>
-<div id="417c0212" class="cell" data-fig-width="10" data-execution_count="24">
+<div id="d190a25a" class="cell" data-fig-width="10" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-25-output-1.png" width="1112" height="276"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-12-output-1.png" width="1112" height="276"></p>
 </figure>
 </div>
 </div>
@@ -1546,7 +917,7 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 <li class="fragment">16 windows reaches back to 1984: residual SD 8.5 then, 26.2 now</li>
 </ul>
 <div class="cardbox coral">
-<p>Segment D’s pool argument in different clothes: more calibration data is a steadier quantile drawn from a <strong>staler</strong> regime.</p>
+<p>Segment B’s pool argument in different clothes: more calibration data is a steadier quantile drawn from a <strong>staler</strong> regime.</p>
 </div>
 <aside class="notes">
 <p>Open by refusing the last slide’s win, the way you refused the bootstrap’s. Where did the eight origins come from, and why eight?</p>
@@ -1570,16 +941,16 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="any-model-at-all-can-be-given-a-conformal-interval" class="slide level2">
 <h2>Any model at all can be given a conformal interval</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a><span class="im">from</span> statsforecast.utils <span class="im">import</span> ConformalIntervals</span>
-<span id="cb2-2"><a></a></span>
-<span id="cb2-3"><a></a><span class="co"># the grid from two slides back: n_windows is its rows, h its columns</span></span>
-<span id="cb2-4"><a></a>ci <span class="op">=</span> ConformalIntervals(n_windows<span class="op">=</span><span class="dv">8</span>, h<span class="op">=</span><span class="dv">24</span>)</span>
-<span id="cb2-5"><a></a></span>
-<span id="cb2-6"><a></a>sf_conf <span class="op">=</span> StatsForecast(</span>
-<span id="cb2-7"><a></a>    models<span class="op">=</span>[SeasonalNaive(season_length<span class="op">=</span><span class="dv">12</span>, prediction_intervals<span class="op">=</span>ci)],</span>
-<span id="cb2-8"><a></a>    freq<span class="op">=</span><span class="st">"MS"</span>,</span>
-<span id="cb2-9"><a></a>)</span>
-<span id="cb2-10"><a></a>fc_conf <span class="op">=</span> sf_conf.forecast(df<span class="op">=</span>train, h<span class="op">=</span><span class="dv">24</span>, level<span class="op">=</span>[<span class="dv">80</span>, <span class="dv">95</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="im">from</span> statsforecast.utils <span class="im">import</span> ConformalIntervals</span>
+<span id="cb1-2"><a></a></span>
+<span id="cb1-3"><a></a><span class="co"># the grid from two slides back: n_windows is its rows, h its columns</span></span>
+<span id="cb1-4"><a></a>ci <span class="op">=</span> ConformalIntervals(n_windows<span class="op">=</span><span class="dv">8</span>, h<span class="op">=</span><span class="dv">24</span>)</span>
+<span id="cb1-5"><a></a></span>
+<span id="cb1-6"><a></a>sf_conf <span class="op">=</span> StatsForecast(</span>
+<span id="cb1-7"><a></a>    models<span class="op">=</span>[SeasonalNaive(season_length<span class="op">=</span><span class="dv">12</span>, prediction_intervals<span class="op">=</span>ci)],</span>
+<span id="cb1-8"><a></a>    freq<span class="op">=</span><span class="st">"MS"</span>,</span>
+<span id="cb1-9"><a></a>)</span>
+<span id="cb1-10"><a></a>fc_conf <span class="op">=</span> sf_conf.forecast(df<span class="op">=</span>train, h<span class="op">=</span><span class="dv">24</span>, level<span class="op">=</span>[<span class="dv">80</span>, <span class="dv">95</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <ul>
 <li class="fragment">Nothing here names a distribution, so it works on a model with <strong>no interval formula</strong></li>
 </ul>
@@ -1600,8 +971,8 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
       }</style></aside>
 </section></section>
 <section>
-<section id="f.-choosing-an-interval-method" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h1>F. Choosing an interval method</h1>
+<section id="d.-choosing-an-interval-method" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #00C9A7)">
+<h1>D. Choosing an interval method</h1>
 <p>Ch 5.5 · The three methods, compared</p>
 <p>Same point forecast, three bands, one assumption each</p>
 <aside class="notes">
@@ -1621,11 +992,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </section>
 <section id="three-methods-three-bands-one-centre-line" class="slide level2">
 <h2>Three methods, three bands, one centre line</h2>
-<div id="86ed0b99" class="cell" data-fig-width="10" data-execution_count="25">
+<div id="8486ee23" class="cell" data-fig-width="10" data-execution_count="12">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-26-output-1.png" width="1090" height="439"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-13-output-1.png" width="1090" height="439"></p>
 </figure>
 </div>
 </div>
@@ -1708,21 +1079,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
           display:block!important;
       }</style></aside>
 </section>
-<section id="rightarrow-lab-c-the-toolbox" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Lab C · The toolbox</h2>
+<section id="rightarrow-lab-d-intervals" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab D · Intervals</h2>
 <p>Open <code>labs/02_day2_toolbox_and_evaluation.ipynb</code></p>
 <table class="caption-top">
 <tbody>
-<tr class="odd">
-<td><strong>2.1</strong></td>
-<td>The benchmark floor</td>
-<td>15 min</td>
-</tr>
-<tr class="even">
-<td><strong>2.2</strong></td>
-<td>Are the residuals white noise?</td>
-<td>10 min</td>
-</tr>
 <tr class="odd">
 <td><strong>2.3</strong></td>
 <td>Intervals, and how much to believe them</td>
@@ -1731,12 +1092,14 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </tbody>
 </table>
 <div class="fragment">
-<p><em>46 minutes. The notebook carries the instructions; work down it in order.</em></p>
+<p><em>21 minutes, one exercise in three parts. Work down it in order.</em></p>
 <div class="cardbox teal">
-<p>2.3 is the long one and it has three parts. If time runs short, part c is the one to leave for later.</p>
+<p>The three parts run in the order taught: Gaussian, bootstrap, conformal. If time runs short, part c is the one to leave for later.</p>
 </div>
 <aside class="notes">
-<p>Warn them that the interval methods in 2.3 run in the order taught: Gaussian from the model’s own formula, bootstrap from resampled residuals, conformal from ConformalIntervals. The checklist that closes segment B is the skeleton of 2.2.</p>
+<p>One exercise, so the whole block is 2.3 and there is no choosing where to start. Say the order out loud anyway, because each part builds the band the next one argues with: the Gaussian from the model’s own formula, the bootstrap from resampled residuals, the conformal from ConformalIntervals.</p>
+<p>Part a asks for the 80% coverage on the 24-month holdout and it comes back excellent. Do not correct it in the room. That number is the plant lecture 3 pulls apart, and Exercise 2.5 sends them back to their own answer here.</p>
+<p>Nothing in 2.4 or 2.5 depends on part c, so it is the safe thing to drop when the clock has gone. The break is after this block.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1750,21 +1113,21 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
       }</style></aside>
 </div>
 </section>
-<section id="the-floor-is-set-and-it-is-not-finished" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
-<h2>The floor is set, and it is not finished</h2>
+<section id="you-pick-the-band-by-the-assumption-not-the-width" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
+<h2>You pick the band by the assumption, not the width</h2>
 <ul>
-<li class="fragment">Start with <strong>baselines</strong>, then let each residual check name the next model</li>
-<li class="fragment">Check residuals are <strong>uncorrelated and zero-mean</strong>; report <strong>intervals</strong>, not numbers</li>
-<li class="fragment">Know which <strong>assumption</strong> each interval method spends: normality, i.i.d., or exchangeability</li>
+<li class="fragment">Report a <strong>range</strong>, not a number: the point forecast was only half the answer</li>
+<li class="fragment">Three routes to the same 80%: a <strong>formula</strong>, a <strong>simulation</strong>, a <strong>calibration set</strong></li>
+<li class="fragment">Choose by the <strong>assumption</strong> you can defend - normality, one fixed pool, or exchangeability</li>
 </ul>
 <div class="fragment">
 <div class="cardbox teal">
-<p>Next: Forecast evaluation metrics and rolling-origin cross-validation.</p>
+<p>Next: forecast evaluation metrics and rolling-origin cross-validation.</p>
 </div>
 <aside class="notes">
-<p>The through-line to name before the break: the seasonal naive is the number to beat, and not one of the five models is white noise. Both halves of that matter. The first says today produces a floor; the second says every floor leaves something on the table, which is where Day 3 opens.</p>
-<p>Worth saying once that the method was the lesson as much as the models were. Nobody was handed a list of five benchmarks to memorize. Each one was asked for by the errors of the one before it, and that loop is what they should take to a series this course never showed them.</p>
-<p>Break here. Lecture 2 is scoring, and it takes the STL result apart.</p>
+<p>Close on the assumption table, not on the widths. The three bands on this series came out 59.7, 46.4 and 59.2 wide, and a room that remembers that ranking instead of the trade has taken the wrong thing away: on another series the order changes and the assumptions do not.</p>
+<p>Leave one question hanging, because lecture 3 answers it. Every band built today is 80% by construction. Not one slide checked whether it is 80% in fact, and the one number that looked like a check - the coverage they are about to read off a 24-month window in 2.3a - is measured on too little to mean anything.</p>
+<p>Break here. Lecture 3 is scoring, and it takes the STL result apart.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1781,11 +1144,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 <section id="sec-quantile" class="slide level2" data-visibility="uncounted">
 <h2>Reminder: a quantile is a counting rule</h2>
 <p>Sort the values. A quantile is then just a position in that list: <span class="math inline">\(0.5n\)</span> is the <strong>median</strong>, <span class="math inline">\(0.9n\)</span> is the <span class="math inline">\(0.9\)</span> quantile, <span class="math inline">\(0.1n\)</span> is the <span class="math inline">\(0.1\)</span> quantile.</p>
-<div id="685a8502" class="cell" data-fig-width="9.5" data-execution_count="26">
+<div id="93050258" class="cell" data-fig-width="9.5" data-execution_count="13">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-27-output-1.png" width="1035" height="296"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-14-output-1.png" width="1035" height="305"></p>
 </figure>
 </div>
 </div>
@@ -1794,7 +1157,7 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 <p>One sort, three positions. The 80% interval is the span between the <span class="math inline">\(0.1n\)</span> and <span class="math inline">\(0.9n\)</span> cuts, taken again at every month. <a href="#/sec-boot-band" onclick="history.back(); return false;">Back</a></p>
 </div>
 <aside class="notes">
-<p>Off the flow, after the closing slide, reached by a link from segment C’s opening slide or the bootstrap band. Back returns to whichever you came from; Alt+Left does the same. Use it if the room needs it, skip it otherwise.</p>
+<p>Off the flow, after the closing slide, reached by a link from segment A’s opening slide or the bootstrap band. Back returns to whichever you came from; Alt+Left does the same. Use it if the room needs it, skip it otherwise.</p>
 <p>Start from the median and generalise by changing one number. Sort the list, take the middle: position 0.5 times n.&nbsp;Ask for the 0.9 quantile and nothing changes but the 0.5, which becomes 0.9. Same for 0.1. One rule with a knob on it.</p>
 <p>Say “half the list”, not “half the range” - the median is the middle by count, and on these skewed paths the midpoint of the range is nowhere near it.</p>
 <p>Read it off the picture: the grey line is the median at position 2,500 of 5,000, the dashed lines are 500 and 4,500. The same three cuts land on the histogram on the right, and the shaded span is the middle 80% the fan chart draws.</p>
@@ -1814,11 +1177,11 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 <section id="sec-sd" class="slide level2" data-visibility="uncounted">
 <h2>Reminder: a standard deviation is a width</h2>
 <p>The standard deviation is one number: how far a typical value sits from the middle.</p>
-<div id="5969b1ac" class="cell" data-fig-width="9.5" data-execution_count="27">
+<div id="c3737801" class="cell" data-fig-width="9.5" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="03_benchmarks_residuals_and_intervals_files/figure-revealjs/cell-28-output-1.png" width="1035" height="318"></p>
+<p><img data-src="03b_prediction_intervals_files/figure-revealjs/cell-15-output-1.png" width="1035" height="295"></p>
 </figure>
 </div>
 </div>
@@ -1828,9 +1191,9 @@ y^*_{T+h} &amp;= \hat{y}_{T+h \,|\, T+h-1}   + e^*_h
 </div>
 <aside class="notes">
 <p>Off the flow, after the closing slide, reached from the sigma-hat slide’s link; Back returns to it.</p>
-<p>These are the actual residuals segment A has been reading, not a toy. The SD is one number for how far a typical residual sits from the middle, in millions of turnover, and the shaded bands are one and two of them either side.</p>
+<p>These are the actual residuals lecture 1 was reading, not a toy. The SD is one number for how far a typical residual sits from the middle, in millions of turnover, and the shaded bands are one and two of them either side.</p>
 <p>Read the shares off the labels rather than reciting 68 and 95 - on these residuals they are close but not equal, and that gap is what the normality slide is about.</p>
-<p>Connect it to the formula behind: the Gaussian interval is this width times 1.28 for an 80% band. Everything else in segment C argues about whether that is the right width.</p>
+<p>Connect it to the formula behind: the Gaussian interval is this width times 1.28 for an 80% band. Everything else in segment A argues about whether that is the right width.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;

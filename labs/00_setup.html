@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Time Series Analysis &amp; Forecasting</title>
+<title>Setup: do this before Day 1</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,25 +23,60 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-a0f9fd0d421825b736dc1bbcbcba2219.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-a0f9fd0d421825b736dc1bbcbcba2219.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -86,8 +121,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Time Series Analysis &amp; Forecasting</h1>
-<p class="subtitle lead">A three-day practical course</p>
+<h1 class="title">Setup: do this before Day 1</h1>
 </div>
 
 
@@ -104,85 +138,51 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Built on <a href="https://otexts.com/fpppy/"><em>Forecasting: Principles and Practice, the Pythonic Way</em></a> (Hyndman, Athanasopoulos, Garza, Challu, Mergenthaler &amp; Olivares), using the <code>statsforecast</code> / <code>utilsforecast</code> stack.</p>
-<p>Each day runs three hours as <strong>lecture → lab blocks</strong>: a deck taught straight through, then a lab where you do all of it while it is fresh. Days 1 and 3 have two blocks; Day 2 has three.</p>
-<section id="before-you-start" class="level2">
-<h2 class="anchored" data-anchor-id="before-you-start">Before you start</h2>
+<p><a href="../index.html">← Course index</a></p>
+<p>The course runs on <strong>Google Colab</strong>. There is nothing to install on your own machine.</p>
+<section id="what-you-need" class="level2">
+<h2 class="anchored" data-anchor-id="what-you-need">What you need</h2>
 <ul>
-<li><a href="./labs/00_setup.html">Setup guide</a>, Colab, nothing to install</li>
-<li><a href="slides/00_statistics_refresher.html"><strong>A Statistics Refresher</strong></a> — <strong>required</strong>, ~30 minutes. The five ideas the course assumes: a distribution and the two numbers that summarize it, a quantile, i.i.d. and how each half breaks, a test of a claim, and the p-value. Read it before Day 1, or in an expansion hour.</li>
-<li>The <strong>Before Day 1</strong> section at the top of the Day 1 notebook, ~20 minutes: pandas dates, long format, and five short checks on the refresher’s ideas</li>
-<li><a href="./labs/reference_cheatsheet.html">Reference cheat sheet</a>, one page, printable</li>
+<li>A Google account (Colab runs in the browser)</li>
+<li>Internet access on the day — the notebooks clone the course repository when they start</li>
 </ul>
 </section>
-<section id="day-1-structure" class="level2">
-<h2 class="anchored" data-anchor-id="day-1-structure">Day 1: Structure</h2>
-<p><em>Seeing what is actually in a series.</em></p>
-<table class="caption-top table">
-<tbody>
-<tr class="odd">
-<td>Lecture 1</td>
-<td><a href="slides/01_getting_started_and_patterns.html">Getting Started &amp; Time Series Patterns</a></td>
-</tr>
-<tr class="even">
-<td>Lecture 2</td>
-<td><a href="slides/02_acf_decomposition_and_features.html">ACF, Decomposition &amp; Features</a></td>
-</tr>
-<tr class="odd">
-<td>Labs A–B</td>
-<td><a href="labs/01_day1_structure_and_diagnostics.ipynb" download="01_day1_structure_and_diagnostics.ipynb"><code>labs/01_day1_structure_and_diagnostics.ipynb</code></a> <a href="https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/01_day1_structure_and_diagnostics.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" class="img-fluid" alt="Open In Colab"></a></td>
-</tr>
-</tbody>
-</table>
-<p>Applications and what can be forecast · the three model families · trend, seasonality and cycle · components · the golden rule · the four plots · autocorrelation and the correlogram · log transform and STL · features across a whole portfolio.</p>
+<section id="before-day-1" class="level2">
+<h2 class="anchored" data-anchor-id="before-day-1">Before Day 1</h2>
+<ol type="1">
+<li>Read <a href="../slides/00_statistics_refresher.html"><strong>A Statistics Refresher</strong></a> (~30 minutes). It builds the five ideas the course assumes — a distribution and the two numbers that summarize it, a quantile, i.i.d. and how each half breaks, a test of a claim, and the p-value. <strong>Required.</strong></li>
+<li>Open the Day 1 notebook in Colab and run its <strong>Setup</strong> cell. That is the whole install: it clones the course and installs <code>coursekit</code>.</li>
+<li>Work through the <strong>Before Day 1</strong> section at the top of that notebook, about 20 minutes: pandas dates, long format, and five short checks on the refresher’s ideas. Nothing is assessed, and none of it is part of a timed lab block.</li>
+</ol>
 </section>
-<section id="day-2-toolbox-evaluation" class="level2">
-<h2 class="anchored" data-anchor-id="day-2-toolbox-evaluation">Day 2: Toolbox &amp; evaluation</h2>
-<p><em>Forecasting, and proving whether the forecast was any good.</em></p>
-<table class="caption-top table">
-<tbody>
-<tr class="odd">
-<td>Lecture 1</td>
-<td><a href="slides/03_benchmarks_and_residuals.html">Benchmarks &amp; Residuals</a></td>
-</tr>
-<tr class="even">
-<td>Lecture 2</td>
-<td><a href="slides/03b_prediction_intervals.html">Prediction Intervals</a></td>
-</tr>
-<tr class="odd">
-<td>Lecture 3</td>
-<td><a href="slides/04_forecast_evaluation_and_cv.html">Forecast Evaluation &amp; Cross-Validation</a></td>
-</tr>
-<tr class="even">
-<td>Labs C–E</td>
-<td><a href="labs/02_day2_toolbox_and_evaluation.ipynb" download="02_day2_toolbox_and_evaluation.ipynb"><code>labs/02_day2_toolbox_and_evaluation.ipynb</code></a> <a href="https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/02_day2_toolbox_and_evaluation.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" class="img-fluid" alt="Open In Colab"></a></td>
-</tr>
-</tbody>
-</table>
-<p>The benchmark floor · forecasting from a decomposition · fitted values and residuals · Ljung-Box · prediction intervals and why they widen · Gaussian, bootstrap and conformal intervals and what each one spends · MAE, RMSE, MAPE and why MASE instead · scaled CRPS, because coverage cannot rank · rolling-origin cross-validation · leakage.</p>
-<p>Day 2 ends with an <strong>evaluation harness</strong> and with a model that wins on one window and loses over eight. The floor to beat is a seasonal naive at MASE 1.18. Its residuals fail Ljung-Box at p about 1e-240, so there is signal in this series that nothing on Day 2 captured, and that is where Day 3 opens.</p>
+<section id="each-day" class="level2">
+<h2 class="anchored" data-anchor-id="each-day">Each day</h2>
+<ol type="1">
+<li>Open that day’s notebook in Colab and run the <strong>Setup</strong> cell first. It prints a line for the spine (441 months, Apr 1982 to Dec 2018) — if you see it, you are ready.</li>
+<li>Work down in order. Cells marked <code>TODO</code> are yours to fill in; a <code>checks.check_ex_*</code> call tells you whether it worked.</li>
+</ol>
+<p><strong>If your runtime resets, every install is gone.</strong> Re-run the Setup cell of the notebook you are in. A reset can happen any time Colab is idle; this is the single most common way to lose ten minutes in the room.</p>
 </section>
-<section id="day-3-models-orchestration" class="level2">
-<h2 class="anchored" data-anchor-id="day-3-models-orchestration">Day 3: Models &amp; orchestration</h2>
-<p><em>Real models, scored on Day 2’s harness. Taught on Google Colab.</em></p>
-<table class="caption-top table">
-<tbody>
-<tr class="odd">
-<td>Lecture 1</td>
-<td><a href="slides/05_exponential_smoothing_and_ets.html">Exponential Smoothing &amp; ETS</a></td>
-</tr>
-<tr class="even">
-<td>Lecture 2</td>
-<td><a href="slides/06_orchestration_and_the_field.html">Orchestration &amp; the Field</a></td>
-</tr>
-<tr class="odd">
-<td>Labs F–G</td>
-<td><a href="labs/03_day3_models_and_orchestration.ipynb" download="03_day3_models_and_orchestration.ipynb"><code>labs/03_day3_models_and_orchestration.ipynb</code></a> <a href="https://colab.research.google.com/github/NaifMersal/time-series-analysis-and-forecasting/blob/main/labs/03_day3_models_and_orchestration.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" class="img-fluid" alt="Open In Colab"></a></td>
-</tr>
-</tbody>
-</table>
-<p>Simple exponential smoothing as a weighted average · adding a trend state, and damping it · Holt-Winters and the third state · the (E,T,S) family and AICc selection · Box-Cox against a multiplicative error · AutoGluon TimeSeries as the orchestrated layer, and how to read what a framework hands back · a closing map of the field, listed not taught.</p>
-<p>Day 3 scores every model on Day 2’s harness. ETS ties the floor on MASE and <strong>loses the distribution</strong> by over-covering at 87.5%. Only Theta, which got no lecture at all, beats the seasonal naive on scaled CRPS. The floor Day 2 built survives a full day of fitted models, which is the closing argument of the course.</p>
+<section id="day-3-exercise-3.4" class="level2">
+<h2 class="anchored" data-anchor-id="day-3-exercise-3.4">Day 3, Exercise 3.4</h2>
+<p>AutoGluon is not installed by the Setup cell (it is large). When you reach Exercise 3.4, run the install cell it points to — it takes a few minutes. Everything else on Day 3 needs nothing extra.</p>
+</section>
+<section id="troubleshooting" class="level2">
+<h2 class="anchored" data-anchor-id="troubleshooting">Troubleshooting</h2>
+<p><strong>The Setup cell fails part-way</strong> Run it again. If it fails twice, check your connection and try again; the clone is the only step that needs the network.</p>
+<p><strong><code>ModuleNotFoundError: coursekit</code></strong> You are in a fresh runtime. Run the Setup cell of the notebook you are in.</p>
+<p><strong>A plot does not appear</strong> Re-run the cell above it. Colab notebooks do not keep state across runtime resets.</p>
+<p><strong>Still stuck?</strong> Raise your hand in the room. Do not spend an hour on this alone.</p>
+</section>
+<section id="if-you-want-to-work-on-your-own-machine" class="level2">
+<h2 class="anchored" data-anchor-id="if-you-want-to-work-on-your-own-machine">If you want to work on your own machine</h2>
+<p>Optional. The course is built for Colab; this is for people who prefer their own environment.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync <span class="at">--extra</span> dev</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv/Scripts/python.exe</span> scripts/check_env.py     <span class="co"># Windows</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv/bin/python</span> scripts/check_env.py             <span class="co"># macOS / Linux</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv/Scripts/python.exe</span> scripts/prefetch_data.py <span class="co"># downloads the datasets</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run jupyter lab</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>check_env.py</code> must end with <strong>“Ready. See you on Day 1.”</strong> Then open <code>labs/01_day1_structure_and_diagnostics.ipynb</code> in Jupyter and work through its <strong>Before Day 1</strong> section.</p>
 
 
 </section>

@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-03">
+  <meta name="dcterms.date" content="2026-09-06">
   <title>Orchestration &amp; the Field</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -206,7 +206,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-03</p>
+  <p class="date">2026-09-06</p>
 </section>
 <section id="yesterdays-floor-is-still-standing" class="slide level2">
 <h2>Yesterday’s floor is still standing</h2>
@@ -574,6 +574,7 @@
 <p>Lag features are how most working data scientists actually do this: build a tabular frame of lags and rolling statistics, then fit a gradient booster. fpppy has no chapter on it. The zoo log from Part A already showed the two AutoGluon versions of it, RecursiveTabular and DirectTabular, so the name has a face. Warn them once about the trap Day 2 covered, which is computing a feature over data the fold was not allowed to see.</p>
 <p>Neural models are global: one model across many series, learning shared structure. On one series with 441 points they are the wrong tool, which is worth saying plainly because the instinct runs the other way.</p>
 <p>Foundation models are the genuinely new thing. Pretrained on many series, and they forecast a series they have never seen with no fitting at all. On Colab, Chronos-Bolt-small or Moirai-small run on CPU; TimeGPT needs an API key and Moirai needs weights from Hugging Face.</p>
+<p>The newest of them have moved past one series at a time. TimesFM 3 is pretrained for multivariate forecasting and accepts past and known-future covariates, so a promotion calendar or a holiday flag arrives with no fitting step at all. That is the cross-link at the bottom of these notes, minus the fit. Google’s write-up is at https://research.google/blog/timesfm-3-a-zero-shot-foundation-model-for-multivariate-forecasting/ and it reports the top of GIFT-Eval and FEV-Bench among foundation models. Quote the ranking, then say what to do with it, because that is the part they own: a leaderboard is somebody else’s series and somebody else’s folds. They have a harness, so the question is whether it beats their own seasonal naive on their own data. That is the closing chart of this deck, pointed at a model nobody in the room has run.</p>
 <p>Ensembles last, because it is the cheapest reliable win in forecasting and the least glamorous, and they have now seen one with its weights printed in a log.</p>
 <p>One cross-link worth making if the room is with you: the covariates support in AutoGluon, known covariates like promotions and holidays, is where dynamic regression lives inside a framework. The chapter name and the framework flag are the same idea.</p>
 <style type="text/css">
@@ -619,7 +620,7 @@
 </section>
 <section id="one-model-beat-the-floor-two-did-not" class="slide level2">
 <h2>One model beat the floor; two did not</h2>
-<div id="394e2a54" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="03c4fc9d" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -689,8 +690,8 @@
       }</style></aside>
 </div>
 </section>
-<section id="rightarrow-lab-f-orchestration-and-one-of-your-own" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Lab F · Orchestration, and one of your own</h2>
+<section id="rightarrow-lab-g-orchestration-and-one-of-your-own" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab G · Orchestration, and one of your own</h2>
 <p>Back to <code>labs/03_day3_models_and_orchestration.ipynb</code></p>
 <table class="caption-top">
 <tbody>
