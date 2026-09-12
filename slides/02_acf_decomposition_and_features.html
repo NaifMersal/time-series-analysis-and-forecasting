@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-html/tabby.min.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-12">
+  <meta name="dcterms.date" content="2026-09-13">
   <title>ACF, Decomposition &amp; Features</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -192,6 +192,9 @@
       margin-right: 0; 
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+  
+  <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+DQogIDxkZWZzPg0KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYSIgeDE9Ii0xLjkxMSIgeDI9IjIuOTg1IiB5MT0iLS44NDEiIHkyPSIxLjQxNCIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOTlkNjMzIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjM2M5Ii8+DQogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyNzM0NzAiLz4NCiAgICA8L2xpbmVhckdyYWRpZW50Pg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9ImQiIHgxPSItMy41NjkiIHgyPSIxLjMyOCIgeTE9Ii0xLjYwNSIgeTI9Ii42NTEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJlIiB4MT0iLTMuMDQ3IiB4Mj0iMS44NDkiIHkxPSItLjkwNCIgeTI9IjEuMzUyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iZiIgeDE9Ii0yLjg5IiB4Mj0iMi4wMDciIHkxPSItMS4yOTIiIHkyPSIuOTY0Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iZyIgeDE9Ii0yLjQiIHgyPSIyLjQ5NyIgeTE9Ii0xLjA2NiIgeTI9IjEuMTg5Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iaCIgeDE9Ii0uOTkyIiB4Mj0iMi42NzkiIHkxPSItLjQxOCIgeTI9IjEuMjczIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iaSIgeDE9Ii0xLjUxMiIgeDI9IjIuMTU5IiB5MT0iLS4xOTciIHkyPSIxLjQ5NSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9ImoiIHgxPSItLjkxNCIgeDI9IjIuNzU4IiB5MT0iLjA3OSIgeTI9IjEuNzcxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iayIgeDE9Ii0zLjQwNSIgeDI9IjEuNDkzIiB5MT0iLTEuMDY4IiB5Mj0iMS4xODciLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJsIiB4MT0iLjM0NyIgeDI9IjMuMjg1IiB5MT0iLjE5OSIgeTI9IjEuNTUyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0ibSIgeDE9Ii0uOTA1IiB4Mj0iMi43NjciIHkxPSIuMDgzIiB5Mj0iMS43NzUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJuIiB4MT0iLTIuMTE5IiB4Mj0iMi43NzgiIHkxPSItLjQ3NiIgeTI9IjEuNzc5Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0ibyIgeDE9Ii01LjY0NCIgeDI9Ii40ODYiIHkxPSItMi45OTgiIHkyPSIuNzQxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0icCIgeDE9Ii0zLjQ5NSIgeDI9IjIuNjM2IiB5MT0iLTEuNjg3IiB5Mj0iMi4wNTMiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJxIiB4MT0iLTEuNDIyIiB4Mj0iMy4xNzUiIHkxPSItLjkyMyIgeTI9IjEuODgyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iciIgeDE9Ii0zLjMwNiIgeDI9IjIuODI1IiB5MT0iLTIuMDcyIiB5Mj0iMS42NjgiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJzIiB4MT0iLTEuNjgzIiB4Mj0iMi45MTQiIHkxPSItMS4wODEiIHkyPSIxLjcyMyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9InQiIHgxPSItMS4xNTgiIHgyPSIyLjUyMSIgeTE9Ii0uMjYxIiB5Mj0iMS45ODMiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImIiIHgxPSIuMjYxIiB4Mj0iLjYyNCIgeTE9IjMuNTYiIHkyPSItMS40NjkiIGdyYWRpZW50VW5pdHM9Im9iamVjdEJvdW5kaW5nQm94Ij4NCiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzZjZiIvPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIuNSIgc3RvcC1jb2xvcj0iIzYyNThhNiIvPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjczNDcwIi8+DQogICAgPC9saW5lYXJHcmFkaWVudD4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ1IiB4MT0iLjE2MyIgeDI9Ii41MjYiIHkxPSI0LjkyNCIgeTI9Ii0uMTAzIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0idiIgeDE9Ii4zODYiIHgyPSIuNjU4IiB5MT0iMS44MjUiIHkyPSItMS45NDUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ3IiB4MT0iLjI1MiIgeDI9Ii42MTUiIHkxPSI0LjE4MiIgeTI9Ii0uODQ1Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0ieCIgeDE9Ii40MTciIHgyPSIuNjg5IiB5MT0iMS45IiB5Mj0iLTEuODciLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ5IiB4MT0iLjQ4NSIgeDI9Ii43MDMiIHkxPSIuOTU2IiB5Mj0iLTIuMDYiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ6IiB4MT0iLjM3NyIgeDI9Ii42NDkiIHkxPSIyLjQ1NSIgeTI9Ii0xLjMxNCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkEiIHgxPSIuMTk5IiB4Mj0iLjU2MiIgeTE9IjQuOTIyIiB5Mj0iLS4xMDUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJCIiB4MT0iLjQzNyIgeDI9Ii43MDkiIHkxPSIxLjYyNSIgeTI9Ii0yLjE0NSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkMiIHgxPSIuMjYxIiB4Mj0iLjYyNCIgeTE9IjQuMDU1IiB5Mj0iLS45NzIiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJEIiB4MT0iLjUiIHgyPSIuNSIgeTE9IjMuMDQ1IiB5Mj0iLTEuOTI3Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iRSIgeDE9Ii41IiB4Mj0iLjUiIHkxPSI0LjkwMSIgeTI9Ii0uMDcyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iRiIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIyLjQzNSIgeTI9Ii0xLjI5NiIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkciIHgxPSIuNSIgeDI9Ii41IiB5MT0iLjkzNCIgeTI9Ii0yLjA1Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iSCIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIzLjc4NSIgeTI9Ii0xLjE4NyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkkiIHgxPSIuNSIgeDI9Ii41IiB5MT0iMS44MDkiIHkyPSItMS45MjEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJKIiB4MT0iLjUiIHgyPSIuNSIgeTE9IjMuMDQ2IiB5Mj0iLTEuOTI4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iSyIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIyLjc5NCIgeTI9Ii0yLjE3NyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYyIgeDE9IjUuMDEiIHgyPSItMi4yNzciIHkxPSItMS4zODMiIHkyPSIyLjAzOSIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmRiZDRkIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjZjYzIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyNzM0NzAiLz4NCiAgICA8L2xpbmVhckdyYWRpZW50Pg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IkwiIHgxPSIyLjIzOSIgeDI9Ii0yLjEzNCIgeTE9Ii0uMDgyIiB5Mj0iMS45NzEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJNIiB4MT0iNi4wOTgiIHgyPSItMS4xOTEiIHkxPSItMS44OTMiIHkyPSIxLjUyOCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9Ik4iIHgxPSIzLjM4NCIgeDI9Ii0yLjA4MSIgeTE9Ii0xLjA4OCIgeTI9IjEuNDc3Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iTyIgeDE9IjIuNzgiIHgyPSItMi42ODYiIHkxPSItLjgwNSIgeTI9IjEuNzYxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iUCIgeDE9IjcuMDc0IiB4Mj0iLS4yMTIiIHkxPSItMi4zNTMiIHkyPSIxLjA2OSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlEiIHgxPSI1LjA3NSIgeDI9Ii0yLjIxMSIgeTE9Ii0xLjQxNCIgeTI9IjIuMDA4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iUiIgeDE9IjUuNzM2IiB4Mj0iLTEuNTUiIHkxPSItMi4xOTQiIHkyPSIxLjIyOCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlMiIHgxPSIyLjA4MSIgeDI9Ii0xLjc4MSIgeTE9Ii0uMDQ3IiB5Mj0iMS45Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iVCIgeDE9Ii43MjkiIHgyPSItMi4zNjEiIHkxPSIuMTM1IiB5Mj0iMS42OTIiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJVIiB4MT0iMi43MTciIHgyPSItMi40MzMiIHkxPSItLjg2OCIgeTI9IjEuNzI4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iViIgeDE9IjEuNTE3IiB4Mj0iLTIuMzQ3IiB5MT0iLS4yNjIiIHkyPSIxLjY4NCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlciIHgxPSIzLjU0NCIgeDI9Ii0xLjYwNiIgeTE9Ii0xLjI4NCIgeTI9IjEuMzEyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iWCIgeDE9IjIuNjMxIiB4Mj0iLTEuMjMzIiB5MT0iLS4zMjQiIHkyPSIxLjYyMyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlkiIHgxPSIyLjAwMyIgeDI9Ii0xLjg2IiB5MT0iLS4wMDciIHkyPSIxLjk0Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iWiIgeDE9IjQuMTI1IiB4Mj0iLTEuMDI1IiB5MT0iLTEuMDc3IiB5Mj0iMS41MTgiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJhYSIgeDE9IjMuMDIyIiB4Mj0iLTIuMTI3IiB5MT0iLTEuMDIxIiB5Mj0iMS41NzQiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJhYiIgeDE9IjQuNjgxIiB4Mj0iLS40NjkiIHkxPSItMS44NTciIHkyPSIuNzM4Ii8+DQogIDwvZGVmcz4NCiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMy44IDEpIj4NCiAgPHBhdGggZmlsbD0iIzNjOSIgZD0ibTM2LjA0MSAyNi41My0xMS40NDggNi42MTF2MTMuMjJsMTEuNDQ4IDYuNjEyIDExLjQ0Ni02LjYwOFYzMy4xNDFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYSkiIGQ9Ik03MS40NjQgMjAuOTF2Ny45MzJsLTYuODctMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZCkiIGQ9Ik02NC4yNDkgNTIuOTdsNi44NjkgMy45NjV2LTcuOTNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZSkiIGQ9Im02OC4xIDQ2LjM1OSAtNi44NjkgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2YpIiBkPSJNNzIuMzkyIDM1LjM3djcuOTMybC02Ljg2OSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZykiIGQ9Ik01Ni42NTEgNTYuODQ3djcuOTMybC02Ljg2OSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjaCkiIGQ9Im01Ny43OTQgNTEuNjQzIC05LjE2IC01LjI4NiA5LjE2IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2kpIiBkPSJtNTcuNzk1IDUyLjk3IC05LjE2IDUuMjlWNDcuNjg0WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2opIiBkPSJtNTcuNzkyIDM5Ljc0OSAtOS4xNTggNS4yODZ2LTEwLjU3MloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNrKSIgZD0ibTU4LjUgNzAuMzE4IC02Ljg2OCAzLjk2N3YtNy45MzJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjbCkiIGQ9Im00Ny40ODcgNDYuMzYxIC0xMS40NDYgLTYuNjEyIDExLjQ0NiAtNi42MTFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjbSkiIGQ9Im00Ni4zNDQgNjEuMDc3IC05LjE1OCA1LjI4NnYtMTAuNTcyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI24pIiBkPSJtNDUuMTk5IDc0LjAzNSAtNi44NjggMy45NjV2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI28pIiBkPSJtNzAuMDIxIDYxLjc3NSAtNi44NjkgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3ApIiBkPSJtNjguMSAzMy4xNDIgLTYuODY5IDMuOTY3di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNxKSIgZD0iTTU3Ljc5NCAyNy44NTJ2MTAuNTc2bC05LjE2IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3IpIiBkPSJNNDUuMjAyIDYyLjg5MXY3LjkzMmwtNi44NjkgLTMuOTY3WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3MpIiBkPSJtNDYuMzQzIDU5Ljc1NiAtOS4xNTcgLTUuMjg2IDkuMTU3IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3QpIiBkPSJtMzYuMDQxIDM5Ljc1IDExLjQ0NiA2LjYxMiAtMTEuNDQ2IDYuNjA4WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2IpIiBkPSJtNjkuMzM0IDE3LjAzMSAtNi44NjkgMy45NjV2LTcuOTNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjdSkiIGQ9Im01OC4wODIgNS40NiAtNi44NzEgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3YpIiBkPSJtNTcuNzk2IDI2LjUyOSAtOS4xNjIgNS4yODZWMjEuMjQxWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3cpIiBkPSJtNDUuMiAxNC41NDUgLTYuODY5IC0zLjk2NSA2Ljg2OSAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjeCkiIGQ9Ik00Ni4zNDQgMTkuNzQ0VjMwLjMxOWwtOS4xNTggLTUuMjg2WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3kpIiBkPSJNMzYuMDQxIDI2LjUzdjEzLjIyTDI0LjU5MyAzMy4xNDFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjeikiIGQ9Im0zNC44OTcgMjMuNzA5IC05LjE1OCAtNS4yODYgOS4xNTggLTUuMjlaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQSkiIGQ9Im0zMy43NSA3LjkzMiAtNi44NyAtMy45NjUgNi44NyAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQikiIGQ9Im0yMy40NDkgMzEuODE2IC05LjE1OCAtNS4yOSA5LjE1OCAtNS4yODVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQykiIGQ9Ik0xOS43NiA2LjAzOXY3LjkzMmwtNi44NjkgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0QpIiBkPSJtNTYuNjQ3IDIyLjY1MSAtNi44NzEgLTMuOTY3IDYuODcxIC0zLjk2N1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNFKSIgZD0ibTQ1LjIgMy45NjcgLTYuODY5IDMuOTY1di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNGKSIgZD0ibTQ2LjM0NCAxOC40MTcgLTkuMTU4IDUuMjg2di0xMC41NjhaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjRykiIGQ9Im00Ny40ODcgMzMuMTQxIC0xMS40NDYgNi42MTF2LTEzLjIyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0gpIiBkPSJtMzMuNzUzIDEyLjgxNCAtNi44NzEgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0kpIiBkPSJtMzQuODk2IDI1LjAzMyAtOS4xNTggNS4yODZ2LTEwLjU3NVoiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNKKSIgZD0ibTIyLjMgMTguNjg0IC02Ljg3IDMuOTY1di03LjkzWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0spIiBkPSJtNy41NTYgMjQuNjM3IC02Ljg3IC0zLjk2NSA2Ljg3IC0zLjk2N1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNjKSIgZD0ibTMzLjc1MSA3OC4wMDEgLTYuODcxIC0zLjk2NSA2Ljg3MSAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTCkiIGQ9Ik0zNi4wNDEgMzkuNzV2MTMuMjJsLTExLjQ0OCAtNi42MTJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTSkiIGQ9Ik0yMi4zIDY2Ljc2M3Y3LjkzMmwtNi44NyAtMy45NjZaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTikiIGQ9Im0yMy40NDkgNDYuMzYyIC05LjE1OCA1LjI4NnYtMTAuNTc2WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI08pIiBkPSJtMjMuNDQ5IDMzLjE0MiAtOS4xNTggNS4yOXYtMTAuNThaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjUCkiIGQ9Ik05LjYxNiA1OS40MDF2Ny45M2wtNi44NzEgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1EpIiBkPSJNMTAuODUxIDI4Ljg5OXY3LjkzMmwtNi44NzEgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1IpIiBkPSJtNi44NzEgNDAuMDkzIC02Ljg3MSAzLjk2NXYtNy45M1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNTKSIgZD0ibTM0Ljg5NCA2Ni4zNjcgLTkuMTYgLTUuMjg2IDkuMTYgLTUuMjlaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjVCkiIGQ9Im0zNi4wNDEgMzkuNzUgLTExLjQ0OCA2LjYwOHYtMTMuMjJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjVSkiIGQ9Im0zMy43NSA2Ny40MjUgLTYuODcxIDMuOTY3di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNWKSIgZD0ibTM0Ljg5MiA1NC40NjcgLTkuMTU3IDUuMjl2LTEwLjU4MloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNXKSIgZD0ibTIyLjI5OSA2MC44MTQgLTYuODY5IDMuOTY1di03LjkzWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1gpIiBkPSJNMjMuNDQ5IDQ3LjY4M3YxMC41NzNsLTkuMTU4IC01LjI4NloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNZKSIgZD0iTTIzLjQ0OSAzNC40NTl2MTAuNTczbC05LjE1OCAtNS4yODNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjWikiIGQ9Im0xMC44NSA1MC4zMjYgLTYuODcxIC0zLjk2NyA2Ljg3MSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYWEpIiBkPSJtNy4xNDUgMjYuNTMxIC02Ljg2OSAzLjk2NXYtNy45MzJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYWIpIiBkPSJtNy41NTYgNTMuNDUyIC02Ljg3MSAzLjk2NXYtNy45MzVaIi8+DQogIDwvZz4NCjwvc3ZnPg0K">
 
 </head>
@@ -206,7 +209,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-12</p>
+  <p class="date">2026-09-13</p>
 </section>
 <section id="eyeballing-cannot-be-tested-and-does-not-scale" class="slide level2">
 <h2>Eyeballing cannot be tested, and does not scale</h2>
@@ -250,38 +253,130 @@
 <h1>A. Autocorrelation</h1>
 <p>Ch 2.8–2.9 · The central diagnostic</p>
 </section>
-<section id="acf-is-correlation-with-your-own-past" class="slide level2">
-<h2>ACF is correlation with your own past</h2>
-<p>Quantifies linear correlation between <span class="math inline">\(y_t\)</span> and its lag <span class="math inline">\(y_{t-k}\)</span>:</p>
-<p><span class="math display">\[r_k = \frac{\sum_{t=k+1}^{T}(y_t - \bar{y})(y_{t-k} - \bar{y})}{\sum_{t=1}^{T}(y_t - \bar{y})^2}\]</span></p>
+<section id="a-lag-is-the-same-column-read-k-rows-earlier" class="slide level2">
+<h2>A lag is the same column, read <span class="math inline">\(k\)</span> rows earlier</h2>
+<p><span class="math inline">\(y_{t-k}\)</span> is not a new variable: it is the <strong>same numbers</strong>, written <span class="math inline">\(k\)</span> rows down.</p>
+<div class="panel-tabset">
+<ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Table</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1">
+<div id="4f397a49" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display" data-execution_count="2">
+<style>table.lagtbl,.reveal table.lagtbl{border-collapse:collapse;margin:0 auto;width:auto;font-size:.46em;line-height:1.3;font-variant-numeric:tabular-nums}table.lagtbl th,table.lagtbl td,.reveal table.lagtbl th,.reveal table.lagtbl td{padding:1px 16px;text-align:right;border-bottom:1px solid rgba(148,163,184,.3)}table.lagtbl th,.reveal table.lagtbl th{border-bottom:2px solid #1C355E}</style>
+<table class="lagtbl caption-top">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">month</th>
+<th data-quarto-table-cell-role="th">y<sub>t</sub></th>
+<th data-quarto-table-cell-role="th" style="color: #0072B2">y<sub>t-1</sub></th>
+<th data-quarto-table-cell-role="th" style="color: #0072B2">y<sub>t-12</sub></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left; color: #5b6678;">Jan 1995</td>
+<td style="font-weight: 600">126.5</td>
+<td style="color: #9aa3ad">–</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; color: #5b6678;">Feb 1995</td>
+<td style="font-weight: 600">113.2</td>
+<td style="color: #0072B2">126.5</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; color: #5b6678;">Mar 1995</td>
+<td style="font-weight: 600">126.0</td>
+<td style="color: #0072B2">113.2</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; color: #5b6678;">Apr 1995</td>
+<td style="font-weight: 600">128.1</td>
+<td style="color: #0072B2">126.0</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; color: #5b6678;">May 1995</td>
+<td style="font-weight: 600">122.4</td>
+<td style="color: #0072B2">128.1</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; color: #5b6678;">Jun 1995</td>
+<td style="font-weight: 600">120.7</td>
+<td style="color: #0072B2">122.4</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; color: #5b6678;">Jul 1995</td>
+<td style="font-weight: 600">127.2</td>
+<td style="color: #0072B2">120.7</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; color: #5b6678;">Aug 1995</td>
+<td style="font-weight: 600">130.7</td>
+<td style="color: #0072B2">127.2</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; color: #5b6678;">Sep 1995</td>
+<td style="font-weight: 600">132.9</td>
+<td style="color: #0072B2">130.7</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; color: #5b6678;">Oct 1995</td>
+<td style="font-weight: 600">140.0</td>
+<td style="color: #0072B2">132.9</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; color: #5b6678;">Nov 1995</td>
+<td style="font-weight: 600">136.4</td>
+<td style="color: #0072B2">140.0</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; color: #5b6678;">Dec 1995</td>
+<td style="font-weight: 600">151.1</td>
+<td style="color: #0072B2">136.4</td>
+<td style="color: #9aa3ad">–</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; color: #5b6678;">Jan 1996</td>
+<td style="background: rgba(213,94,0,.09); font-weight: 600">143.2</td>
+<td style="color: #0072B2">151.1</td>
+<td style="background: rgba(213,94,0,.09); color: #0072B2">126.5<span style="color:#9aa3ad;font-size:.78em"> from Jan 1995</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left; color: #5b6678;">Feb 1996</td>
+<td style="background: rgba(213,94,0,.09); font-weight: 600">131.2</td>
+<td style="color: #0072B2">143.2</td>
+<td style="background: rgba(213,94,0,.09); color: #0072B2">113.2<span style="color:#9aa3ad;font-size:.78em"> from Feb 1995</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="tabset-1-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine())</span></span>
+<span id="cb1-2"><a></a>spine.assign(lag1<span class="op">=</span>spine[<span class="st">"y"</span>].shift(<span class="dv">1</span>),</span>
+<span id="cb1-3"><a></a>             lag12<span class="op">=</span>spine[<span class="st">"y"</span>].shift(<span class="dv">12</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
 <ul>
-<li class="fragment"><strong><span class="math inline">\(r_k \in [-1, 1]\)</span></strong></li>
-<li class="fragment"><strong><span class="math inline">\(r_1\)</span></strong> <span class="math inline">\(\rightarrow\)</span> correlation with previous month (inertia/trend)</li>
-<li class="fragment"><strong><span class="math inline">\(r_{12}\)</span></strong> <span class="math inline">\(\rightarrow\)</span> correlation with same month last year (seasonality)</li>
-<li class="fragment">Plot <span class="math inline">\(r_k\)</span> against <span class="math inline">\(k\)</span> and you have a <strong>correlogram</strong>, the ACF plot</li>
+<li class="fragment">Shift 1 row: last month. Shift 12 rows: the <strong>same calendar month</strong></li>
+<li class="fragment">The first <span class="math inline">\(k\)</span> rows have no partner, so <span class="math inline">\(r_k\)</span> starts at <span class="math inline">\(t = k+1\)</span></li>
 </ul>
-<p><a href="#/sec-correlation">What a correlation looks like</a></p>
 <aside class="notes">
-<p>If you have ever done a scatterplot of x against y, you have done this. The only new thing is that x and y are the same column, offset by k.</p>
-<p>The link goes to an uncounted refresher at the end of the deck, four scatters at four values of r. Take it if the room hesitates here, and skip it if the formula landed: the rest of the segment reads r off a plot rather than computing one.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="a-lag-is-the-same-series-shifted-one-row-down" class="slide level2">
-<h2>A lag is the same series, shifted one row down</h2>
-<p>The gif walks one month at a time. The blue point is <span class="math inline">\(y_{t-12}\)</span>: the value of the <strong>same series</strong> that was read off <strong>twelve rows earlier</strong>. Draw the two lines against their own time and they are identical; pair each point with its twin from a year ago and the scattered cloud <strong>is</strong> the lag-12 lag plot.</p>
-
-<img data-src="assets/lag_12.gif" class="r-stretch quarto-figure-center"><p class="caption">y_t paired with y_{t-12}, month by month</p><aside class="notes">
-<p>This is the slide the ACF formula assumes but never draws. “Lag k” is not a new variable and not a parameter: it is the same column, read k rows earlier. The gif makes the pairing concrete – orange connector from the current month down to the same month a year ago. When every such pair is plotted, x against y, that is the lag-12 scatter two slides on, and the reason it is a cloud instead of a line is the trend. The r_12 that segment A computes is the correlation across exactly this set of pairs.</p>
+<p>Everything the ACF assumes but never draws, first, before any picture and long before the formula. Read one highlighted row out loud: January 1996 is 143.2, and the number twelve rows up is January 1995, 126.5. That pair is the whole idea. Nothing has been computed yet.</p>
+<p>Point at the shift column by column. One step down gives last month, twelve steps down gives the same month a year ago, and both columns are the SAME 441 numbers as y – only the alignment changed. That is why <code>.shift()</code> is the entire implementation, and the labs use exactly this call.</p>
+<p>Then the dots at the top of the lag columns. Shifting by k costs you k rows, because the first k months have nothing to pair with. When the formula shows up two slides on and sums from t = k+1, that limit is these empty cells, not a convention to memorise.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -297,29 +392,29 @@
 <section id="a-lag-plot-on-a-trending-series-only-shows-the-trend" class="slide level2">
 <h2>A lag plot on a trending series only shows the trend</h2>
 <div class="panel-tabset">
-<ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
+<ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-1-1">
-<div id="77a4832e" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="tabset-2-1">
+<div id="893ebf79" class="cell" data-fig-width="10" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-3-output-1.png" width="1112" height="452"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-4-output-1.png" width="1112" height="452"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-1-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine())</span></span>
-<span id="cb1-2"><a></a><span class="co"># Detrended with a 12-month centred moving average:</span></span>
-<span id="cb1-3"><a></a>detrended <span class="op">=</span> spine[<span class="st">"y"</span>].to_numpy() <span class="op">-</span> P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">12</span>)</span>
-<span id="cb1-4"><a></a></span>
-<span id="cb1-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
-<span id="cb1-6"><a></a>P.lag_plot_grid(spine[<span class="st">"y"</span>], lags<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">12</span>), axes<span class="op">=</span>axes[<span class="dv">0</span>])</span>
-<span id="cb1-7"><a></a>P.lag_plot_grid(pd.Series(detrended).dropna(), lags<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">12</span>), axes<span class="op">=</span>axes[<span class="dv">1</span>])</span>
-<span id="cb1-8"><a></a>axes[<span class="dv">0</span>, <span class="dv">0</span>].set_ylabel(<span class="st">"raw turnover ($M)"</span>, size<span class="op">=</span><span class="dv">10</span>)</span>
-<span id="cb1-9"><a></a>axes[<span class="dv">1</span>, <span class="dv">0</span>].set_ylabel(<span class="st">"trend removed ($M)"</span>, size<span class="op">=</span><span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-2-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine())</span></span>
+<span id="cb2-2"><a></a><span class="co"># Detrended with a 12-month centred moving average:</span></span>
+<span id="cb2-3"><a></a>detrended <span class="op">=</span> spine[<span class="st">"y"</span>].to_numpy() <span class="op">-</span> P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">12</span>)</span>
+<span id="cb2-4"><a></a></span>
+<span id="cb2-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
+<span id="cb2-6"><a></a>P.lag_plot_grid(spine[<span class="st">"y"</span>], lags<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">12</span>), axes<span class="op">=</span>axes[<span class="dv">0</span>])</span>
+<span id="cb2-7"><a></a>P.lag_plot_grid(pd.Series(detrended).dropna(), lags<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">12</span>), axes<span class="op">=</span>axes[<span class="dv">1</span>])</span>
+<span id="cb2-8"><a></a>axes[<span class="dv">0</span>, <span class="dv">0</span>].set_ylabel(<span class="st">"raw turnover ($M)"</span>, size<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb2-9"><a></a>axes[<span class="dv">1</span>, <span class="dv">0</span>].set_ylabel(<span class="st">"trend removed ($M)"</span>, size<span class="op">=</span><span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -328,7 +423,60 @@
 <li class="fragment">Trend removed (bottom): lag 12 jumps to <span class="math inline">\(0.73\)</span>, lag 6 turns <strong>negative</strong></li>
 </ul>
 <aside class="notes">
-<p>The trend is removed here with a 12-month moving average, which is segment 4. Do not teach it yet. The point is only that the raw lag plot cannot separate the two.</p>
+<p>The trend is removed here with a 12-month moving average, which is segment B. Do not teach it yet. The point is only that the raw lag plot cannot separate the two.</p>
+<p>The r printed over each panel is the first number in the deck that assumes correlation, and it arrives before the formula on purpose: read it as “how close is that cloud to a line”, nothing more. Anyone who wants it properly gets the refresher from the link on the next slide.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="acf-is-correlation-with-your-own-past" class="slide level2">
+<h2>ACF is correlation with your own past</h2>
+<p>One number for each of those clouds: the correlation between <span class="math inline">\(y_t\)</span> and its own lag <span class="math inline">\(y_{t-k}\)</span>.</p>
+<p><span class="math display">\[r_k = \frac{\sum_{t=k+1}^{T}(y_t - \bar{y})(y_{t-k} - \bar{y})}{\sum_{t=1}^{T}(y_t - \bar{y})^2}\]</span></p>
+<ul>
+<li class="fragment"><strong><span class="math inline">\(r_k \in [-1, 1]\)</span></strong></li>
+<li class="fragment"><strong><span class="math inline">\(r_1\)</span></strong> <span class="math inline">\(\rightarrow\)</span> correlation with previous month (inertia/trend)</li>
+<li class="fragment"><strong><span class="math inline">\(r_{12}\)</span></strong> <span class="math inline">\(\rightarrow\)</span> correlation with same month last year (seasonality)</li>
+<li class="fragment">Plot <span class="math inline">\(r_k\)</span> against <span class="math inline">\(k\)</span> and you have a <strong>correlogram</strong>, the ACF plot</li>
+</ul>
+<p><a href="#/sec-correlation">What a correlation looks like</a></p>
+<aside class="notes">
+<p>Nothing here is new except the notation. The pairs are the rows of the table, the cloud is the one on the previous slide, and this formula is the ordinary correlation of that cloud – x and y happen to be the same column, offset by k. The sum starting at k+1 is the empty cells two slides back.</p>
+<p>Point at the numerator and at the r printed over the lag-12 panel: the same number, computed two ways. The rest of the segment reads r off a plot rather than computing one, so do not dwell here.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="r_12-is-that-sum-walked-one-month-at-a-time" class="slide level2">
+<h2><span class="math inline">\(r_{12}\)</span> is that sum walked one month at a time</h2>
+
+<img data-src="assets/lag_12.gif" class="quarto-figure quarto-figure-center r-stretch" style="width:92.0%"><p>Grey is <span class="math inline">\(y_t\)</span>, blue is that same series drawn a year later, and each frame marks one pair.</p>
+<ul>
+<li class="fragment">Every pair at once is the cloud, and <span class="math inline">\(r_{12}\)</span> is how line-like it is</li>
+<li class="fragment">These five years score <span class="math inline">\(0.58\)</span>; all 441 months score <span class="math inline">\(0.91\)</span></li>
+</ul>
+<aside class="notes">
+<p>The formula, in motion, on the last five years so the months are countable. Say the two lines out loud – grey is the series, blue is that same series drawn one year later, and they are the same shape because they are the same numbers, moved twelve rows down. That shift is the table from earlier in the segment.</p>
+<p>Each frame marks one pair, and one pair is one term of the sum on the previous slide: y_t above, y_t-12 below it, at the same t. Nothing joins them on purpose. A stem between two points draws the distance between them, and a pair is not a difference – what makes these two numbers a pair is only that they sit on the same t. Collect every pair and you have the lag-12 cloud from two slides back.</p>
+<p>The number in the corner is the whole point of the slide: r_12 across all 48 pairs of this slice, the same number the formula defines, measured on exactly the pairs being walked.</p>
+<p>Then the last bullet, and expect the question. These five years score 0.58, and the spine’s own correlogram two slides on puts its lag-12 bar at 0.91. Same series, same lag, different stretch of it: five years of trend tilt the cloud less than thirty-seven do. An ACF is a measurement on a stretch of series, never a property of the series alone, and that is the idea the whole rest of the segment runs on.</p>
+<p>(The r printed over the raw lag-12 panel earlier is 0.98, higher than either. That one is the plain correlation of the pairs; the formula on the previous slide divides by the variance of the WHOLE series, so the two agree closely at lag 1 and drift apart as k grows. Only mention it if asked.)</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -357,24 +505,24 @@
 <section id="slow-decay-the-spine-acf-is-dominated-by-trend" class="slide level2">
 <h2>Slow decay: the spine ACF is dominated by trend</h2>
 <div class="panel-tabset">
-<ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
+<ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-2-1">
-<div id="3a1bcee0" class="cell" data-fig-width="9" data-execution_count="3">
+<div id="tabset-3-1">
+<div id="8bac6f73" class="cell" data-fig-width="9" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-4-output-1.png" width="1002" height="408"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-5-output-1.png" width="1002" height="408"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-2-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine())</span></span>
-<span id="cb2-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.6</span>))</span>
-<span id="cb2-3"><a></a>P.acf_plot(spine[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>ax, highlight_every<span class="op">=</span><span class="dv">12</span>, ylim<span class="op">=</span>(<span class="op">-</span><span class="fl">0.15</span>, <span class="fl">1.05</span>),</span>
-<span id="cb2-4"><a></a>           title<span class="op">=</span><span class="st">"Spine ACF, 36 lags (annual lags in orange)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-3-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine())</span></span>
+<span id="cb3-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.6</span>))</span>
+<span id="cb3-3"><a></a>P.acf_plot(spine[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>ax, highlight_every<span class="op">=</span><span class="dv">12</span>, ylim<span class="op">=</span>(<span class="op">-</span><span class="fl">0.15</span>, <span class="fl">1.05</span>),</span>
+<span id="cb3-4"><a></a>           title<span class="op">=</span><span class="st">"Spine ACF, 36 lags (annual lags in orange)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -399,41 +547,41 @@
 <section id="each-component-has-its-own-acf-signature" class="slide level2">
 <h2>Each component has its own ACF signature</h2>
 <div class="panel-tabset">
-<ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
+<ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-3-1">
-<div id="6de9e337" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="tabset-4-1">
+<div id="ea6c5c1d" class="cell" data-fig-width="10" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-5-output-1.png" width="1277" height="562"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-6-output-1.png" width="1277" height="562"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-3-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a><span class="co"># Datasets / Components:</span></span>
-<span id="cb3-2"><a></a><span class="co"># 1. Trend only: trend_only = spine STL trend component</span></span>
-<span id="cb3-3"><a></a><span class="co"># 2. Seasonality only: season_only = spine log-STL seasonal component</span></span>
-<span id="cb3-4"><a></a><span class="co"># 3. Cycle: lynx = D.lynx() (Canadian lynx pelts)</span></span>
-<span id="cb3-5"><a></a><span class="co"># 4. White noise: noise = D.white_noise(n=len(spine), seed=7)</span></span>
-<span id="cb3-6"><a></a></span>
-<span id="cb3-7"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="fl">11.5</span>, <span class="fl">5.0</span>))</span>
-<span id="cb3-8"><a></a><span class="co"># Top row: Time series</span></span>
-<span id="cb3-9"><a></a>P.plot_series(trend_only, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Trend only"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>)</span>
-<span id="cb3-10"><a></a>P.plot_series(season_only, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">1</span>], title<span class="op">=</span><span class="st">"Seasonality only"</span>, color<span class="op">=</span>P.BLUE, ylabel<span class="op">=</span><span class="st">"seasonal swing"</span>)</span>
-<span id="cb3-11"><a></a>P.plot_series(lynx, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">2</span>], title<span class="op">=</span><span class="st">"Cycle (lynx)"</span>, color<span class="op">=</span>P.PINK, ylabel<span class="op">=</span><span class="st">"pelts"</span>)</span>
-<span id="cb3-12"><a></a>P.plot_series(noise, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">3</span>], title<span class="op">=</span><span class="st">"White noise"</span>, color<span class="op">=</span>P.GREY, ylabel<span class="op">=</span><span class="st">"z"</span>)</span>
-<span id="cb3-13"><a></a></span>
-<span id="cb3-14"><a></a><span class="co"># Bottom row: Corresponding ACF correlograms</span></span>
-<span id="cb3-15"><a></a>P.acf_plot(trend_only[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Slow decay"</span>)</span>
-<span id="cb3-16"><a></a>P.acf_plot(season_only[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">1</span>], highlight_every<span class="op">=</span><span class="dv">12</span>, color<span class="op">=</span>P.BLUE, title<span class="op">=</span><span class="st">"Spikes at 12, 24, 36"</span>)</span>
-<span id="cb3-17"><a></a>P.acf_plot(lynx[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">30</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">2</span>], color<span class="op">=</span>P.PINK, title<span class="op">=</span><span class="st">"Oscillating wave"</span>)</span>
-<span id="cb3-18"><a></a>P.acf_plot(noise[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">3</span>], color<span class="op">=</span>P.GREY, title<span class="op">=</span><span class="st">"All inside bounds"</span>)</span>
-<span id="cb3-19"><a></a></span>
-<span id="cb3-20"><a></a><span class="co"># Decade labels, plus a tick on every year, so the peak-to-peak gaps are countable</span></span>
-<span id="cb3-21"><a></a>P.year_xticks(axes[<span class="dv">0</span>, <span class="dv">2</span>], step<span class="op">=</span><span class="dv">10</span>, minor<span class="op">=</span><span class="dv">1</span>, rotation<span class="op">=</span><span class="dv">45</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-4-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="co"># Datasets / Components:</span></span>
+<span id="cb4-2"><a></a><span class="co"># 1. Trend only: trend_only = spine STL trend component</span></span>
+<span id="cb4-3"><a></a><span class="co"># 2. Seasonality only: season_only = spine log-STL seasonal component</span></span>
+<span id="cb4-4"><a></a><span class="co"># 3. Cycle: lynx = D.lynx() (Canadian lynx pelts)</span></span>
+<span id="cb4-5"><a></a><span class="co"># 4. White noise: noise = D.white_noise(n=len(spine), seed=7)</span></span>
+<span id="cb4-6"><a></a></span>
+<span id="cb4-7"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="fl">11.5</span>, <span class="fl">5.0</span>))</span>
+<span id="cb4-8"><a></a><span class="co"># Top row: Time series</span></span>
+<span id="cb4-9"><a></a>P.plot_series(trend_only, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Trend only"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>)</span>
+<span id="cb4-10"><a></a>P.plot_series(season_only, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">1</span>], title<span class="op">=</span><span class="st">"Seasonality only"</span>, color<span class="op">=</span>P.BLUE, ylabel<span class="op">=</span><span class="st">"seasonal swing"</span>)</span>
+<span id="cb4-11"><a></a>P.plot_series(lynx, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">2</span>], title<span class="op">=</span><span class="st">"Cycle (lynx)"</span>, color<span class="op">=</span>P.PINK, ylabel<span class="op">=</span><span class="st">"pelts"</span>)</span>
+<span id="cb4-12"><a></a>P.plot_series(noise, ax<span class="op">=</span>axes[<span class="dv">0</span>, <span class="dv">3</span>], title<span class="op">=</span><span class="st">"White noise"</span>, color<span class="op">=</span>P.GREY, ylabel<span class="op">=</span><span class="st">"z"</span>)</span>
+<span id="cb4-13"><a></a></span>
+<span id="cb4-14"><a></a><span class="co"># Bottom row: Corresponding ACF correlograms</span></span>
+<span id="cb4-15"><a></a>P.acf_plot(trend_only[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">0</span>], title<span class="op">=</span><span class="st">"Slow decay"</span>)</span>
+<span id="cb4-16"><a></a>P.acf_plot(season_only[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">1</span>], highlight_every<span class="op">=</span><span class="dv">12</span>, color<span class="op">=</span>P.BLUE, title<span class="op">=</span><span class="st">"Spikes at 12, 24, 36"</span>)</span>
+<span id="cb4-17"><a></a>P.acf_plot(lynx[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">30</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">2</span>], color<span class="op">=</span>P.PINK, title<span class="op">=</span><span class="st">"Oscillating wave"</span>)</span>
+<span id="cb4-18"><a></a>P.acf_plot(noise[<span class="st">"y"</span>], nlags<span class="op">=</span><span class="dv">36</span>, ax<span class="op">=</span>axes[<span class="dv">1</span>, <span class="dv">3</span>], color<span class="op">=</span>P.GREY, title<span class="op">=</span><span class="st">"All inside bounds"</span>)</span>
+<span id="cb4-19"><a></a></span>
+<span id="cb4-20"><a></a><span class="co"># Decade labels, plus a tick on every year, so the peak-to-peak gaps are countable</span></span>
+<span id="cb4-21"><a></a>P.year_xticks(axes[<span class="dv">0</span>, <span class="dv">2</span>], step<span class="op">=</span><span class="dv">10</span>, minor<span class="op">=</span><span class="dv">1</span>, rotation<span class="op">=</span><span class="dv">45</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -498,27 +646,27 @@
 <h2>A centred moving average estimates the trend-cycle</h2>
 <p><span class="math display">\[\hat{T}_t = \frac{1}{m}\sum_{j=-k}^{k} y_{t+j} \qquad (m = 2k + 1)\]</span></p>
 <div class="panel-tabset">
-<ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
+<ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-4-1">
-<div id="1de9c855" class="cell" data-fig-width="10" data-execution_count="5">
+<div id="tabset-5-1">
+<div id="9b32a084" class="cell" data-fig-width="10" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-6-output-1.png" width="1112" height="254"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-7-output-1.png" width="1112" height="254"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-4-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine(), last 15 years / 180 obs)</span></span>
-<span id="cb4-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">2.2</span>))</span>
-<span id="cb4-3"><a></a>P.trend_overlay_plot(</span>
-<span id="cb4-4"><a></a>    spine, {<span class="st">"3-MA"</span>: P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">3</span>),</span>
-<span id="cb4-5"><a></a>            <span class="st">"12-month MA"</span>: P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">12</span>)},</span>
-<span id="cb4-6"><a></a>    ax<span class="op">=</span>ax, tail<span class="op">=</span><span class="dv">180</span>, colors<span class="op">=</span>[P.PINK, P.ORANGE], ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>,</span>
-<span id="cb4-7"><a></a>    title<span class="op">=</span><span class="st">"Spine, last 15 years: the order $m$ decides what survives"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-5-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine(), last 15 years / 180 obs)</span></span>
+<span id="cb5-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">2.2</span>))</span>
+<span id="cb5-3"><a></a>P.trend_overlay_plot(</span>
+<span id="cb5-4"><a></a>    spine, {<span class="st">"3-MA"</span>: P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">3</span>),</span>
+<span id="cb5-5"><a></a>            <span class="st">"12-month MA"</span>: P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">12</span>)},</span>
+<span id="cb5-6"><a></a>    ax<span class="op">=</span>ax, tail<span class="op">=</span><span class="dv">180</span>, colors<span class="op">=</span>[P.PINK, P.ORANGE], ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>,</span>
+<span id="cb5-7"><a></a>    title<span class="op">=</span><span class="st">"Spine, last 15 years: the order $m$ decides what survives"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -539,13 +687,15 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="watch-the-3-month-window-slide" class="slide level2">
-<h2>Watch the 3-month window slide</h2>
-<p>Step it with <strong>▶</strong>: the blue dots are the months in the window, the orange line stitches their means together, and the zoom below shows the months it is averaging.</p>
-<iframe src="assets/ma_window_interactive.html" width="100%" height="640" style="border:0">
-</iframe>
-<aside class="notes">
-<p>This is the “moving average” named on the previous two slides, actually being built, at m = 3 so the room can count the points. Step the window with the ▶ button – I drive it from the projector, the room watches the three months swap. The window is not a point, it is a range of the axis: the blue dots are the months being added up and divided by three, and the zoom row prints each of their real values so the room can check the mean by eye. The plotted point is the mean of those months, placed at the centre of the window. As the window steps forward by one month, a new month enters on the right and one leaves on the left, and the mean shifts a little. That stitched line is the MA trend, and it is still wobbly because three is a quarter of a cycle. Three is odd, so it HAS a middle month and the mean lands on a month – that is the simple case. Twelve does exactly the same averaging, but it is even, which is the wrinkle the 2x12 slide deals with. Hold off WHY twelve cancels the season: the next slide does it algebraically. The students get this exact figure, at their own pace, as the first cell of Lab A, Exercise 1.4.</p>
+<section id="the-3-month-window-one-step-at-a-time" class="slide level2">
+<h2>The 3-month window, one step at a time</h2>
+<p>Blue is the window, orange is the mean it leaves behind.</p>
+
+<img data-src="assets/ma_window_3.gif" class="quarto-figure quarto-figure-center r-stretch" style="width:90.0%"><aside class="notes">
+<p>This is the “moving average” named on the previous two slides, actually being built, at m = 3 so the room can count the points. One month a frame, three seconds a frame, and it loops: let it run while you talk over it.</p>
+<p>The window is not a point, it is a range of the axis: the blue dots are the months being added up and divided by three. The zoom row underneath is those same three months with their real values printed, and the line in the corner does the arithmetic out loud, so the room can check the mean by eye. The orange diamond is that mean, placed at the centre of the window.</p>
+<p>Each frame a new month enters on the right, one leaves on the left, and the mean shifts a little. The stitched orange line is the MA trend, and it is still wobbly because three is a quarter of a cycle. Three is odd, so it HAS a middle month and the mean lands on a month – that is the simple case. Twelve does exactly the same averaging, but it is even, which is the wrinkle the 2x12 slide deals with. Hold off WHY twelve cancels the season: the next slide does it algebraically.</p>
+<p>The students get this same picture as a click-through they drive themselves – same helper, same zoom, same readout – as the first cell of Exercise 1.4 in Lab B. Here it is a gif, because a slide should not need a mouse.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -647,23 +797,23 @@
 <p><span class="math display">\[\hat{T}_t = \tfrac{1}{24}y_{t-6} + \tfrac{1}{12}\sum_{j=-5}^{5} y_{t+j}
               + \tfrac{1}{24}y_{t+6}\]</span></p>
 <div class="panel-tabset">
-<ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
+<ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-5-1">
-<div id="79ec3142" class="cell" data-fig-width="7.5" data-execution_count="6">
+<div id="tabset-6-1">
+<div id="4a38d342" class="cell" data-fig-width="7.5" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-7-output-1.png" width="837" height="199"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-8-output-1.png" width="837" height="199"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-5-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a><span class="co"># 2x12 Centred Moving Average filter weights:</span></span>
-<span id="cb5-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">7.5</span>, <span class="fl">1.7</span>))</span>
-<span id="cb5-3"><a></a>P.ma_weight_plot(<span class="dv">12</span>, ax<span class="op">=</span>ax, title<span class="op">=</span><span class="st">"13 weights, symmetric about $t$"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-6-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a><span class="co"># 2x12 Centred Moving Average filter weights:</span></span>
+<span id="cb6-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">7.5</span>, <span class="fl">1.7</span>))</span>
+<span id="cb6-3"><a></a>P.ma_weight_plot(<span class="dv">12</span>, ax<span class="op">=</span>ax, title<span class="op">=</span><span class="st">"13 weights, symmetric about $t$"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -714,26 +864,26 @@
 <section id="the-ma-trend-stops-six-months-short-of-the-present" class="slide level2">
 <h2>The MA trend stops six months short of the present</h2>
 <div class="panel-tabset">
-<ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
+<ul id="tabset-7" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-7-1">Plot</a></li><li><a href="#tabset-7-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-6-1">
-<div id="31edee1c" class="cell" data-fig-width="10" data-execution_count="7">
+<div id="tabset-7-1">
+<div id="8fe681f0" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-8-output-1.png" width="1112" height="375"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-9-output-1.png" width="1112" height="375"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-6-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine(), last 5 years / 60 obs)</span></span>
-<span id="cb6-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.3</span>))</span>
-<span id="cb6-3"><a></a>P.trend_overlay_plot(</span>
-<span id="cb6-4"><a></a>    spine, {<span class="st">"2×12-MA trend"</span>: P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">12</span>)},</span>
-<span id="cb6-5"><a></a>    ax<span class="op">=</span>ax, tail<span class="op">=</span><span class="dv">60</span>, colors<span class="op">=</span>[P.ORANGE], shade_gap<span class="op">=</span><span class="st">"2×12-MA trend"</span>,</span>
-<span id="cb6-6"><a></a>    ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>, title<span class="op">=</span><span class="st">"Spine, last 5 years"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-7-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine(), last 5 years / 60 obs)</span></span>
+<span id="cb7-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.3</span>))</span>
+<span id="cb7-3"><a></a>P.trend_overlay_plot(</span>
+<span id="cb7-4"><a></a>    spine, {<span class="st">"2×12-MA trend"</span>: P.centred_ma(spine[<span class="st">"y"</span>], <span class="dv">12</span>)},</span>
+<span id="cb7-5"><a></a>    ax<span class="op">=</span>ax, tail<span class="op">=</span><span class="dv">60</span>, colors<span class="op">=</span>[P.ORANGE], shade_gap<span class="op">=</span><span class="st">"2×12-MA trend"</span>,</span>
+<span id="cb7-6"><a></a>    ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>, title<span class="op">=</span><span class="st">"Spine, last 5 years"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -758,31 +908,31 @@
 <section id="stl-seasonal-trend-using-loess-splits-all-three" class="slide level2">
 <h2>STL (Seasonal-Trend using Loess) splits all three</h2>
 <div class="panel-tabset">
-<ul id="tabset-7" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-7-1">Plot</a></li><li><a href="#tabset-7-2">Code</a></li></ul>
+<ul id="tabset-8" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-8-1">Plot</a></li><li><a href="#tabset-8-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-7-1">
-<div id="3d17227e" class="cell" data-fig-width="9" data-execution_count="8">
+<div id="tabset-8-1">
+<div id="32397742" class="cell" data-fig-width="9" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-9-output-1.png" width="1002" height="543"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-10-output-1.png" width="1002" height="543"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-7-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a></a><span class="co"># Dataset: Log-transformed spine turnover (yt = np.log of D.spine()["y"])</span></span>
-<span id="cb7-2"><a></a>res <span class="op">=</span> STL(yt, period<span class="op">=</span><span class="dv">12</span>, robust<span class="op">=</span><span class="va">True</span>).fit()</span>
-<span id="cb7-3"><a></a>dcmp <span class="op">=</span> spine.assign(</span>
-<span id="cb7-4"><a></a>    <span class="op">**</span>{<span class="st">"transformed turnover"</span>: yt},</span>
-<span id="cb7-5"><a></a>    trend<span class="op">=</span>np.asarray(res.trend),</span>
-<span id="cb7-6"><a></a>    seasonal<span class="op">=</span>np.asarray(res.seasonal),</span>
-<span id="cb7-7"><a></a>    remainder<span class="op">=</span>np.asarray(res.resid),</span>
-<span id="cb7-8"><a></a>)</span>
-<span id="cb7-9"><a></a>fig, axes <span class="op">=</span> P.decomposition_plot(</span>
-<span id="cb7-10"><a></a>    dcmp, [<span class="st">"transformed turnover"</span>, <span class="st">"trend"</span>, <span class="st">"seasonal"</span>, <span class="st">"remainder"</span>],</span>
-<span id="cb7-11"><a></a>    <span class="st">"STL decomposition of the transformed spine"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-8-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a><span class="co"># Dataset: Log-transformed spine turnover (yt = np.log of D.spine()["y"])</span></span>
+<span id="cb8-2"><a></a>res <span class="op">=</span> STL(yt, period<span class="op">=</span><span class="dv">12</span>, robust<span class="op">=</span><span class="va">True</span>).fit()</span>
+<span id="cb8-3"><a></a>dcmp <span class="op">=</span> spine.assign(</span>
+<span id="cb8-4"><a></a>    <span class="op">**</span>{<span class="st">"transformed turnover"</span>: yt},</span>
+<span id="cb8-5"><a></a>    trend<span class="op">=</span>np.asarray(res.trend),</span>
+<span id="cb8-6"><a></a>    seasonal<span class="op">=</span>np.asarray(res.seasonal),</span>
+<span id="cb8-7"><a></a>    remainder<span class="op">=</span>np.asarray(res.resid),</span>
+<span id="cb8-8"><a></a>)</span>
+<span id="cb8-9"><a></a>fig, axes <span class="op">=</span> P.decomposition_plot(</span>
+<span id="cb8-10"><a></a>    dcmp, [<span class="st">"transformed turnover"</span>, <span class="st">"trend"</span>, <span class="st">"seasonal"</span>, <span class="st">"remainder"</span>],</span>
+<span id="cb8-11"><a></a>    <span class="st">"STL decomposition of the transformed spine"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -865,39 +1015,39 @@
 <section id="only-seasonal-strength-separates-the-portfolio" class="slide level2">
 <h2>Only seasonal strength separates the portfolio</h2>
 <div class="panel-tabset">
-<ul id="tabset-8" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-8-1">Plot</a></li><li><a href="#tabset-8-2">Code</a></li></ul>
+<ul id="tabset-9" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-9-1">Plot</a></li><li><a href="#tabset-9-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-8-1">
-<div id="69ebc8b8" class="cell" data-fig-width="9.5" data-execution_count="9">
+<div id="tabset-9-1">
+<div id="6ab3cf7a" class="cell" data-fig-width="9.5" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-10-output-1.png" width="1057" height="485"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-11-output-1.png" width="1057" height="485"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-8-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a><span class="co"># Dataset: 148 Australian retail monthly series (allr = D.retail_all())</span></span>
-<span id="cb8-2"><a></a><span class="kw">def</span> stl_features(g):</span>
-<span id="cb8-3"><a></a>    y <span class="op">=</span> np.log(np.clip(g[<span class="st">"y"</span>].to_numpy(), <span class="fl">1e-6</span>, <span class="va">None</span>))</span>
-<span id="cb8-4"><a></a>    r <span class="op">=</span> STL(y, period<span class="op">=</span><span class="dv">12</span>, robust<span class="op">=</span><span class="va">True</span>).fit()</span>
-<span id="cb8-5"><a></a>    R, T_, S <span class="op">=</span> np.asarray(r.resid), np.asarray(r.trend), np.asarray(r.seasonal)</span>
-<span id="cb8-6"><a></a>    vr <span class="op">=</span> np.var(R)</span>
-<span id="cb8-7"><a></a>    <span class="cf">return</span> pd.Series({</span>
-<span id="cb8-8"><a></a>        <span class="st">"trend_strength"</span>: <span class="bu">max</span>(<span class="fl">0.0</span>, <span class="dv">1</span> <span class="op">-</span> vr <span class="op">/</span> np.var(T_ <span class="op">+</span> R)),</span>
-<span id="cb8-9"><a></a>        <span class="st">"seasonal_strength"</span>: <span class="bu">max</span>(<span class="fl">0.0</span>, <span class="dv">1</span> <span class="op">-</span> vr <span class="op">/</span> np.var(S <span class="op">+</span> R)),</span>
-<span id="cb8-10"><a></a>    })</span>
-<span id="cb8-11"><a></a></span>
-<span id="cb8-12"><a></a>allr <span class="op">=</span> D.retail_all()</span>
-<span id="cb8-13"><a></a>feat <span class="op">=</span> allr.groupby(<span class="st">"unique_id"</span>)[[<span class="st">"y"</span>]].<span class="bu">apply</span>(stl_features, include_groups<span class="op">=</span><span class="va">False</span>).reset_index()</span>
-<span id="cb8-14"><a></a></span>
-<span id="cb8-15"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">4.3</span>))</span>
-<span id="cb8-16"><a></a>P.feature_scatter(feat, ax<span class="op">=</span>ax, marks<span class="op">=</span>[(hi, P.ORANGE, <span class="st">"most seasonal"</span>),</span>
-<span id="cb8-17"><a></a>                                      (mine, P.BLACK, <span class="st">"the spine"</span>),</span>
-<span id="cb8-18"><a></a>                                      (lo, P.PINK, <span class="st">"least seasonal"</span>)],</span>
-<span id="cb8-19"><a></a>                  title<span class="op">=</span><span class="st">"148 Australian retail series, both axes on the full 0 to 1 scale"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-9-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a></a><span class="co"># Dataset: 148 Australian retail monthly series (allr = D.retail_all())</span></span>
+<span id="cb9-2"><a></a><span class="kw">def</span> stl_features(g):</span>
+<span id="cb9-3"><a></a>    y <span class="op">=</span> np.log(np.clip(g[<span class="st">"y"</span>].to_numpy(), <span class="fl">1e-6</span>, <span class="va">None</span>))</span>
+<span id="cb9-4"><a></a>    r <span class="op">=</span> STL(y, period<span class="op">=</span><span class="dv">12</span>, robust<span class="op">=</span><span class="va">True</span>).fit()</span>
+<span id="cb9-5"><a></a>    R, T_, S <span class="op">=</span> np.asarray(r.resid), np.asarray(r.trend), np.asarray(r.seasonal)</span>
+<span id="cb9-6"><a></a>    vr <span class="op">=</span> np.var(R)</span>
+<span id="cb9-7"><a></a>    <span class="cf">return</span> pd.Series({</span>
+<span id="cb9-8"><a></a>        <span class="st">"trend_strength"</span>: <span class="bu">max</span>(<span class="fl">0.0</span>, <span class="dv">1</span> <span class="op">-</span> vr <span class="op">/</span> np.var(T_ <span class="op">+</span> R)),</span>
+<span id="cb9-9"><a></a>        <span class="st">"seasonal_strength"</span>: <span class="bu">max</span>(<span class="fl">0.0</span>, <span class="dv">1</span> <span class="op">-</span> vr <span class="op">/</span> np.var(S <span class="op">+</span> R)),</span>
+<span id="cb9-10"><a></a>    })</span>
+<span id="cb9-11"><a></a></span>
+<span id="cb9-12"><a></a>allr <span class="op">=</span> D.retail_all()</span>
+<span id="cb9-13"><a></a>feat <span class="op">=</span> allr.groupby(<span class="st">"unique_id"</span>)[[<span class="st">"y"</span>]].<span class="bu">apply</span>(stl_features, include_groups<span class="op">=</span><span class="va">False</span>).reset_index()</span>
+<span id="cb9-14"><a></a></span>
+<span id="cb9-15"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">4.3</span>))</span>
+<span id="cb9-16"><a></a>P.feature_scatter(feat, ax<span class="op">=</span>ax, marks<span class="op">=</span>[(hi, P.ORANGE, <span class="st">"most seasonal"</span>),</span>
+<span id="cb9-17"><a></a>                                      (mine, P.BLACK, <span class="st">"the spine"</span>),</span>
+<span id="cb9-18"><a></a>                                      (lo, P.PINK, <span class="st">"least seasonal"</span>)],</span>
+<span id="cb9-19"><a></a>                  title<span class="op">=</span><span class="st">"148 Australian retail series, both axes on the full 0 to 1 scale"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -984,11 +1134,11 @@
 <section id="sec-correlation" class="slide level2" data-visibility="uncounted">
 <h2>Reminder: a correlation is a shape</h2>
 <p>Two numbers measured on the same thing. Multiply each one’s distance from its own average: <strong>same side, positive; opposite sides, negative.</strong> Average that, scale by the spreads, and <span class="math inline">\(r\)</span> is what comes out.</p>
-<div id="7db04418" class="cell" data-fig-width="10" data-execution_count="10">
+<div id="6b4d8b37" class="cell" data-fig-width="10" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-11-output-1.png" width="1089" height="230"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-12-output-1.png" width="1089" height="230"></p>
 </figure>
 </div>
 </div>
@@ -1017,11 +1167,11 @@
 </section>
 <section id="sec-sampling" class="slide level2" data-visibility="uncounted">
 <h2>Reminder: a statistic moves on its own</h2>
-<div id="218e1986" class="cell" data-fig-width="9.5" data-execution_count="11">
+<div id="b2b37ff3" class="cell" data-fig-width="9.5" data-execution_count="12">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-12-output-1.png" width="1035" height="318"></p>
+<p><img data-src="02_acf_decomposition_and_features_files/figure-revealjs/cell-13-output-1.png" width="1035" height="318"></p>
 </figure>
 </div>
 </div>
