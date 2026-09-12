@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-html/tabby.min.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-06">
+  <meta name="dcterms.date" content="2026-09-12">
   <title>A Statistics Refresher</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -98,7 +98,7 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-98a181cbe320dee6f668343ff9832aea.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -192,6 +192,12 @@
       margin-right: 0; 
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+  
+
+  <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+DQogIDxkZWZzPg0KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYSIgeDE9Ii0xLjkxMSIgeDI9IjIuOTg1IiB5MT0iLS44NDEiIHkyPSIxLjQxNCIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOTlkNjMzIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjM2M5Ii8+DQogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyNzM0NzAiLz4NCiAgICA8L2xpbmVhckdyYWRpZW50Pg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9ImQiIHgxPSItMy41NjkiIHgyPSIxLjMyOCIgeTE9Ii0xLjYwNSIgeTI9Ii42NTEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJlIiB4MT0iLTMuMDQ3IiB4Mj0iMS44NDkiIHkxPSItLjkwNCIgeTI9IjEuMzUyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iZiIgeDE9Ii0yLjg5IiB4Mj0iMi4wMDciIHkxPSItMS4yOTIiIHkyPSIuOTY0Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iZyIgeDE9Ii0yLjQiIHgyPSIyLjQ5NyIgeTE9Ii0xLjA2NiIgeTI9IjEuMTg5Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iaCIgeDE9Ii0uOTkyIiB4Mj0iMi42NzkiIHkxPSItLjQxOCIgeTI9IjEuMjczIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iaSIgeDE9Ii0xLjUxMiIgeDI9IjIuMTU5IiB5MT0iLS4xOTciIHkyPSIxLjQ5NSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9ImoiIHgxPSItLjkxNCIgeDI9IjIuNzU4IiB5MT0iLjA3OSIgeTI9IjEuNzcxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iayIgeDE9Ii0zLjQwNSIgeDI9IjEuNDkzIiB5MT0iLTEuMDY4IiB5Mj0iMS4xODciLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJsIiB4MT0iLjM0NyIgeDI9IjMuMjg1IiB5MT0iLjE5OSIgeTI9IjEuNTUyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0ibSIgeDE9Ii0uOTA1IiB4Mj0iMi43NjciIHkxPSIuMDgzIiB5Mj0iMS43NzUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJuIiB4MT0iLTIuMTE5IiB4Mj0iMi43NzgiIHkxPSItLjQ3NiIgeTI9IjEuNzc5Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0ibyIgeDE9Ii01LjY0NCIgeDI9Ii40ODYiIHkxPSItMi45OTgiIHkyPSIuNzQxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0icCIgeDE9Ii0zLjQ5NSIgeDI9IjIuNjM2IiB5MT0iLTEuNjg3IiB5Mj0iMi4wNTMiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJxIiB4MT0iLTEuNDIyIiB4Mj0iMy4xNzUiIHkxPSItLjkyMyIgeTI9IjEuODgyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNhIiBpZD0iciIgeDE9Ii0zLjMwNiIgeDI9IjIuODI1IiB5MT0iLTIuMDcyIiB5Mj0iMS42NjgiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2EiIGlkPSJzIiB4MT0iLTEuNjgzIiB4Mj0iMi45MTQiIHkxPSItMS4wODEiIHkyPSIxLjcyMyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYSIgaWQ9InQiIHgxPSItMS4xNTgiIHgyPSIyLjUyMSIgeTE9Ii0uMjYxIiB5Mj0iMS45ODMiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImIiIHgxPSIuMjYxIiB4Mj0iLjYyNCIgeTE9IjMuNTYiIHkyPSItMS40NjkiIGdyYWRpZW50VW5pdHM9Im9iamVjdEJvdW5kaW5nQm94Ij4NCiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzZjZiIvPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIuNSIgc3RvcC1jb2xvcj0iIzYyNThhNiIvPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjczNDcwIi8+DQogICAgPC9saW5lYXJHcmFkaWVudD4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ1IiB4MT0iLjE2MyIgeDI9Ii41MjYiIHkxPSI0LjkyNCIgeTI9Ii0uMTAzIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0idiIgeDE9Ii4zODYiIHgyPSIuNjU4IiB5MT0iMS44MjUiIHkyPSItMS45NDUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ3IiB4MT0iLjI1MiIgeDI9Ii42MTUiIHkxPSI0LjE4MiIgeTI9Ii0uODQ1Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0ieCIgeDE9Ii40MTciIHgyPSIuNjg5IiB5MT0iMS45IiB5Mj0iLTEuODciLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ5IiB4MT0iLjQ4NSIgeDI9Ii43MDMiIHkxPSIuOTU2IiB5Mj0iLTIuMDYiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJ6IiB4MT0iLjM3NyIgeDI9Ii42NDkiIHkxPSIyLjQ1NSIgeTI9Ii0xLjMxNCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkEiIHgxPSIuMTk5IiB4Mj0iLjU2MiIgeTE9IjQuOTIyIiB5Mj0iLS4xMDUiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJCIiB4MT0iLjQzNyIgeDI9Ii43MDkiIHkxPSIxLjYyNSIgeTI9Ii0yLjE0NSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkMiIHgxPSIuMjYxIiB4Mj0iLjYyNCIgeTE9IjQuMDU1IiB5Mj0iLS45NzIiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJEIiB4MT0iLjUiIHgyPSIuNSIgeTE9IjMuMDQ1IiB5Mj0iLTEuOTI3Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iRSIgeDE9Ii41IiB4Mj0iLjUiIHkxPSI0LjkwMSIgeTI9Ii0uMDcyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iRiIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIyLjQzNSIgeTI9Ii0xLjI5NiIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkciIHgxPSIuNSIgeDI9Ii41IiB5MT0iLjkzNCIgeTI9Ii0yLjA1Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iSCIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIzLjc4NSIgeTI9Ii0xLjE4NyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYiIgaWQ9IkkiIHgxPSIuNSIgeDI9Ii41IiB5MT0iMS44MDkiIHkyPSItMS45MjEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2IiIGlkPSJKIiB4MT0iLjUiIHgyPSIuNSIgeTE9IjMuMDQ2IiB5Mj0iLTEuOTI4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNiIiBpZD0iSyIgeDE9Ii41IiB4Mj0iLjUiIHkxPSIyLjc5NCIgeTI9Ii0yLjE3NyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYyIgeDE9IjUuMDEiIHgyPSItMi4yNzciIHkxPSItMS4zODMiIHkyPSIyLjAzOSIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giPg0KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmRiZDRkIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjZjYzIi8+DQogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyNzM0NzAiLz4NCiAgICA8L2xpbmVhckdyYWRpZW50Pg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IkwiIHgxPSIyLjIzOSIgeDI9Ii0yLjEzNCIgeTE9Ii0uMDgyIiB5Mj0iMS45NzEiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJNIiB4MT0iNi4wOTgiIHgyPSItMS4xOTEiIHkxPSItMS44OTMiIHkyPSIxLjUyOCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9Ik4iIHgxPSIzLjM4NCIgeDI9Ii0yLjA4MSIgeTE9Ii0xLjA4OCIgeTI9IjEuNDc3Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iTyIgeDE9IjIuNzgiIHgyPSItMi42ODYiIHkxPSItLjgwNSIgeTI9IjEuNzYxIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iUCIgeDE9IjcuMDc0IiB4Mj0iLS4yMTIiIHkxPSItMi4zNTMiIHkyPSIxLjA2OSIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlEiIHgxPSI1LjA3NSIgeDI9Ii0yLjIxMSIgeTE9Ii0xLjQxNCIgeTI9IjIuMDA4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iUiIgeDE9IjUuNzM2IiB4Mj0iLTEuNTUiIHkxPSItMi4xOTQiIHkyPSIxLjIyOCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlMiIHgxPSIyLjA4MSIgeDI9Ii0xLjc4MSIgeTE9Ii0uMDQ3IiB5Mj0iMS45Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iVCIgeDE9Ii43MjkiIHgyPSItMi4zNjEiIHkxPSIuMTM1IiB5Mj0iMS42OTIiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJVIiB4MT0iMi43MTciIHgyPSItMi40MzMiIHkxPSItLjg2OCIgeTI9IjEuNzI4Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iViIgeDE9IjEuNTE3IiB4Mj0iLTIuMzQ3IiB5MT0iLS4yNjIiIHkyPSIxLjY4NCIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlciIHgxPSIzLjU0NCIgeDI9Ii0xLjYwNiIgeTE9Ii0xLjI4NCIgeTI9IjEuMzEyIi8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iWCIgeDE9IjIuNjMxIiB4Mj0iLTEuMjMzIiB5MT0iLS4zMjQiIHkyPSIxLjYyMyIvPg0KICAgIDxsaW5lYXJHcmFkaWVudCBocmVmPSIjYyIgaWQ9IlkiIHgxPSIyLjAwMyIgeDI9Ii0xLjg2IiB5MT0iLS4wMDciIHkyPSIxLjk0Ii8+DQogICAgPGxpbmVhckdyYWRpZW50IGhyZWY9IiNjIiBpZD0iWiIgeDE9IjQuMTI1IiB4Mj0iLTEuMDI1IiB5MT0iLTEuMDc3IiB5Mj0iMS41MTgiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJhYSIgeDE9IjMuMDIyIiB4Mj0iLTIuMTI3IiB5MT0iLTEuMDIxIiB5Mj0iMS41NzQiLz4NCiAgICA8bGluZWFyR3JhZGllbnQgaHJlZj0iI2MiIGlkPSJhYiIgeDE9IjQuNjgxIiB4Mj0iLS40NjkiIHkxPSItMS44NTciIHkyPSIuNzM4Ii8+DQogIDwvZGVmcz4NCiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMy44IDEpIj4NCiAgPHBhdGggZmlsbD0iIzNjOSIgZD0ibTM2LjA0MSAyNi41My0xMS40NDggNi42MTF2MTMuMjJsMTEuNDQ4IDYuNjEyIDExLjQ0Ni02LjYwOFYzMy4xNDFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYSkiIGQ9Ik03MS40NjQgMjAuOTF2Ny45MzJsLTYuODctMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZCkiIGQ9Ik02NC4yNDkgNTIuOTdsNi44NjkgMy45NjV2LTcuOTNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZSkiIGQ9Im02OC4xIDQ2LjM1OSAtNi44NjkgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2YpIiBkPSJNNzIuMzkyIDM1LjM3djcuOTMybC02Ljg2OSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjZykiIGQ9Ik01Ni42NTEgNTYuODQ3djcuOTMybC02Ljg2OSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjaCkiIGQ9Im01Ny43OTQgNTEuNjQzIC05LjE2IC01LjI4NiA5LjE2IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2kpIiBkPSJtNTcuNzk1IDUyLjk3IC05LjE2IDUuMjlWNDcuNjg0WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2opIiBkPSJtNTcuNzkyIDM5Ljc0OSAtOS4xNTggNS4yODZ2LTEwLjU3MloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNrKSIgZD0ibTU4LjUgNzAuMzE4IC02Ljg2OCAzLjk2N3YtNy45MzJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjbCkiIGQ9Im00Ny40ODcgNDYuMzYxIC0xMS40NDYgLTYuNjEyIDExLjQ0NiAtNi42MTFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjbSkiIGQ9Im00Ni4zNDQgNjEuMDc3IC05LjE1OCA1LjI4NnYtMTAuNTcyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI24pIiBkPSJtNDUuMTk5IDc0LjAzNSAtNi44NjggMy45NjV2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI28pIiBkPSJtNzAuMDIxIDYxLjc3NSAtNi44NjkgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3ApIiBkPSJtNjguMSAzMy4xNDIgLTYuODY5IDMuOTY3di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNxKSIgZD0iTTU3Ljc5NCAyNy44NTJ2MTAuNTc2bC05LjE2IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3IpIiBkPSJNNDUuMjAyIDYyLjg5MXY3LjkzMmwtNi44NjkgLTMuOTY3WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3MpIiBkPSJtNDYuMzQzIDU5Ljc1NiAtOS4xNTcgLTUuMjg2IDkuMTU3IC01LjI5WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3QpIiBkPSJtMzYuMDQxIDM5Ljc1IDExLjQ0NiA2LjYxMiAtMTEuNDQ2IDYuNjA4WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI2IpIiBkPSJtNjkuMzM0IDE3LjAzMSAtNi44NjkgMy45NjV2LTcuOTNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjdSkiIGQ9Im01OC4wODIgNS40NiAtNi44NzEgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3YpIiBkPSJtNTcuNzk2IDI2LjUyOSAtOS4xNjIgNS4yODZWMjEuMjQxWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3cpIiBkPSJtNDUuMiAxNC41NDUgLTYuODY5IC0zLjk2NSA2Ljg2OSAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjeCkiIGQ9Ik00Ni4zNDQgMTkuNzQ0VjMwLjMxOWwtOS4xNTggLTUuMjg2WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI3kpIiBkPSJNMzYuMDQxIDI2LjUzdjEzLjIyTDI0LjU5MyAzMy4xNDFaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjeikiIGQ9Im0zNC44OTcgMjMuNzA5IC05LjE1OCAtNS4yODYgOS4xNTggLTUuMjlaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQSkiIGQ9Im0zMy43NSA3LjkzMiAtNi44NyAtMy45NjUgNi44NyAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQikiIGQ9Im0yMy40NDkgMzEuODE2IC05LjE1OCAtNS4yOSA5LjE1OCAtNS4yODVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjQykiIGQ9Ik0xOS43NiA2LjAzOXY3LjkzMmwtNi44NjkgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0QpIiBkPSJtNTYuNjQ3IDIyLjY1MSAtNi44NzEgLTMuOTY3IDYuODcxIC0zLjk2N1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNFKSIgZD0ibTQ1LjIgMy45NjcgLTYuODY5IDMuOTY1di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNGKSIgZD0ibTQ2LjM0NCAxOC40MTcgLTkuMTU4IDUuMjg2di0xMC41NjhaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjRykiIGQ9Im00Ny40ODcgMzMuMTQxIC0xMS40NDYgNi42MTF2LTEzLjIyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0gpIiBkPSJtMzMuNzUzIDEyLjgxNCAtNi44NzEgMy45Njd2LTcuOTMyWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0kpIiBkPSJtMzQuODk2IDI1LjAzMyAtOS4xNTggNS4yODZ2LTEwLjU3NVoiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNKKSIgZD0ibTIyLjMgMTguNjg0IC02Ljg3IDMuOTY1di03LjkzWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI0spIiBkPSJtNy41NTYgMjQuNjM3IC02Ljg3IC0zLjk2NSA2Ljg3IC0zLjk2N1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNjKSIgZD0ibTMzLjc1MSA3OC4wMDEgLTYuODcxIC0zLjk2NSA2Ljg3MSAtMy45NjdaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTCkiIGQ9Ik0zNi4wNDEgMzkuNzV2MTMuMjJsLTExLjQ0OCAtNi42MTJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTSkiIGQ9Ik0yMi4zIDY2Ljc2M3Y3LjkzMmwtNi44NyAtMy45NjZaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjTikiIGQ9Im0yMy40NDkgNDYuMzYyIC05LjE1OCA1LjI4NnYtMTAuNTc2WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI08pIiBkPSJtMjMuNDQ5IDMzLjE0MiAtOS4xNTggNS4yOXYtMTAuNThaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjUCkiIGQ9Ik05LjYxNiA1OS40MDF2Ny45M2wtNi44NzEgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1EpIiBkPSJNMTAuODUxIDI4Ljg5OXY3LjkzMmwtNi44NzEgLTMuOTY1WiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1IpIiBkPSJtNi44NzEgNDAuMDkzIC02Ljg3MSAzLjk2NXYtNy45M1oiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNTKSIgZD0ibTM0Ljg5NCA2Ni4zNjcgLTkuMTYgLTUuMjg2IDkuMTYgLTUuMjlaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjVCkiIGQ9Im0zNi4wNDEgMzkuNzUgLTExLjQ0OCA2LjYwOHYtMTMuMjJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjVSkiIGQ9Im0zMy43NSA2Ny40MjUgLTYuODcxIDMuOTY3di03LjkzMloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNWKSIgZD0ibTM0Ljg5MiA1NC40NjcgLTkuMTU3IDUuMjl2LTEwLjU4MloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNXKSIgZD0ibTIyLjI5OSA2MC44MTQgLTYuODY5IDMuOTY1di03LjkzWiIvPg0KICA8cGF0aCBmaWxsPSJ1cmwoI1gpIiBkPSJNMjMuNDQ5IDQ3LjY4M3YxMC41NzNsLTkuMTU4IC01LjI4NloiLz4NCiAgPHBhdGggZmlsbD0idXJsKCNZKSIgZD0iTTIzLjQ0OSAzNC40NTl2MTAuNTczbC05LjE1OCAtNS4yODNaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjWikiIGQ9Im0xMC44NSA1MC4zMjYgLTYuODcxIC0zLjk2NyA2Ljg3MSAtMy45NjVaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYWEpIiBkPSJtNy4xNDUgMjYuNTMxIC02Ljg2OSAzLjk2NXYtNy45MzJaIi8+DQogIDxwYXRoIGZpbGw9InVybCgjYWIpIiBkPSJtNy41NTYgNTMuNDUyIC02Ljg3MSAzLjk2NXYtNy45MzVaIi8+DQogIDwvZz4NCjwvc3ZnPg0K">
 
 </head>
@@ -206,17 +212,15 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-06</p>
+  <p class="date">2026-09-12</p>
 </section>
-<section id="the-course-assumes-five-ideas.-this-deck-builds-them" class="slide level2">
-<h2>The course assumes five ideas. This deck builds them</h2>
+<section id="five-ideas-this-deck-builds" class="slide level2">
+<h2>Five ideas this deck builds</h2>
 <div class="flowrow">
-<p><span class="flownode navy"><span class="flowtitle">Distribution</span><span class="flownote">shape, centre, width</span></span> <span class="flownode teal"><span class="flowtitle">Quantile</span><span class="flownote">a cut in a sorted list</span></span> <span class="flownode coral"><span class="flowtitle">i.i.d.</span><span class="flownote">two claims, two failures</span></span> <span class="flownode purple"><span class="flowtitle">Test</span><span class="flownote">ten checks, one number</span></span> <span class="flownode navy"><span class="flowtitle">p-value</span><span class="flownote">and its misreadings</span></span></p>
+<p><span class="flownode navy"><span class="flowtitle">Distribution</span><span class="flownote">shape, centre, width</span></span> <span class="flownode teal"><span class="flowtitle">Quantile</span><span class="flownote">a cut in a sorted list</span></span> <span class="flownode coral"><span class="flowtitle">i.i.d.</span><span class="flownote">fails two ways</span></span> <span class="flownode purple"><span class="flowtitle">Test</span><span class="flownote">one number</span></span> <span class="flownode navy"><span class="flowtitle" style="white-space:nowrap">p-value</span><span class="flownote">how rare is rare?</span></span></p>
 </div>
 <div class="fragment">
-<div class="cardbox teal">
 <p>This deck is read alone, and it assumes nothing about forecasting. Every picture on it is a measured human height, because a height needs no explaining.</p>
-</div>
 <aside class="notes">
 <p>Delivery mode only. If taught in an expansion hour, take about thirty minutes. The five nodes are the five segments; the pointer table at the end maps each back to the course slide that needs it. Do not restate the concepts here; the segments do that.</p>
 <style type="text/css">
@@ -237,30 +241,15 @@
 <h1>A. Randomness has a shape</h1>
 <p>The random variable, the distribution, and the two numbers that summarize it</p>
 </section>
-<section id="before-it-is-measured-a-value-is-a-random-variable" class="slide level2">
-<h2>Before it is measured, a value is a random variable</h2>
-<p>Capital <span class="math inline">\(Y\)</span> marks a value not yet known; lowercase <span class="math inline">\(y\)</span> is what it turns out to be.</p>
-<table class="caption-top">
-<thead>
-<tr class="header">
-<th>Symbol</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">\(Y\)</span></td>
-<td>the height of the next person you measure: still random</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(y\)</span></td>
-<td>the same height, once measured: a number</td>
-</tr>
-</tbody>
-</table>
-<div class="cardbox teal">
+<section id="before-it-is-measured-a-height-is-a-random-variable" class="slide level2">
+<h2>Before it is measured, a height is a random variable</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><span class="math inline">\(Y\)</span>: the height of the next man you measure: <strong>not yet known</strong></p>
+</div><div class="column" style="width:50%;">
+<p><span class="math inline">\(y\)</span>: the same height, once measured: a <strong>number</strong></p>
+</div></div>
 <p>A random variable is the whole set of values <span class="math inline">\(Y\)</span> could take, before it is seen. Statistics is the study of that set.</p>
-</div>
 <aside class="notes">
 <p>Delivery mode only. The capital and lowercase distinction is the one that trips people later, so give it a sentence. The next slide names the sample every picture in this deck is drawn on.</p>
 <style type="text/css">
@@ -277,7 +266,7 @@
 </section>
 <section id="every-picture-here-is-drawn-on-the-same-799-heights" class="slide level2">
 <h2>Every picture here is drawn on the same 799 heights</h2>
-<div id="91d39f82" class="cell" data-fig-width="9" data-execution_count="2">
+<div id="ab74da97" class="cell" data-fig-width="9" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -286,7 +275,7 @@
 </div>
 </div>
 </div>
-<p>The 799 men of a national health survey, each one measured standing against a board rather than asked. Before it is anything else it is a pile of 799 numbers, and every idea here is a question asked of them.</p>
+<p>Before it is anything else it is a list of 799 numbers, and every idea in this deck is a question asked of it.</p>
 <p><span style="font-size:0.62em">NHANES I Epidemiologic Follow-up Study · <a href="#/sec-data">where these numbers come from</a></span></p>
 <aside class="notes">
 <p>Delivery mode only. The survey is the NHANES follow-up study, and the heights are measured to a fraction of a centimetre. That matters more than it sounds: a sample rounded to the inch piles onto a lattice, and segment D’s test then rejects it on the rounding alone. One sample, five questions: what shape, cut where, one population or two, and what a test of the claim says.</p>
@@ -302,9 +291,9 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="a-distribution-is-the-shape-of-the-whole-set-of-values" class="slide level2">
-<h2>A distribution is the shape of the whole set of values</h2>
-<div id="f6f1c2ba" class="cell" data-fig-width="9" data-execution_count="3">
+<section id="a-distribution-is-the-shape-of-the-data" class="slide level2">
+<h2>A distribution is the shape of the data</h2>
+<div id="3127f51f" class="cell" data-fig-width="9" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -313,9 +302,7 @@
 </div>
 </div>
 </div>
-<div class="cardbox teal">
 <p>A distribution is the full set of plausible values and how often each occurs. Its picture is a histogram; the mean is one number inside it.</p>
-</div>
 <aside class="notes">
 <p>Delivery mode only. Same numbers as the previous slide, the pile tipped into bins. The histogram is the distribution made visible. The next slide puts two numbers on it.</p>
 <style type="text/css">
@@ -332,7 +319,7 @@
 </section>
 <section id="the-mean-is-the-centre-the-sd-is-the-width" class="slide level2">
 <h2>The mean is the centre, the SD is the width</h2>
-<div id="872489f3" class="cell" data-fig-width="9.5" data-execution_count="4">
+<div id="95768002" class="cell" data-fig-width="9.5" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -351,11 +338,9 @@
 <p><span class="math display">\[s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(y_i - \bar{y})^2}\]</span></p>
 </div>
 </div></div>
-<div class="cardbox teal">
-<p><span class="math inline">\(\bar{y}\)</span> is 175.3 cm, the centre of the pile; <span class="math inline">\(s\)</span> is 6.9 cm, the typical distance from it. <span class="math inline">\(s^2\)</span> is the <strong>variance</strong>: that width squared, and the form that adds up on Day 1.</p>
-</div>
+<p><span class="math inline">\(\bar{y}\)</span> is 175.3 cm — the centre. <span class="math inline">\(s\)</span> is 6.9 cm — the typical distance from it. <span class="math inline">\(s^2\)</span> is the <strong>variance</strong>: that width squared.</p>
 <aside class="notes">
-<p>Delivery mode only. Read the picture before the formulas: the SD is a width, and the shaded bands and the shares they cover are what makes it one. Then the formulas, left to right in words, because the course writes both, and the mean before the SD because the SD is built out of it. The bar means averaged and the hat, two segments from now, means estimated. If anyone asks why the SD divides by n-1 rather than n: the deviations are measured from the sample’s own mean rather than the true one, so they come out slightly too small, and the smaller divisor puts that back. Worth saying that a tall person is not an error, they are the tail of the shape. Say the variance out loud even though nothing here uses it: on Day 1 independent errors add variances rather than SDs, and that is where the square comes back. The next slide is the curve those two numbers pin exactly.</p>
+<p>Delivery mode only. Read the picture before the formulas: the SD is a width, and the shaded bands and the shares they cover are what makes it one. Then the formulas, left to right in words, because the course writes both, and the mean before the SD because the SD is built out of it. The bar means averaged and the hat, two segments from now, means estimated. If anyone asks why the SD divides by n-1 rather than n: the deviations are measured from the sample’s own mean rather than the true one, so they come out slightly too small, and the smaller divisor puts that back. A tall person is not an error, they are the tail of the shape. Say the variance out loud even though nothing here uses it: on Day 1 independent errors add variances rather than SDs, and that is where the square comes back.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -368,9 +353,9 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-bell-curve-is-those-two-numbers-and-nothing-else" class="slide level2">
-<h2>The bell curve is those two numbers and nothing else</h2>
-<div id="e54c06c7" class="cell" data-fig-width="9" data-execution_count="5">
+<section id="the-bell-curve" class="slide level2">
+<h2>The bell curve</h2>
+<div id="d747f086" class="cell" data-fig-width="9" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -380,16 +365,12 @@
 </div>
 </div>
 <p><span class="math display">\[Y \sim N(\mu,\ \sigma^2)\]</span></p>
-<p>Read <span class="math inline">\(\sim\)</span> as <strong>is distributed as</strong>: <span class="math inline">\(\mu\)</span> the centre, <span class="math inline">\(\sigma\)</span> the width.</p>
 <ul>
 <li class="fragment">A bell puts 68% of its values inside one SD, and 95% inside two</li>
 <li class="fragment">These men put 68% and 96% there: close, and measured</li>
 </ul>
-<div class="cardbox teal">
-<p>Two numbers, one whole shape. Those 68% and 95% are shares of it, and a share of a shape has a name of its own.</p>
-</div>
 <aside class="notes">
-<p>Delivery mode only. The gap between the histogram and the curve is the price of the assumption, and it is visible here rather than asserted. Segment D comes back and tests this claim properly. The one line of notation is the line every model in the course is written in, so read it out: Y is distributed as a normal with centre mu and width sigma. Greek because the pair describes the bell rather than any sample, which is the distinction segment D sharpens. The squared sigma inside the bracket is the variance from the last slide, and the bracket is where the course always puts it. The next slide names the shares it just quoted.</p>
+<p>Delivery mode only. Two numbers, one whole shape. The 68% and 95% are shares of all the data — a share has a name of its own, which is the next segment. The gap between the histogram and the curve is the price of the assumption, and it is visible here rather than asserted. Segment D comes back and tests this claim properly. The one line of notation is the line every model in the course is written in, so read it out: Y is distributed as a normal with centre mu and width sigma. Greek because the pair describes the bell rather than any sample, which is the distinction segment D sharpens. The squared sigma inside the bracket is the variance from the last slide.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -402,9 +383,9 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="a-probability-is-a-share-of-the-whole-pile" class="slide level2">
-<h2>A probability is a share of the whole pile</h2>
-<p><span class="math inline">\(P(\text{something})\)</span> is the share of the pile where that something is true, a number between 0 and 1.</p>
+<section id="a-probability-is-a-share-of-all-possible-values" class="slide level2">
+<h2>A probability is a share of all possible values</h2>
+<p><span class="math inline">\(P(\text{something})\)</span> is the share of all possible values where that something is true, a number between 0 and 1.</p>
 <div data-tbl-colwidths="[34,48,18]">
 <table class="caption-top">
 <colgroup>
@@ -414,9 +395,9 @@
 </colgroup>
 <thead>
 <tr class="header">
+<th></th>
 <th>Notation</th>
 <th>In words</th>
-<th>Here</th>
 </tr>
 </thead>
 <tbody>
@@ -439,11 +420,9 @@
 </table>
 </div>
 <div class="fragment">
-<div class="cardbox coral">
-<p>Capital <span class="math inline">\(Y\)</span> is doing the work it was introduced for: a probability is a question about the value <em>before</em> it is measured. What people usually quote about a height is the other direction, a cut.</p>
-</div>
+<p>Capital <span class="math inline">\(Y\)</span> is doing the work it was introduced for: a probability is a question about the value <em>before</em> it is measured.</p>
 <aside class="notes">
-<p>Delivery mode only. Nothing here is new arithmetic, it is a name and a bracket for shares the last two slides already read off the picture: the third row is that same 68%, counted off these men. Say that the two rows either side of 180 cm sum to 1, because a probability is a share of one whole pile. This slide exists because segment E argues about this notation, and the misreadings there are about what is inside the bracket. The next segment stops summarizing the shape and starts cutting it.</p>
+<p>Delivery mode only. Nothing here is new arithmetic, it is a name and a bracket for shares the last two slides already read off the picture: the third row is that same 68%, counted off these men. Say that the two rows either side of 180 cm sum to 1, because a probability is a share of one whole pile. This slide exists because segment E argues about this notation, and the misreadings there are about what is inside the bracket.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -460,11 +439,11 @@
 <section>
 <section id="b.-cutting-a-distribution" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #FF7A5C)">
 <h1>B. Cutting a distribution</h1>
-<p>The median, the quantile, the percentile, and what an 80% range is</p>
+<p>The median, the quantile, and what an 80% range is</p>
 </section>
 <section id="the-median-is-the-cut-that-leaves-half-on-each-side" class="slide level2">
 <h2>The median is the cut that leaves half on each side</h2>
-<div id="2cfadc50" class="cell" data-fig-width="9.5" data-execution_count="6">
+<div id="eadc209f" class="cell" data-fig-width="9.5" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -473,11 +452,9 @@
 </div>
 </div>
 </div>
-<div class="cardbox teal">
-<p>The median is a position in a sorted list, not a formula. Sort the 799 heights; the median is number 400, at 175 cm, with half the people below and half above.</p>
-</div>
+<p>The median is a position in a sorted list, not a formula. Sort the 799 heights: the median is number 400, at 175 cm — half below, half above.</p>
 <aside class="notes">
-<p>Delivery mode only. Start from the median because the room already owns it. Left panel is the sorted list, right panel the same numbers as a histogram. The next slide changes one number and the median becomes a general quantile.</p>
+<p>Delivery mode only. Start from the median because the room already owns it. Left panel is the sorted list, right panel the same numbers as a histogram. The next slide adds one knob to the same picture.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -492,7 +469,7 @@
 </section>
 <section id="a-quantile-is-the-same-cut-with-a-knob" class="slide level2">
 <h2>A quantile is the same cut, with a knob</h2>
-<div id="1d996128" class="cell" data-fig-width="9.5" data-execution_count="7">
+<div id="be4790cf" class="cell" data-fig-width="9.5" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -506,11 +483,87 @@
 <li class="fragment">The <span class="math inline">\(0.9\)</span> quantile is position 719, the height 184 cm</li>
 <li class="fragment">The <span class="math inline">\(0.1\)</span> quantile is position 80, the height 167 cm</li>
 </ul>
-<div class="cardbox teal">
-<p>One rule, one number. A quantile is a position in a sorted list, and the number on the front is the knob.</p>
+<aside class="notes">
+<p>Delivery mode only. One rule, one number: a quantile is a position in a sorted list, and the number on the front is the knob. Same picture as the previous slide with the pair of cuts added, so the knob is the only thing that changed. Quantile and percentile are one object with two names, so do not spend time on the distinction. Say “half the list”, not “half the range”: on a skewed sample the midpoint of the range is nowhere near the median. The next slide hands the knob to the room.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="drag-the-knob" class="slide level2">
+<h2>Drag the knob</h2>
+<div id="6d143b61" class="cell" data-execution_count="8">
+<div class="cell-output cell-output-display">
+
+<div id="qdemo" style="margin:0 auto; max-width:860px;">
+  <div style="display:flex; gap:16px; align-items:stretch;">
+    <div style="flex:1"><canvas id="qcv" width="700" height="330" style="width:100%; height:auto; display:block;"></canvas></div>
+    <div style="width:205px; box-sizing:border-box; background:rgba(28,53,94,.06);
+        border:1px solid #dbe2ea; border-radius:12px; padding:12px;
+        display:flex; flex-direction:column; justify-content:center; gap:9px;">
+      <div style="font-size:1.3em; font-weight:800; color:#1C355E;"><span id="qpct">50</span>%
+        <span style="font-size:.55em; font-weight:600; color:#5b6678;">quantile</span></div>
+      <div style="font-size:.82em; color:#334155;">position <b id="qpos">400</b> of 799</div>
+      <div style="font-size:.82em; color:#334155;">height <b id="qval" style="font-size:1.3em; color:#FF7A5C;">175</b> cm</div>
+      <input type="range" id="qknob" min="1" max="99" step="1" value="50" style="width:100%;">
+      <div style="font-size:.62em; color:#5b6678; text-align:center;">the knob</div>
+    </div>
+  </div>
+  <div style="margin-top:8px; font-size:.72em; color:#5b6678; text-align:center;">
+    10% → 167 cm &nbsp;&nbsp;·&nbsp;&nbsp; 50% (the median) → 175 cm &nbsp;&nbsp;·&nbsp;&nbsp; 90% → 184 cm
+    <br>the middle 80% runs from 167 to 184 cm
+  </div>
+</div>
+<script>
+(function () {
+  const V = [152.4, 156.5, 156.5, 156.9, 157.5, 158.1, 158.3, 158.8, 159.4, 160.0, 160.0, 160.2, 160.3, 160.4, 160.7, 160.7, 160.7, 160.8, 160.9, 161.3, 161.4, 161.5, 161.6, 161.8, 162.1, 162.2, 162.3, 162.6, 163.0, 163.0, 163.0, 163.2, 163.2, 163.3, 163.3, 163.5, 163.6, 163.6, 163.8, 163.8, 164.0, 164.0, 164.3, 164.4, 164.4, 164.4, 164.5, 164.5, 164.5, 164.5, 164.7, 164.8, 164.8, 164.8, 164.8, 165.0, 165.0, 165.0, 165.2, 165.2, 165.4, 165.5, 165.5, 165.6, 165.6, 165.7, 165.7, 165.7, 165.8, 165.9, 165.9, 166.0, 166.1, 166.1, 166.2, 166.3, 166.4, 166.5, 166.6, 166.6, 166.7, 166.7, 166.7, 166.7, 166.8, 166.8, 166.9, 166.9, 167.0, 167.0, 167.0, 167.2, 167.2, 167.2, 167.3, 167.3, 167.4, 167.4, 167.5, 167.5, 167.6, 167.7, 167.7, 167.7, 167.8, 167.8, 167.8, 167.9, 168.0, 168.0, 168.0, 168.0, 168.1, 168.1, 168.2, 168.2, 168.2, 168.3, 168.3, 168.3, 168.4, 168.5, 168.5, 168.6, 168.6, 168.7, 168.7, 168.8, 168.8, 168.8, 168.8, 168.9, 168.9, 168.9, 169.0, 169.0, 169.0, 169.0, 169.0, 169.0, 169.1, 169.1, 169.1, 169.2, 169.2, 169.3, 169.3, 169.3, 169.3, 169.4, 169.4, 169.4, 169.5, 169.6, 169.6, 169.6, 169.7, 169.7, 169.8, 169.8, 169.8, 169.8, 169.8, 169.8, 169.8, 169.9, 169.9, 170.0, 170.0, 170.0, 170.0, 170.0, 170.0, 170.0, 170.0, 170.1, 170.2, 170.2, 170.2, 170.3, 170.3, 170.3, 170.3, 170.3, 170.3, 170.3, 170.4, 170.4, 170.5, 170.5, 170.5, 170.5, 170.5, 170.5, 170.6, 170.6, 170.7, 170.7, 170.7, 170.8, 170.8, 170.8, 170.8, 170.8, 170.9, 170.9, 170.9, 170.9, 171.0, 171.0, 171.0, 171.0, 171.1, 171.1, 171.1, 171.1, 171.2, 171.2, 171.2, 171.2, 171.3, 171.3, 171.4, 171.4, 171.4, 171.4, 171.5, 171.5, 171.5, 171.6, 171.6, 171.6, 171.7, 171.7, 171.7, 171.7, 171.7, 171.8, 171.8, 171.8, 171.8, 171.8, 171.8, 171.9, 172.0, 172.0, 172.0, 172.0, 172.0, 172.1, 172.1, 172.1, 172.1, 172.1, 172.1, 172.2, 172.2, 172.3, 172.3, 172.3, 172.3, 172.3, 172.3, 172.3, 172.3, 172.4, 172.4, 172.4, 172.4, 172.4, 172.4, 172.5, 172.5, 172.6, 172.6, 172.6, 172.7, 172.7, 172.7, 172.7, 172.8, 172.8, 172.8, 172.8, 172.9, 172.9, 172.9, 173.0, 173.0, 173.0, 173.0, 173.0, 173.0, 173.1, 173.1, 173.1, 173.1, 173.2, 173.2, 173.3, 173.3, 173.3, 173.3, 173.3, 173.3, 173.3, 173.4, 173.4, 173.4, 173.4, 173.4, 173.4, 173.4, 173.5, 173.5, 173.5, 173.5, 173.5, 173.5, 173.5, 173.6, 173.6, 173.6, 173.6, 173.7, 173.7, 173.7, 173.7, 173.8, 173.8, 173.8, 173.8, 173.9, 173.9, 173.9, 174.0, 174.0, 174.0, 174.0, 174.0, 174.0, 174.0, 174.0, 174.1, 174.1, 174.1, 174.1, 174.1, 174.2, 174.2, 174.2, 174.2, 174.2, 174.2, 174.2, 174.3, 174.3, 174.4, 174.4, 174.4, 174.4, 174.4, 174.4, 174.5, 174.5, 174.5, 174.5, 174.5, 174.5, 174.5, 174.5, 174.6, 174.6, 174.6, 174.6, 174.7, 174.8, 174.8, 174.8, 174.8, 174.9, 174.9, 174.9, 174.9, 175.0, 175.0, 175.0, 175.0, 175.0, 175.0, 175.1, 175.1, 175.1, 175.1, 175.2, 175.2, 175.2, 175.2, 175.2, 175.2, 175.2, 175.3, 175.3, 175.3, 175.3, 175.4, 175.4, 175.4, 175.4, 175.4, 175.4, 175.5, 175.5, 175.5, 175.5, 175.5, 175.5, 175.5, 175.5, 175.5, 175.5, 175.6, 175.7, 175.7, 175.7, 175.7, 175.7, 175.8, 175.8, 175.8, 175.8, 175.8, 175.8, 175.8, 175.8, 175.8, 175.8, 175.9, 175.9, 175.9, 175.9, 175.9, 176.0, 176.0, 176.0, 176.0, 176.0, 176.0, 176.1, 176.1, 176.1, 176.1, 176.1, 176.2, 176.2, 176.3, 176.3, 176.4, 176.4, 176.5, 176.5, 176.5, 176.5, 176.5, 176.6, 176.6, 176.6, 176.7, 176.7, 176.7, 176.8, 176.8, 176.8, 176.9, 176.9, 176.9, 177.0, 177.0, 177.0, 177.1, 177.1, 177.1, 177.1, 177.1, 177.2, 177.2, 177.2, 177.2, 177.2, 177.2, 177.2, 177.2, 177.2, 177.3, 177.3, 177.3, 177.3, 177.3, 177.4, 177.4, 177.4, 177.4, 177.4, 177.4, 177.5, 177.5, 177.5, 177.5, 177.5, 177.5, 177.6, 177.6, 177.6, 177.6, 177.6, 177.6, 177.6, 177.7, 177.8, 177.8, 177.8, 177.8, 177.8, 177.9, 177.9, 177.9, 178.0, 178.0, 178.0, 178.0, 178.0, 178.0, 178.0, 178.1, 178.1, 178.1, 178.1, 178.1, 178.1, 178.2, 178.2, 178.2, 178.2, 178.2, 178.2, 178.4, 178.4, 178.4, 178.4, 178.4, 178.5, 178.5, 178.5, 178.5, 178.5, 178.6, 178.6, 178.7, 178.7, 178.8, 178.8, 178.8, 178.8, 178.9, 178.9, 179.0, 179.0, 179.0, 179.1, 179.2, 179.2, 179.2, 179.2, 179.2, 179.3, 179.3, 179.3, 179.3, 179.4, 179.4, 179.4, 179.4, 179.5, 179.5, 179.5, 179.5, 179.6, 179.6, 179.6, 179.7, 179.7, 179.7, 179.7, 179.8, 179.8, 179.8, 179.9, 179.9, 179.9, 179.9, 180.0, 180.0, 180.0, 180.0, 180.0, 180.0, 180.0, 180.1, 180.1, 180.1, 180.2, 180.2, 180.2, 180.3, 180.3, 180.3, 180.3, 180.3, 180.4, 180.4, 180.4, 180.5, 180.5, 180.5, 180.6, 180.6, 180.7, 180.7, 180.7, 180.8, 180.8, 180.8, 180.8, 180.8, 180.8, 180.8, 180.9, 180.9, 180.9, 181.0, 181.0, 181.0, 181.0, 181.0, 181.1, 181.1, 181.1, 181.1, 181.2, 181.2, 181.2, 181.2, 181.3, 181.4, 181.4, 181.4, 181.4, 181.5, 181.6, 181.7, 181.7, 181.9, 181.9, 181.9, 181.9, 182.0, 182.1, 182.2, 182.2, 182.3, 182.3, 182.3, 182.3, 182.4, 182.4, 182.4, 182.5, 182.5, 182.6, 182.7, 182.8, 182.8, 182.8, 182.9, 182.9, 182.9, 182.9, 183.0, 183.0, 183.0, 183.0, 183.0, 183.1, 183.1, 183.1, 183.1, 183.2, 183.2, 183.3, 183.4, 183.4, 183.4, 183.5, 183.5, 183.5, 183.6, 183.7, 183.7, 183.7, 183.7, 183.8, 183.8, 183.8, 183.9, 183.9, 183.9, 184.0, 184.0, 184.0, 184.1, 184.1, 184.1, 184.2, 184.2, 184.3, 184.3, 184.3, 184.4, 184.4, 184.4, 184.5, 184.5, 184.6, 184.6, 184.6, 184.7, 184.8, 184.8, 184.8, 184.8, 184.9, 185.2, 185.3, 185.3, 185.4, 185.4, 185.5, 185.5, 185.5, 185.6, 186.0, 186.0, 186.0, 186.1, 186.1, 186.2, 186.3, 186.3, 186.4, 186.5, 186.7, 186.7, 186.7, 186.8, 186.9, 187.0, 187.2, 187.4, 187.4, 187.5, 187.6, 187.8, 187.8, 188.0, 188.0, 188.3, 188.3, 188.4, 188.5, 188.5, 188.5, 188.6, 188.7, 188.8, 188.9, 189.3, 189.8, 190.5, 190.9, 192.0, 192.2, 192.6, 193.4, 193.6, 194.5, 197.5, 197.5, 197.6, 198.1];
+  const cv = document.getElementById("qcv"), ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height, n = V.length;
+  const L = 62, R = 20, T = 16, B = 40;
+  const y0 = Math.floor(Math.min(...V)) - 2, y1 = Math.ceil(Math.max(...V)) + 2;
+  const X = p => L + (p - 1) / (n - 1) * (W - L - R);
+  const Y = h => T + (y1 - h) / (y1 - y0) * (H - T - B);
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(L, H - B); ctx.lineTo(W - R, H - B); ctx.stroke();
+    ctx.fillStyle = "#5b6678"; ctx.font = "12px sans-serif";
+    for (let h = Math.ceil(y0 / 10) * 10; h <= y1; h += 10) {
+      ctx.beginPath(); ctx.moveTo(L, Y(h)); ctx.lineTo(W - R, Y(h));
+      ctx.strokeStyle = "rgba(148,163,184,.3)"; ctx.stroke();
+      ctx.fillText(String(h), L - 32, Y(h) + 4);
+    }
+    ctx.fillText("rank, lowest to highest →", L + (W - L - R) / 2 - 70, H - 10);
+    ctx.beginPath(); ctx.moveTo(X(1), Y(V[0]));
+    for (let i = 1; i < n; i++) ctx.lineTo(X(i + 1), Y(V[i]));
+    ctx.strokeStyle = "#1C355E"; ctx.lineWidth = 2.2; ctx.stroke();
+    const k = +document.getElementById("qknob").value;
+    const pos = Math.min(n, Math.max(1, Math.round(k / 100 * n)));
+    const val = V[pos - 1];
+    ctx.beginPath(); ctx.moveTo(X(pos), T); ctx.lineTo(X(pos), H - B);
+    ctx.strokeStyle = "#FF7A5C"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.6;
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(X(pos), Y(val), 6, 0, 7);
+    ctx.fillStyle = "#FF7A5C"; ctx.fill();
+    document.getElementById("qpct").textContent = k;
+    document.getElementById("qpos").textContent = pos;
+    document.getElementById("qval").textContent = Math.round(val);
+  }
+  document.getElementById("qknob").addEventListener("input", draw);
+  draw();
+})();
+</script>
+</div>
 </div>
 <aside class="notes">
-<p>Delivery mode only. Same picture as the previous slide with the pair of cuts added, so the knob is the only thing that changed. Say “half the list”, not “half the range”: on a skewed sample the midpoint of the range is nowhere near the median.</p>
+<p>Delivery mode only. The room plays with the real sorted list: the knob is the quantile’s one degree of freedom, and every value it reports is counted off the 799 real heights, not interpolated. 10 and 90 are the cuts that make the next slide’s 80% range. Nothing here is new; it is the previous slide’s definition with the input wired up.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -525,21 +578,17 @@
 </section>
 <section id="an-80-range-is-a-pair-of-cuts" class="slide level2">
 <h2>An 80% range is a pair of cuts</h2>
-<p>An 80% range leaves 10% of the people in each tail, so its two ends are the <span class="math inline">\(0.1\)</span> and <span class="math inline">\(0.9\)</span> quantiles: 167 cm and 184 cm here.</p>
-<div class="fragment">
-<p>A 95% range leaves 2.5% in each tail, so its ends are the <span class="math inline">\(0.025\)</span> and <span class="math inline">\(0.975\)</span> quantiles, 161 cm and 188 cm. Same rule, different knob.</p>
-<div id="2d6d775f" class="cell" data-fig-width="9.5" data-execution_count="8">
+<p>An 80% range leaves 10% in each tail, so its ends are the <span class="math inline">\(0.1\)</span> and <span class="math inline">\(0.9\)</span> quantiles: 167 cm and 184 cm here. A 95% range leaves 2.5% in each tail, so its ends are the <span class="math inline">\(0.025\)</span> and <span class="math inline">\(0.975\)</span> quantiles, 161 cm and 188 cm. Same rule, different knob.</p>
+<div id="19e856f6" class="cell" data-fig-width="9.5" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-9-output-1.png" width="1035" height="272"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-10-output-1.png" width="1035" height="272"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cardbox teal">
-<p>Every interval the course later puts around a forecast is a pair of cuts like these. Nothing else changes between an 80% one and a 95% one.</p>
-</div>
+<p>Every interval the course later puts around a forecast is a pair of cuts like these — and on a skewed sample the two cuts are not symmetric around the mean.</p>
 <aside class="notes">
 <p>Delivery mode only. This is the slide deck 3’s interval segment and deck 4’s CRPS both assume. Worth saying out loud that the two cuts need not be symmetric around the mean, and on a skewed sample they are not.</p>
 <style type="text/css">
@@ -553,18 +602,14 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</div>
 </section>
-<section id="a-percentile-is-the-same-cut-read-as-a-share" class="slide level2">
-<h2>A percentile is the same cut, read as a share</h2>
-<p>The 90th percentile is the height below which 90% of the people fall. The <span class="math inline">\(0.9\)</span> quantile and the 90th percentile are the same number, 184 cm.</p>
-<div class="fragment">
-<p>A quantile is a position in one sorted list. It says nothing about where the <em>next</em> value comes from.</p>
+<section id="a-cut-describes-one-sample" class="slide level2">
+<h2>A cut describes one sample</h2>
 <div class="cardbox coral">
-<p>A distribution tells you the shape of one sample. It does not tell you whether the next value is drawn from that same shape, or whether the sample was collected in a way that lets you ask.</p>
+<p>A distribution tells you the shape of one sample. It does not tell you whether the <em>next</em> value comes from that same shape, or whether the sample was collected in a way that lets you ask. That assumption has a name.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. Quantile and percentile are one object with two names, so do not spend time on the distinction. The second half of the slide is the gap: every method in the course that reuses past values assumes the next one is drawn from the same distribution, and that assumption has a name.</p>
+<p>Delivery mode only. The gap: every method in the course that reuses past values assumes the next one is drawn from the same distribution, and that assumption has a name. The next segment says it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -576,15 +621,14 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</div>
 </section></section>
 <section>
 <section id="c.-i.i.d." class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
 <h1>C. i.i.d.</h1>
 <p>Independent, then identically distributed, then each one breaking on this survey</p>
 </section>
-<section id="i.i.d.-is-two-claims-and-they-fail-differently" class="slide level2">
-<h2>i.i.d. is two claims, and they fail differently</h2>
+<section id="i.i.d.-is-two-claims" class="slide level2">
+<h2>i.i.d. is two claims</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <p><strong>Independent</strong></p>
@@ -593,9 +637,7 @@
 <p><strong>Identically distributed</strong></p>
 <p>Every value in the sample comes from the same distribution.</p>
 </div></div>
-<div class="cardbox coral">
-<p>They are separate claims, and each breaks its own way. One careless survey breaks the first. A different careless survey breaks the second.</p>
-</div>
+<p>They are separate claims, and each breaks its own way: one careless survey breaks the first, a different careless survey breaks the second.</p>
 <aside class="notes">
 <p>Delivery mode only. The two claims are the whole segment. The next two slides take independence apart; the two after that take identical distribution apart. Do not conflate them: the deck’s whole i.i.d. story is that a sample can satisfy one and fail the other.</p>
 <style type="text/css">
@@ -612,18 +654,16 @@
 </section>
 <section id="independent-means-one-says-nothing-about-the-other" class="slide level2">
 <h2>Independent means one says nothing about the other</h2>
-<div id="93a608a8" class="cell" data-fig-width="9" data-execution_count="9">
+<div id="adcba182" class="cell" data-fig-width="9" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-10-output-1.png" width="980" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-11-output-1.png" width="980" height="318"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cardbox teal">
-<p>Take 605 pairs of men from different families and plot each pair. If the two are independent the cloud has no tilt, and the correlation sits at -0.02 on a scale running from <span class="math inline">\(-1\)</span> to <span class="math inline">\(+1\)</span>.</p>
-</div>
+<p>605 pairs of men from different families. If the two are independent the cloud has no tilt, and the correlation sits at -0.02 on a scale from <span class="math inline">\(-1\)</span> to <span class="math inline">\(+1\)</span>.</p>
 <div class="fragment">
 <p>Now pair each man with his own brother instead. What happens to the cloud?</p>
 <aside class="notes">
@@ -643,11 +683,11 @@
 </section>
 <section id="pair-each-man-with-his-own-brother-instead" class="slide level2">
 <h2>Pair each man with his own brother instead</h2>
-<div id="399db77c" class="cell" data-fig-width="9" data-execution_count="10">
+<div id="154a4dbf" class="cell" data-fig-width="9" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-11-output-1.png" width="980" height="285"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-12-output-1.png" width="980" height="285"></p>
 </figure>
 </div>
 </div>
@@ -656,12 +696,10 @@
 <li class="fragment">The same 605 pairs, now correlating at +0.39</li>
 <li class="fragment">Read one brother’s height and you can guess the other’s</li>
 </ul>
-<div class="cardbox coral">
 <p>Independence fails when one value carries information about another. Same men, same histogram, different pairing.</p>
-</div>
 <p><span style="font-size:0.62em">Galton (1886), 934 children in 205 families · <a href="#/sec-data">where these numbers come from</a></span></p>
 <aside class="notes">
-<p>Delivery mode only. The tilt is the failure, and the last sentence is the part that matters: a broken independence claim is invisible in a histogram, which is why it needs its own picture. This is Galton’s own finding, and the deck is using it for the reason he collected it. On Day 1 the pair stops being two brothers and becomes this month and last month. The next two slides take the second half of i.i.d. apart.</p>
+<p>Delivery mode only. The tilt is the failure, and the last sentence is the part that matters: a broken independence claim is invisible in a histogram, which is why it needs its own picture. This is Galton’s own finding, and the deck is using it for the reason he collected it. On Day 1 the pair stops being two brothers and becomes this month and last month.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -676,18 +714,16 @@
 </section>
 <section id="identically-distributed-means-one-shape-throughout" class="slide level2">
 <h2>Identically distributed means one shape throughout</h2>
-<div id="0728a753" class="cell" data-fig-width="9.5" data-execution_count="11">
+<div id="9892dbea" class="cell" data-fig-width="9.5" data-execution_count="12">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-12-output-1.png" width="1035" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-13-output-1.png" width="1035" height="318"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cardbox teal">
-<p>Split the men in two and look at each half. If both sit at the same level with the same spread, one distribution stands for all of them, and the histogram has one hump.</p>
-</div>
+<p>Both halves sit at the same level with the same spread, so one distribution stands for all of them — and the histogram has one hump.</p>
 <div class="fragment">
 <p>Now split the survey by something that is not arbitrary.</p>
 <aside class="notes">
@@ -705,13 +741,13 @@
       }</style></aside>
 </div>
 </section>
-<section id="one-survey-two-populations-and-one-bell-for-both" class="slide level2">
-<h2>One survey, two populations, and one bell for both</h2>
-<div id="9d7a163f" class="cell" data-fig-width="9.5" data-execution_count="12">
+<section id="one-survey-two-populations" class="slide level2">
+<h2>One survey, two populations</h2>
+<div id="58b85614" class="cell" data-fig-width="9.5" data-execution_count="13">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-13-output-1.png" width="1035" height="296"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-14-output-1.png" width="1035" height="296"></p>
 </figure>
 </div>
 </div>
@@ -739,16 +775,25 @@
 <h1>D. Testing a claim</h1>
 <p>H0 and H1, the test statistic, the null distribution, alpha, the decision</p>
 </section>
-<section id="a-claim-worth-checking-before-we-check-it" class="slide level2">
-<h2>A claim worth checking, before we check it</h2>
-<p>Suppose these men come from a bell centred on 175 cm with a standard deviation of 7 cm.</p>
+<section id="a-claim-worth-checking" class="slide level2">
+<h2>A claim worth checking</h2>
+<p>Suppose these men come from a bell centred on 175 cm with a standard deviation of 7 cm. The claim is made before the data is looked at, not fitted to it.</p>
 <div class="fragment">
-<p>That 175 is a <strong>parameter</strong>, a fact about every man alive that nobody will ever measure. The 175.3 cm these 799 came out at is a <strong>statistic</strong>.</p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong><span class="math inline">\(H_0\)</span>, the null</strong></p>
+<p>They really come from that bell.</p>
+</div><div class="column" style="width:50%;">
+<p><strong><span class="math inline">\(H_1\)</span>, the alternative</strong></p>
+<p>They do not: at least one slice is off by more than luck.</p>
+</div></div>
+</div>
+<div class="fragment">
 <div class="cardbox teal">
-<p>Eyeballing one against the other cannot say whether the gap between them is real or luck. The rest of this segment is how you ask properly.</p>
+<p>The measured centre is 175.3 cm against a claimed 175. Real difference, or just luck? Looking cannot answer that. This segment turns the question into one number.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The course moment this unlocks: 24 lag checks by eye become one number (deck 3, segment B). Here it is ten slices instead of 24 lags, and the machinery is the same. Say out loud that the two numbers are stated before the data is looked at rather than fitted to it, because that is what keeps the degrees of freedom at nine three slides from now. The next slide is the alphabet that distinction is written in.</p>
+<p>Delivery mode only. The course moment this unlocks: 24 lag checks by eye become one number (deck 3, segment B). Here it is ten slices instead of 24 lags, and the machinery is the same. Say out loud that the two claim numbers are stated before the data is looked at rather than fitted to it, because that is what keeps the degrees of freedom at nine a few slides from now.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -762,34 +807,39 @@
       }</style></aside>
 </div>
 </section>
-<section id="greek-is-what-you-cannot-measure-latin-is-what-you-counted" class="slide level2">
-<h2>Greek is what you cannot measure, Latin is what you counted</h2>
+<section id="what-is-claimed-and-what-is-counted" class="slide level2">
+<h2>What is claimed, and what is counted</h2>
+<div data-tbl-colwidths="[18,41,41]">
 <table class="caption-top">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 41%">
+<col style="width: 41%">
+</colgroup>
 <thead>
 <tr class="header">
 <th></th>
-<th>parameter, in Greek</th>
-<th>statistic, in Latin</th>
+<th>parameter: Greek, claimed</th>
+<th>statistic: Latin, counted</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>centre</td>
-<td><span class="math inline">\(\mu\)</span> = 175 cm, claimed</td>
-<td><span class="math inline">\(\bar{y}\)</span> = 175.3 cm, measured</td>
+<td><span class="math inline">\(\mu\)</span> = 175 cm</td>
+<td><span class="math inline">\(\bar{y}\)</span> = 175.3 cm</td>
 </tr>
 <tr class="even">
 <td>width</td>
-<td><span class="math inline">\(\sigma\)</span> = 7 cm, claimed</td>
-<td><span class="math inline">\(s\)</span> = 6.9 cm, measured</td>
+<td><span class="math inline">\(\sigma\)</span> = 7 cm</td>
+<td><span class="math inline">\(s\)</span> = 6.9 cm</td>
 </tr>
 </tbody>
 </table>
-<div class="cardbox teal">
-<p>A <strong>hat</strong> marks a parameter that was estimated from data rather than known: <span class="math inline">\(\hat{\sigma}\)</span> is a guess at <span class="math inline">\(\sigma\)</span>, so it is a statistic like any other. Day 1 puts a hat on almost everything.</p>
 </div>
+<p>Greek names what you can never measure; Latin names what you counted. A <strong>hat</strong> marks an estimate: <span class="math inline">\(\hat{\sigma}\)</span> is a guess at <span class="math inline">\(\sigma\)</span>, so it is a statistic like any other. Day 1 puts a hat on almost everything.</p>
 <aside class="notes">
-<p>Delivery mode only. The alphabet rule the whole course runs on, and it takes fifteen seconds: Greek for what you can never measure, Latin for what you counted. The hat is the part that pays off soonest, because on Day 1 sigma-hat is the width of the residuals and every interval in the course is built from it. The next slide turns the claim into something countable.</p>
+<p>Delivery mode only. The alphabet rule the whole course runs on: Greek for the claim, Latin for the count. The hat is the part that pays off soonest, because on Day 1 sigma-hat is the width of the residuals and every interval in the course is built from it.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -804,20 +854,18 @@
 </section>
 <section id="the-claim-is-a-prediction-you-can-count" class="slide level2">
 <h2>The claim is a prediction you can count</h2>
-<div id="0a605d1c" class="cell" data-fig-width="9" data-execution_count="13">
+<div id="8e91f0b0" class="cell" data-fig-width="9" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-14-output-1.png" width="981" height="373"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-15-output-1.png" width="981" height="373"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cardbox teal">
-<p>Cut the claimed bell into 10 slices that each hold the same share. The cuts are quantiles, from the last segment, and the claim now predicts a count: about 80 men per slice.</p>
-</div>
+<p>Cut the claimed bell into 10 slices of equal share — the cuts are quantiles, from the last segment. The claim now predicts a count: about 80 men per slice.</p>
 <aside class="notes">
-<p>Delivery mode only. Equal shares are the whole trick: every slice expects the same count, so the reader compares ten numbers against one number instead of against a table. The outer slices are wide and short because what is equal between slices is area, not width. The next slide counts the sample into them.</p>
+<p>Delivery mode only. Equal shares are the whole trick: every slice expects the same count, so the reader compares ten numbers against one number instead of against a table. The outer slices are wide and short because what is equal between slices is area, not width.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -832,11 +880,11 @@
 </section>
 <section id="every-slice-is-a-separate-check-the-claim-has-to-pass" class="slide level2">
 <h2>Every slice is a separate check the claim has to pass</h2>
-<div id="c177c047" class="cell" data-fig-width="9" data-execution_count="14">
+<div id="aa6212ff" class="cell" data-fig-width="9" data-execution_count="15">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-15-output-1.png" width="980" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-16-output-1.png" width="980" height="318"></p>
 </figure>
 </div>
 </div>
@@ -846,34 +894,7 @@
 <p>Ten separate checks, and with ten chances one gap looks large by luck alone reasonably often. Judging them one at a time is how you talk yourself into anything.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The multiple-comparisons point is why a test exists at all, so do not skip it. Ten bars on the screen is what makes pooling them into one number feel necessary rather than arbitrary. The next slide names the claim formally.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="name-the-claim-and-then-its-opposite" class="slide level2">
-<h2>Name the claim, and then its opposite</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
-<p><strong><span class="math inline">\(H_0\)</span>: the null</strong></p>
-<p>The men come from the claimed bell, so every slice holds about 80 of them.</p>
-</div><div class="column" style="width:50%;">
-<p><strong><span class="math inline">\(H_1\)</span>: the alternative</strong></p>
-<p>They do not. At least one slice is off by more than luck explains.</p>
-</div></div>
-<div class="cardbox teal">
-<p>The null is the boring version of the world, because that is the one a single number can be measured against.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. Note the asymmetry as you read the columns: the test can reject the null and can fail to reject it, but it cannot confirm it, which is the fence at the end of segment E. The next slide builds the number the two columns get decided by.</p>
+<p>Delivery mode only. The multiple-comparisons point is why a test exists at all, so do not skip it. Ten bars on the screen is what makes pooling them into one number feel necessary rather than arbitrary.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -906,9 +927,16 @@
 </div>
 </div></div>
 <div class="fragment">
+<div id="09eb4762" class="cell" data-execution_count="16">
+<div class="cell-output cell-output-display cell-output-markdown">
+<p><span class="math inline">\(\displaystyle \text{one real slice: }\quad \frac{(O_i - E_i)^2}{E_i} = \frac{(71 - 79.9)^2}{79.9} = \frac{79.2}{79.9} \approx 1.0\)</span></p>
+</div>
+</div>
+</div>
+<div class="fragment">
 <p><span class="math display">\[Q = \sum_{i=1}^{k}\frac{(O_i - E_i)^2}{E_i}\]</span></p>
 <div class="cardbox teal">
-<p><span class="math inline">\(Q\)</span> is the orange blocks from the last slide, squared, scaled and added over all 10 slices. Ten checks in, one number out. If the claim is true, what should it come out at?</p>
+<p>Do that for all 10 slices and add: ten checks in, one number out. If the claim is true, what should it come out at?</p>
 </div>
 <aside class="notes">
 <p>Delivery mode only. Build it one step at a time and read each step out: the gap in a slice, squared so a short slice and a long slice both add to it, then divided by E so a gap of ten counts for less where more people were expected. O is the men counted in slice i, E is the 80 the claim predicts, k is the 10 slices. Nothing new arrives here, it is the orange blocks from the last slide with the arithmetic named. Worth saying that Q grows with the number of people measured, because segment E’s last slide is built on exactly that. Take the closing question seriously before advancing: most rooms answer zero.</p>
@@ -925,23 +953,106 @@
       }</style></aside>
 </div>
 </section>
-<section id="simulate-the-claim-being-true-and-q-still-wobbles" class="slide level2">
-<h2>Simulate the claim being true and Q still wobbles</h2>
-<div id="288baebc" class="cell" data-fig-width="9" data-execution_count="15">
+<section id="if-the-claim-is-true-q-still-wobbles" class="slide level2">
+<h2>If the claim is true, Q still wobbles</h2>
+<div id="033e3a4b" class="cell" data-execution_count="17">
 <div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-16-output-1.png" width="981" height="318"></p>
-</figure>
+
+<div id="chidemo" style="margin:0 auto; max-width:880px;">
+  <div style="display:flex; gap:16px; align-items:stretch;">
+    <div style="flex:1"><canvas id="chicv" width="700" height="290" style="width:100%; height:auto; display:block;"></canvas></div>
+    <div style="width:205px; box-sizing:border-box; background:rgba(28,53,94,.06);
+        border:1px solid #dbe2ea; border-radius:12px; padding:10px;
+        display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div style="font-size:1.3em; font-weight:800; color:#1C355E;">Q = <span id="chiq">…</span></div>
+      <div id="chisrc" style="font-size:.7em; color:#5b6678; min-height:2.2em;">…</div>
+      <div id="chiverd" style="font-size:.82em; font-weight:700; min-height:2em;">…</div>
+      <input type="range" id="chiknob" min="0" max="4999" step="1" value="1500" style="width:100%;">
+      <div style="display:flex; gap:8px;">
+        <button id="chimen" style="flex:1; padding:6px 4px; border-radius:8px;
+            border:1px solid #1C355E; background:rgba(28,53,94,.05); font-weight:700;
+            font-size:.66em; cursor:pointer; color:#1C355E;">real: 799 men</button>
+        <button id="chipool" style="flex:1; padding:6px 4px; border-radius:8px;
+            border:1px solid #FF7A5C; background:rgba(255,122,92,.07); font-weight:700;
+            font-size:.66em; cursor:pointer; color:#c25a40;">real: 1,629 people</button>
+      </div>
+    </div>
+  </div>
+  <div id="chinote" style="margin-top:8px; font-size:.72em; color:#5b6678;
+      text-align:center;">…</div>
+</div>
+<script>
+(function () {
+  const EXP = 79.9, SIM = [5.1, 5.2, 11.1, 3.4, 10.9, 12.7, 2.9, 10.3, 5.4, 7.2, 16.2, 11.2, 9.3, 3.3, 5.3, 12.0, 10.4, 15.4, 6.5, 2.2, 9.0, 9.4, 5.1, 8.9, 8.7, 8.1, 10.9, 7.2, 4.6, 6.2, 8.0, 8.2, 11.5, 5.6, 9.7, 9.1, 20.1, 9.6, 13.2, 6.2, 7.7, 8.2, 3.8, 5.8, 8.8, 19.5, 8.9, 14.9, 12.5, 10.0, 12.5, 12.2, 8.0, 22.8, 6.1, 12.5, 16.6, 17.7, 3.9, 11.1, 14.0, 10.7, 14.5, 9.6, 6.0, 12.3, 3.0, 5.5, 9.3, 6.5, 9.7, 7.6, 8.8, 8.6, 3.0, 9.7, 9.9, 8.6, 3.6, 13.2, 24.2, 8.8, 15.2, 2.9, 5.4, 3.7, 17.6, 3.9, 14.0, 6.7, 13.8, 5.2, 4.5, 13.6, 4.6, 4.7, 4.7, 6.6, 7.7, 1.7, 6.4, 6.4, 9.4, 9.2, 14.1, 7.6, 20.0, 14.3, 6.2, 9.0, 3.8, 6.4, 4.2, 9.4, 5.7, 10.9, 1.5, 7.6, 3.0, 2.8, 14.3, 4.6, 3.7, 5.7, 6.3, 13.4, 5.2, 12.4, 4.1, 7.0, 8.5, 9.0, 6.5, 7.5, 11.0, 12.2, 3.6, 6.4, 9.8, 8.5, 10.5, 8.6, 10.5, 4.4, 11.8, 7.8, 12.7, 4.0, 9.6, 12.5, 5.0, 4.3, 14.1, 7.3, 18.3, 15.1, 5.7, 15.6, 6.1, 6.4, 10.9, 7.0, 12.2, 14.2, 6.7, 9.0, 12.2, 14.5, 3.0, 11.0, 5.3, 7.1, 8.1, 10.4, 8.3, 10.2, 4.2, 7.8, 10.1, 11.6, 9.0, 12.5, 8.9, 9.1, 13.4, 8.5, 7.0, 9.1, 17.8, 6.0, 6.8, 13.7, 10.9, 5.1, 13.8, 12.0, 9.9, 9.3, 10.3, 8.0, 11.3, 8.4, 5.8, 12.0, 4.9, 8.6, 8.4, 14.3, 11.4, 3.6, 5.2, 10.1, 3.4, 5.0, 4.7, 2.8, 5.5, 10.3, 7.1, 7.8, 8.3, 8.9, 6.7, 14.0, 14.8, 9.0, 8.0, 15.1, 9.3, 10.9, 4.1, 14.6, 6.2, 8.9, 4.9, 5.7, 11.7, 12.7, 6.3, 12.1, 6.3, 9.5, 8.7, 6.4, 11.9, 5.0, 8.5, 7.9, 18.3, 3.7, 10.5, 6.9, 6.6, 3.2, 3.7, 17.0, 9.3, 5.4, 11.5, 6.9, 6.5, 5.4, 6.9, 4.7, 9.2, 7.0, 17.6, 10.3, 5.1, 15.9, 3.7, 3.9, 17.5, 13.2, 8.6, 5.0, 15.2, 14.6, 10.6, 19.2, 9.1, 5.7, 6.2, 6.5, 6.6, 4.0, 12.3, 10.8, 8.9, 8.6, 7.0, 12.7, 8.3, 10.0, 9.6, 10.8, 8.1, 7.3, 9.6, 3.9, 6.4, 13.7, 5.6, 7.8, 10.0, 1.0, 7.1, 6.8, 7.0, 3.7, 4.7, 6.8, 4.0, 4.8, 11.8, 3.3, 8.6, 9.0, 3.1, 12.4, 6.2, 5.8, 8.8, 5.8, 7.2, 5.5, 5.3, 10.5, 21.8, 10.3, 6.4, 10.7, 10.8, 8.7, 8.2, 8.0, 7.9, 13.9, 8.9, 7.7, 6.7, 7.7, 6.9, 8.8, 9.4, 6.8, 10.7, 9.0, 5.3, 15.9, 22.0, 3.5, 9.3, 7.1, 7.6, 20.5, 10.4, 7.5, 13.9, 9.9, 12.2, 19.0, 9.1, 2.9, 12.5, 9.1, 6.9, 5.3, 3.7, 9.7, 14.8, 7.4, 8.5, 11.1, 3.2, 9.8, 5.3, 7.8, 8.2, 7.8, 22.6, 16.7, 14.5, 7.1, 12.2, 2.1, 5.4, 6.4, 10.5, 8.4, 9.1, 3.8, 8.8, 12.7, 11.9, 8.2, 1.6, 4.5, 4.5, 13.7, 18.0, 7.0, 7.9, 5.0, 6.0, 5.6, 7.0, 7.7, 2.7, 5.1, 10.2, 15.3, 9.3, 14.6, 2.6, 5.1, 6.9, 15.1, 11.2, 10.1, 4.6, 11.3, 7.9, 7.2, 12.5, 7.9, 15.1, 2.6, 12.7, 9.7, 14.0, 8.1, 6.5, 2.5, 6.8, 7.4, 8.3, 13.4, 8.0, 14.6, 6.8, 3.1, 6.3, 11.5, 11.5, 11.1, 6.9, 7.0, 12.5, 12.1, 6.3, 5.9, 3.8, 7.4, 8.3, 7.6, 7.5, 2.8, 5.2, 2.5, 13.3, 3.0, 10.7, 6.0, 16.4, 8.3, 12.1, 12.9, 9.3, 4.4, 3.3, 9.0, 7.7, 14.2, 9.9, 7.3, 14.2, 5.2, 9.7, 7.8, 6.6, 6.1, 4.6, 3.6, 17.3, 12.0, 7.7, 8.2, 9.7, 6.0, 3.0, 5.9, 10.9, 12.1, 13.9, 7.9, 8.1, 5.5, 6.0, 12.5, 10.0, 10.5, 12.4, 13.7, 8.8, 7.3, 16.0, 4.5, 10.8, 11.1, 5.5, 3.9, 9.0, 10.6, 6.0, 7.5, 11.5, 12.6, 9.4, 10.3, 4.7, 5.0, 14.4, 13.5, 8.2, 8.2, 8.9, 8.7, 6.8, 13.4, 12.7, 5.6, 9.6, 11.3, 6.1, 6.4, 2.8, 7.6, 3.8, 10.0, 9.0, 6.5, 7.9, 20.3, 4.5, 7.6, 6.1, 12.3, 11.5, 10.9, 11.9, 6.3, 18.2, 17.2, 7.0, 9.4, 12.9, 6.6, 14.2, 4.3, 7.9, 7.3, 15.5, 17.7, 15.2, 12.1, 1.4, 5.2, 13.3, 8.2, 8.7, 17.0, 5.9, 9.9, 8.1, 5.1, 10.7, 11.4, 4.9, 3.6, 5.3, 4.9, 18.8, 3.5, 16.3, 8.5, 6.3, 10.8, 12.5, 9.0, 4.4, 9.3, 11.0, 12.5, 3.2, 4.8, 14.0, 8.9, 6.8, 7.1, 10.7, 14.6, 7.3, 3.2, 8.7, 11.3, 11.0, 7.6, 4.1, 8.7, 7.6, 16.2, 10.6, 8.4, 13.3, 10.9, 9.2, 7.7, 9.6, 18.3, 8.5, 7.4, 5.8, 11.5, 6.6, 10.2, 10.3, 10.6, 3.1, 5.4, 5.1, 8.9, 6.7, 17.1, 7.4, 5.5, 15.5, 9.6, 9.1, 9.7, 13.0, 10.5, 10.9, 5.5, 5.1, 8.7, 12.2, 9.6, 8.1, 12.9, 7.5, 5.5, 12.4, 7.9, 5.6, 3.4, 7.2, 4.5, 11.9, 3.4, 7.5, 12.8, 9.5, 5.2, 10.5, 8.2, 14.6, 5.1, 11.0, 5.8, 5.9, 5.1, 15.9, 12.4, 8.2, 3.2, 8.5, 9.7, 3.4, 5.4, 5.3, 6.1, 4.7, 7.9, 6.2, 16.1, 5.4, 4.0, 15.3, 9.9, 5.1, 9.6, 17.0, 10.8, 3.8, 5.2, 7.5, 6.1, 9.7, 11.6, 8.0, 6.9, 7.1, 8.0, 3.3, 6.6, 4.4, 12.7, 7.9, 12.3, 6.8, 3.8, 10.3, 21.1, 4.6, 14.9, 9.2, 10.8, 3.8, 10.2, 9.1, 4.6, 16.1, 6.3, 9.6, 6.7, 5.2, 5.5, 6.4, 18.5, 6.5, 8.0, 8.7, 21.8, 8.1, 15.3, 6.7, 21.3, 10.6, 11.5, 6.9, 7.3, 11.2, 14.5, 4.8, 8.9, 4.5, 10.1, 14.6, 11.4, 7.3, 2.5, 16.3, 5.4, 6.6, 5.8, 4.5, 8.9, 18.6, 7.3, 11.7, 10.0, 9.4, 6.8, 9.1, 6.2, 11.6, 3.4, 8.5, 8.9, 7.4, 8.1, 2.6, 5.7, 6.1, 15.9, 2.4, 16.6, 7.6, 11.4, 5.5, 8.1, 8.6, 6.0, 5.3, 3.8, 4.4, 6.7, 3.3, 8.4, 8.7, 2.2, 8.7, 10.8, 2.2, 16.3, 12.7, 2.1, 7.6, 7.0, 7.0, 7.1, 14.6, 13.7, 4.1, 6.9, 12.6, 9.1, 8.1, 10.5, 4.4, 7.6, 4.6, 2.9, 6.9, 11.7, 11.0, 11.5, 10.4, 8.4, 12.3, 9.5, 12.3, 13.0, 6.6, 7.1, 4.8, 5.0, 3.0, 5.9, 4.4, 11.8, 10.9, 5.4, 5.4, 6.4, 4.3, 6.4, 8.2, 18.1, 4.9, 15.1, 5.3, 10.0, 11.9, 7.8, 1.3, 6.8, 11.3, 6.7, 4.4, 8.9, 16.0, 4.9, 5.0, 9.5, 8.6, 5.3, 8.0, 5.1, 5.4, 12.0, 4.8, 7.2, 5.8, 5.8, 5.8, 7.2, 13.6, 10.3, 4.1, 7.2, 7.3, 4.5, 2.8, 8.1, 14.0, 7.0, 3.3, 8.1, 8.2, 13.8, 9.6, 1.6, 3.3, 13.7, 12.3, 13.5, 9.9, 13.7, 15.4, 3.9, 17.8, 6.8, 19.6, 4.7, 6.8, 7.9, 14.8, 5.7, 3.0, 5.6, 6.1, 3.3, 4.4, 10.3, 6.4, 21.0, 8.0, 12.3, 10.3, 11.1, 9.9, 7.4, 20.4, 13.3, 1.8, 21.0, 13.9, 11.1, 11.4, 4.0, 7.0, 7.2, 8.5, 10.4, 9.3, 5.4, 6.4, 5.3, 5.0, 8.1, 13.9, 7.1, 7.9, 9.6, 9.6, 9.5, 7.1, 6.7, 11.0, 8.6, 9.2, 5.6, 7.7, 8.6, 3.4, 9.5, 4.1, 11.4, 18.9, 5.5, 5.0, 10.8, 3.7, 2.8, 10.1, 10.5, 5.3, 4.0, 7.0, 7.9, 14.1, 15.6, 6.2, 3.7, 12.4, 5.8, 10.0, 16.9, 13.7, 7.5, 15.6, 6.8, 9.6, 12.5, 3.2, 27.2, 6.8, 8.5, 7.7, 20.9, 8.0, 9.5, 7.0, 8.3, 5.7, 6.0, 8.7, 7.7, 4.9, 3.7, 8.7, 8.2, 5.8, 9.4, 6.7, 5.1, 4.5, 10.7, 17.1, 5.9, 8.9, 5.9, 8.5, 12.6, 6.0, 12.1, 12.4, 6.2, 17.1, 14.5, 10.0, 8.8, 6.1, 18.0, 8.1, 11.4, 2.7, 11.9, 4.1, 10.0, 2.5, 6.9, 11.3, 13.5, 10.6, 7.7, 9.6, 15.1, 11.4, 7.5, 15.2, 6.6, 18.4, 11.3, 3.3, 6.9, 4.1, 6.2, 8.0, 7.6, 11.6, 14.6, 8.8, 16.0, 8.5, 11.6, 9.0, 6.0, 14.2, 13.0, 6.4, 16.4, 3.8, 5.6, 16.5, 7.9, 15.4, 10.8, 4.0, 5.3, 7.1, 4.8, 6.7, 3.4, 8.6, 4.7, 9.3, 9.4, 12.4, 5.8, 3.2, 7.3, 11.7, 3.9, 7.3, 9.5, 17.3, 5.5, 8.7, 12.6, 6.3, 3.2, 3.6, 8.8, 11.0, 15.7, 8.9, 18.5, 4.9, 4.3, 7.8, 7.8, 2.6, 4.5, 10.9, 7.3, 4.2, 9.1, 3.3, 7.5, 6.1, 11.5, 5.8, 7.3, 9.9, 5.1, 3.5, 13.2, 5.5, 8.7, 9.0, 6.4, 3.3, 10.8, 12.5, 10.3, 11.3, 6.3, 10.5, 5.5, 8.1, 7.9, 5.8, 12.6, 9.8, 12.8, 11.2, 6.9, 8.0, 12.6, 6.3, 10.9, 8.8, 6.2, 23.8, 9.9, 9.7, 7.9, 11.3, 12.8, 5.0, 8.1, 6.1, 9.6, 12.2, 8.9, 9.0, 5.5, 21.5, 6.9, 1.4, 11.7, 5.0, 21.3, 11.9, 15.1, 10.4, 4.8, 9.8, 8.1, 15.7, 15.7, 9.0, 3.5, 5.9, 10.6, 15.4, 4.7, 2.9, 16.3, 8.7, 9.9, 8.5, 6.9, 5.1, 3.3, 4.5, 15.9, 8.2, 4.7, 9.1, 1.8, 1.9, 6.1, 1.7, 9.1, 11.6, 20.7, 9.2, 15.4, 9.0, 8.4, 4.6, 7.6, 6.0, 5.2, 5.2, 22.7, 3.6, 6.7, 13.7, 8.7, 3.6, 2.9, 9.6, 8.8, 8.3, 8.7, 6.7, 13.2, 6.9, 8.2, 12.1, 10.7, 6.4, 8.5, 3.6, 8.8, 8.5, 10.1, 11.5, 10.0, 9.7, 9.7, 13.5, 9.1, 8.3, 7.4, 5.9, 9.1, 6.7, 3.9, 3.9, 10.6, 6.0, 7.3, 5.7, 8.0, 7.7, 12.0, 9.4, 26.6, 15.3, 9.2, 9.1, 13.3, 2.4, 13.7, 10.7, 9.9, 12.0, 3.0, 2.9, 20.9, 16.2, 6.1, 4.1, 7.1, 5.5, 8.3, 3.1, 19.7, 14.7, 10.0, 4.0, 4.9, 6.7, 3.5, 14.7, 6.7, 6.8, 12.8, 8.4, 3.9, 14.9, 6.1, 13.0, 13.8, 18.4, 13.2, 10.6, 9.0, 3.1, 9.1, 8.9, 5.5, 12.3, 4.4, 7.2, 9.6, 2.9, 5.5, 4.3, 2.6, 8.6, 17.0, 3.4, 9.7, 21.1, 9.5, 7.1, 15.1, 15.6, 7.9, 10.9, 8.4, 10.4, 9.5, 3.5, 9.1, 9.5, 2.7, 6.8, 11.3, 12.1, 4.4, 7.2, 3.9, 15.7, 6.1, 7.7, 6.6, 5.6, 10.7, 8.6, 15.8, 8.0, 5.4, 10.2, 12.9, 11.6, 10.7, 7.5, 13.4, 4.5, 3.1, 7.7, 11.0, 9.3, 11.8, 6.6, 8.3, 12.3, 4.9, 1.9, 8.9, 10.6, 10.2, 2.3, 5.7, 3.9, 4.2, 2.4, 4.3, 16.3, 8.0, 8.5, 13.9, 14.4, 8.4, 5.5, 9.8, 15.3, 8.4, 7.0, 6.8, 5.4, 11.1, 11.0, 8.0, 14.3, 15.9, 8.3, 9.7, 9.2, 11.4, 5.7, 11.3, 6.5, 16.1, 9.5, 5.5, 5.9, 12.0, 10.6, 5.1, 14.7, 22.4, 13.3, 8.5, 12.5, 7.7, 14.5, 7.7, 7.7, 10.4, 2.4, 14.1, 5.9, 12.7, 6.3, 8.4, 9.5, 10.5, 10.1, 11.0, 7.9, 13.4, 10.4, 7.1, 6.8, 5.2, 2.2, 7.6, 11.1, 3.5, 11.5, 12.0, 14.0, 4.6, 7.8, 10.5, 19.3, 4.1, 5.0, 19.4, 11.1, 10.7, 13.0, 7.5, 7.9, 13.4, 26.2, 2.7, 8.5, 4.8, 12.9, 6.4, 7.4, 8.1, 3.2, 12.7, 6.7, 12.0, 5.6, 3.7, 3.5, 12.3, 12.9, 19.4, 16.1, 13.6, 7.8, 9.6, 6.9, 7.2, 14.3, 11.1, 11.1, 9.0, 9.9, 7.8, 7.8, 15.6, 4.2, 8.7, 9.5, 4.7, 5.1, 9.4, 2.0, 8.5, 3.4, 8.4, 9.0, 14.8, 6.7, 4.3, 21.5, 11.8, 5.0, 8.3, 7.7, 12.8, 12.5, 13.2, 6.1, 21.0, 6.6, 6.9, 5.9, 5.0, 19.0, 12.1, 4.2, 6.7, 5.2, 13.2, 5.2, 4.9, 17.7, 9.5, 4.3, 12.0, 6.5, 4.2, 6.7, 3.6, 16.0, 4.6, 4.8, 12.9, 11.5, 9.9, 6.5, 17.4, 4.5, 7.3, 10.8, 8.4, 7.3, 3.2, 3.5, 4.1, 15.1, 9.7, 16.1, 1.9, 14.2, 5.2, 10.5, 19.1, 13.8, 2.9, 9.0, 3.2, 4.5, 7.7, 6.8, 14.8, 6.7, 5.2, 8.7, 10.3, 9.7, 8.4, 5.4, 4.8, 15.0, 6.8, 4.9, 4.8, 18.9, 9.4, 5.1, 7.6, 4.1, 9.1, 17.3, 20.1, 2.3, 13.3, 5.1, 13.4, 9.0, 1.3, 8.3, 5.0, 9.1, 8.8, 10.6, 3.6, 18.7, 2.1, 4.1, 4.7, 6.8, 7.9, 9.7, 3.7, 11.5, 11.1, 8.5, 9.8, 9.0, 2.7, 3.3, 6.5, 16.5, 6.9, 5.6, 13.8, 1.1, 7.1, 4.8, 12.1, 8.6, 4.2, 5.2, 5.0, 2.8, 7.2, 7.3, 15.2, 4.7, 4.9, 10.9, 10.9, 12.2, 10.8, 9.9, 4.0, 9.2, 8.9, 12.9, 4.6, 8.4, 4.8, 11.9, 4.6, 11.8, 6.5, 7.6, 14.2, 11.7, 16.9, 7.7, 4.9, 9.1, 10.9, 11.9, 9.0, 3.4, 4.5, 6.1, 6.9, 9.4, 3.3, 15.6, 4.5, 6.4, 8.2, 7.2, 5.0, 11.2, 12.4, 7.6, 5.8, 16.6, 12.6, 10.3, 11.1, 24.5, 7.8, 5.5, 5.7, 7.9, 7.7, 15.0, 11.3, 13.1, 5.4, 6.8, 12.9, 11.2, 6.6, 5.6, 17.2, 6.0, 5.9, 16.1, 8.8, 13.4, 9.5, 19.1, 7.3, 3.7, 12.1, 17.8, 9.2, 20.1, 9.7, 11.8, 7.6, 16.4, 17.4, 15.0, 7.6, 19.0, 13.1, 14.8, 4.7, 17.9, 5.9, 10.2, 3.3, 9.1, 12.0, 1.2, 13.4, 12.7, 10.3, 12.1, 8.8, 5.3, 14.6, 6.4, 15.0, 8.5, 10.1, 3.9, 4.8, 8.3, 10.3, 10.4, 8.8, 4.3, 10.7, 13.1, 9.1, 7.7, 6.5, 5.9, 7.8, 7.1, 7.6, 17.7, 9.7, 6.2, 16.3, 9.9, 3.8, 8.4, 28.8, 12.8, 18.1, 10.9, 8.8, 8.8, 4.3, 9.6, 17.7, 3.5, 10.4, 3.5, 5.6, 17.7, 11.4, 11.1, 5.7, 13.1, 12.6, 9.7, 3.3, 6.3, 17.6, 4.4, 6.7, 13.6, 6.2, 9.0, 3.6, 7.5, 14.6, 7.5, 9.5, 4.2, 9.6, 9.2, 12.8, 8.6, 15.9, 9.4, 7.7, 3.9, 8.6, 14.8, 4.0, 5.8, 3.3, 6.8, 7.8, 11.3, 7.5, 12.8, 5.5, 12.3, 9.4, 4.3, 5.2, 10.6, 14.5, 2.1, 3.6, 6.1, 14.7, 6.3, 7.1, 5.0, 6.6, 8.3, 5.8, 6.3, 6.8, 14.5, 4.6, 6.0, 5.8, 11.4, 10.6, 10.0, 14.0, 8.0, 13.5, 4.7, 13.5, 3.9, 8.9, 15.4, 14.9, 11.2, 9.3, 6.6, 7.1, 8.2, 8.5, 11.6, 3.6, 11.4, 1.9, 4.6, 10.6, 7.1, 8.6, 4.9, 13.8, 21.0, 16.0, 5.8, 10.0, 14.7, 10.5, 1.7, 16.8, 13.2, 10.6, 9.3, 11.1, 6.3, 4.7, 6.0, 2.5, 10.5, 23.2, 7.1, 16.7, 5.9, 10.3, 7.5, 12.7, 4.3, 4.4, 7.2, 3.7, 20.2, 8.5, 11.3, 5.2, 2.9, 12.0, 4.8, 3.2, 12.2, 3.1, 4.7, 6.0, 16.7, 14.8, 4.7, 3.0, 9.8, 3.4, 14.4, 10.6, 2.6, 8.0, 17.2, 8.4, 7.2, 7.0, 12.0, 11.1, 12.1, 7.5, 11.6, 3.7, 6.9, 6.1, 5.4, 3.7, 6.4, 9.8, 9.6, 3.7, 6.8, 14.6, 5.4, 5.0, 4.9, 7.0, 8.3, 8.7, 7.3, 9.8, 5.0, 16.1, 8.4, 10.7, 14.5, 9.7, 10.4, 16.8, 13.0, 9.1, 11.9, 5.4, 22.9, 10.0, 3.6, 17.3, 6.6, 8.2, 4.6, 7.9, 4.7, 6.4, 9.4, 11.5, 3.3, 5.9, 7.9, 4.9, 12.2, 12.9, 12.7, 2.4, 5.1, 17.7, 14.5, 17.0, 18.2, 6.3, 7.5, 8.4, 8.2, 15.3, 6.0, 4.3, 8.0, 13.3, 8.8, 5.6, 14.8, 7.5, 4.2, 6.3, 9.5, 4.4, 10.4, 6.2, 2.8, 8.2, 9.8, 13.2, 17.0, 4.9, 1.6, 7.0, 11.8, 10.3, 2.8, 11.4, 4.4, 12.7, 9.1, 2.8, 3.7, 8.2, 5.6, 8.8, 9.6, 9.6, 14.4, 7.1, 9.0, 8.3, 5.7, 9.4, 7.2, 5.6, 13.8, 14.6, 7.4, 9.6, 6.7, 13.1, 13.6, 1.8, 4.8, 8.6, 14.5, 4.5, 5.9, 8.2, 6.2, 7.6, 10.0, 9.3, 1.4, 3.8, 6.7, 8.0, 6.2, 9.8, 7.2, 6.7, 5.4, 6.4, 10.3, 23.5, 6.7, 7.2, 14.2, 8.7, 4.9, 13.4, 9.5, 9.0, 5.9, 11.7, 7.4, 12.0, 8.2, 7.1, 7.8, 3.7, 4.1, 4.8, 16.3, 3.2, 3.3, 15.1, 20.9, 9.5, 7.1, 15.5, 6.4, 12.5, 10.0, 10.6, 7.1, 8.1, 11.3, 4.8, 7.0, 15.0, 25.4, 3.9, 11.7, 13.9, 3.7, 6.7, 5.6, 10.5, 7.2, 10.2, 7.9, 5.4, 10.0, 11.6, 8.8, 4.6, 7.3, 5.6, 6.2, 2.8, 12.7, 9.2, 6.9, 13.4, 3.4, 9.5, 13.8, 7.3, 8.9, 5.6, 8.6, 8.5, 5.3, 6.2, 9.4, 21.9, 6.7, 8.2, 5.1, 3.7, 4.5, 6.6, 5.0, 7.9, 6.2, 4.6, 13.6, 8.7, 10.0, 9.6, 9.9, 7.9, 3.4, 7.8, 8.7, 12.6, 7.6, 7.0, 11.6, 6.9, 7.2, 12.9, 4.7, 7.1, 7.2, 6.6, 13.9, 9.0, 11.7, 6.2, 8.8, 8.5, 7.5, 14.6, 13.1, 6.6, 8.5, 5.5, 18.6, 6.1, 12.4, 7.0, 12.6, 2.5, 10.7, 8.0, 14.0, 9.4, 5.9, 7.3, 4.5, 6.9, 6.9, 14.0, 11.9, 10.5, 6.0, 15.2, 10.3, 8.2, 2.3, 15.5, 9.8, 6.3, 10.0, 10.2, 6.4, 11.3, 3.1, 18.5, 7.8, 12.4, 5.0, 13.1, 7.1, 6.3, 9.4, 9.0, 9.1, 9.5, 10.5, 12.6, 11.2, 10.5, 10.1, 13.4, 9.6, 12.5, 12.2, 11.9, 16.8, 5.6, 7.6, 12.7, 3.7, 5.7, 5.8, 6.9, 11.9, 9.6, 7.1, 10.7, 2.8, 15.2, 9.1, 8.9, 4.7, 3.7, 10.0, 9.6, 3.4, 10.7, 10.1, 11.5, 12.7, 4.7, 10.7, 12.9, 4.7, 14.8, 5.7, 11.7, 13.5, 5.8, 2.6, 10.6, 8.8, 8.1, 18.1, 11.2, 6.8, 10.4, 6.6, 5.4, 10.0, 9.2, 5.6, 12.5, 4.6, 8.6, 6.9, 4.8, 12.0, 14.4, 8.2, 8.9, 10.7, 3.2, 15.3, 10.9, 21.5, 9.3, 16.9, 13.0, 5.9, 5.2, 10.7, 11.1, 6.4, 2.9, 4.9, 5.6, 20.2, 5.5, 3.0, 8.2, 11.9, 7.4, 9.1, 9.2, 11.1, 3.9, 11.2, 19.6, 8.8, 4.0, 11.1, 6.6, 8.6, 11.4, 6.4, 9.5, 8.4, 11.5, 7.4, 13.9, 1.6, 6.7, 15.3, 3.1, 9.1, 7.6, 5.5, 15.2, 12.1, 9.5, 5.4, 15.6, 9.9, 6.1, 2.9, 6.7, 5.4, 5.5, 6.5, 9.0, 6.7, 8.9, 4.9, 3.2, 15.2, 13.3, 8.9, 3.7, 4.5, 5.2, 8.8, 11.6, 8.3, 8.4, 19.9, 6.7, 9.0, 6.1, 8.8, 11.6, 6.5, 19.3, 18.7, 5.4, 4.8, 1.5, 6.0, 14.4, 10.7, 13.3, 5.3, 18.2, 5.6, 5.5, 6.5, 8.0, 6.5, 12.6, 10.5, 7.0, 7.4, 6.5, 6.7, 11.4, 7.1, 4.2, 14.7, 8.8, 8.5, 8.7, 4.3, 18.1, 5.5, 6.1, 8.1, 14.4, 4.3, 7.3, 6.3, 4.5, 7.6, 10.7, 11.2, 7.7, 8.3, 4.8, 10.9, 6.2, 10.4, 8.4, 16.5, 3.6, 19.7, 4.9, 11.3, 9.8, 8.2, 5.2, 3.8, 5.4, 18.2, 6.7, 7.1, 3.5, 12.7, 3.9, 4.5, 7.3, 4.8, 2.7, 10.1, 8.7, 16.8, 9.3, 8.1, 6.4, 3.7, 6.3, 2.0, 8.7, 7.7, 7.1, 5.2, 10.7, 15.1, 4.1, 14.3, 16.1, 2.1, 14.9, 5.9, 12.6, 4.9, 5.2, 12.4, 7.7, 10.3, 16.0, 15.9, 6.7, 10.3, 8.6, 7.6, 5.6, 10.6, 2.7, 13.6, 8.8, 4.0, 3.9, 17.1, 9.3, 16.3, 8.8, 4.7, 7.7, 16.7, 8.0, 13.7, 6.6, 9.0, 4.5, 12.0, 13.7, 3.5, 27.8, 9.5, 13.5, 7.7, 13.9, 11.2, 4.3, 8.9, 14.0, 10.4, 18.1, 4.9, 2.6, 8.4, 11.1, 7.7, 12.0, 7.5, 8.3, 12.4, 6.7, 8.3, 7.4, 6.6, 8.4, 5.8, 8.3, 11.7, 15.1, 3.6, 8.0, 1.6, 6.1, 8.4, 13.0, 2.3, 4.3, 9.6, 13.6, 14.9, 5.3, 7.7, 9.4, 14.1, 7.8, 5.6, 12.9, 3.4, 30.3, 9.2, 6.8, 6.7, 5.4, 10.8, 9.3, 11.2, 13.3, 12.1, 7.9, 4.1, 5.3, 15.3, 2.7, 7.9, 6.6, 11.2, 14.9, 9.3, 6.5, 7.7, 7.2, 3.6, 6.9, 8.6, 7.3, 4.4, 14.0, 5.5, 11.0, 13.2, 14.5, 8.6, 13.8, 6.3, 5.2, 17.3, 5.4, 7.9, 6.2, 1.5, 13.6, 9.6, 4.9, 12.2, 9.8, 7.8, 15.0, 17.3, 4.6, 5.9, 6.3, 11.6, 6.9, 2.3, 6.1, 6.6, 8.2, 14.1, 11.3, 6.1, 8.7, 7.5, 8.8, 7.8, 3.4, 7.0, 6.6, 5.5, 8.4, 10.8, 11.1, 6.7, 6.2, 8.1, 9.9, 4.8, 9.8, 10.4, 17.4, 3.1, 15.9, 16.2, 6.1, 7.7, 6.4, 9.0, 11.0, 7.2, 16.4, 8.1, 9.2, 6.9, 3.1, 11.2, 10.0, 8.3, 15.1, 11.4, 18.2, 10.1, 2.4, 9.1, 13.0, 9.6, 4.6, 7.6, 6.2, 15.8, 10.2, 13.2, 6.8, 10.0, 11.6, 12.8, 14.6, 10.8, 7.1, 17.7, 8.3, 6.6, 10.1, 7.4, 17.1, 14.5, 6.7, 6.6, 8.3, 8.9, 12.7, 9.4, 10.2, 4.1, 4.2, 16.0, 9.2, 6.4, 9.7, 14.7, 6.1, 14.5, 6.2, 6.7, 11.5, 2.4, 11.6, 6.3, 7.1, 9.5, 2.6, 5.6, 5.9, 2.8, 12.4, 7.3, 8.5, 10.8, 4.9, 12.7, 8.3, 8.9, 12.3, 10.8, 13.1, 13.1, 10.4, 11.9, 16.4, 6.8, 5.0, 15.4, 14.1, 9.1, 19.5, 2.4, 16.1, 11.2, 8.5, 7.1, 9.7, 8.4, 10.1, 5.6, 8.4, 10.6, 24.3, 5.2, 10.1, 3.0, 11.5, 12.3, 18.0, 5.2, 4.8, 5.0, 15.9, 10.2, 5.2, 7.8, 7.0, 12.8, 12.8, 13.6, 5.1, 11.9, 12.0, 11.3, 4.4, 7.4, 17.5, 8.6, 8.2, 5.3, 6.4, 11.5, 13.7, 9.1, 9.6, 10.0, 3.3, 6.1, 6.8, 10.5, 6.0, 7.7, 5.2, 9.2, 12.9, 2.9, 3.9, 12.1, 10.8, 8.8, 11.4, 15.0, 6.5, 5.4, 7.9, 16.7, 6.8, 4.8, 9.0, 12.9, 11.1, 13.3, 6.7, 10.8, 3.3, 4.3, 7.2, 13.2, 8.7, 18.9, 8.3, 10.1, 6.6, 4.9, 6.6, 4.1, 18.7, 7.7, 8.1, 16.6, 15.2, 4.5, 10.1, 18.7, 5.4, 7.4, 11.9, 9.6, 11.1, 6.9, 4.4, 8.6, 10.8, 6.9, 9.9, 10.5, 8.1, 4.3, 9.5, 4.2, 5.3, 4.6, 15.7, 9.2, 14.6, 15.2, 6.3, 2.6, 7.5, 4.8, 4.5, 6.8, 4.4, 6.9, 16.1, 8.4, 3.2, 8.4, 10.0, 12.0, 11.5, 13.0, 6.0, 2.7, 3.6, 14.6, 9.2, 12.4, 7.9, 6.8, 4.2, 6.6, 7.4, 6.6, 8.2, 10.6, 5.5, 10.7, 5.7, 8.0, 21.2, 11.3, 2.9, 5.3, 5.1, 9.2, 6.4, 8.8, 16.7, 6.0, 12.0, 5.9, 9.3, 4.8, 5.5, 16.1, 2.8, 10.5, 8.1, 5.9, 14.6, 13.4, 3.1, 10.1, 8.1, 22.4, 8.5, 15.4, 8.7, 8.1, 18.7, 9.7, 12.9, 3.6, 2.4, 6.1, 11.5, 21.6, 13.6, 4.6, 6.7, 7.5, 7.5, 11.1, 1.6, 14.7, 2.9, 12.8, 12.8, 12.2, 14.1, 12.2, 5.8, 7.4, 14.5, 7.8, 25.5, 6.5, 12.4, 8.5, 7.7, 5.3, 13.4, 10.0, 8.3, 14.7, 11.2, 10.6, 4.3, 10.0, 1.6, 5.5, 2.7, 2.9, 12.5, 10.4, 7.0, 9.9, 3.4, 17.4, 8.6, 16.7, 14.3, 7.7, 17.9, 2.6, 8.1, 9.5, 5.0, 15.0, 8.3, 11.7, 11.0, 20.2, 6.5, 6.6, 5.8, 17.4, 14.9, 10.8, 6.5, 4.5, 8.5, 1.6, 4.3, 6.0, 5.6, 2.7, 8.4, 8.0, 8.5, 0.7, 11.9, 20.7, 15.1, 5.7, 7.4, 9.6, 17.7, 9.0, 10.1, 8.8, 16.8, 13.8, 12.0, 8.7, 5.0, 6.8, 8.2, 18.3, 5.1, 25.0, 10.9, 13.2, 8.4, 6.9, 5.2, 13.4, 7.6, 14.3, 10.1, 12.1, 7.5, 11.7, 7.7, 5.7, 5.9, 13.1, 5.2, 9.4, 3.6, 11.2, 12.6, 5.1, 10.2, 9.5, 8.0, 5.6, 11.0, 8.4, 4.7, 9.4, 10.6, 5.5, 2.6, 1.8, 15.4, 14.6, 9.4, 3.7, 8.9, 11.5, 5.5, 9.9, 11.8, 2.8, 9.8, 10.7, 6.7, 8.0, 5.7, 13.4, 11.5, 21.1, 11.7, 13.8, 4.6, 8.7, 4.7, 3.8, 9.8, 13.9, 3.8, 16.4, 8.3, 5.4, 5.4, 10.6, 13.6, 9.3, 5.8, 7.1, 10.0, 5.0, 11.8, 12.6, 7.1, 9.8, 15.3, 11.5, 9.2, 8.6, 11.7, 8.8, 7.6, 9.0, 7.5, 9.6, 3.0, 5.2, 6.2, 10.3, 5.7, 8.8, 16.1, 5.7, 4.8, 11.9, 9.7, 7.0, 12.5, 21.0, 4.6, 2.7, 3.3, 9.4, 5.2, 12.8, 4.6, 10.0, 14.9, 11.8, 13.3, 14.8, 9.8, 20.8, 7.0, 12.1, 3.5, 12.4, 9.8, 11.4, 13.4, 6.9, 19.5, 5.8, 11.9, 14.1, 9.5, 13.6, 2.2, 6.0, 9.9, 4.6, 13.6, 11.9, 9.0, 3.4, 6.6, 5.8, 11.0, 12.4, 7.4, 4.7, 15.1, 5.8, 7.5, 9.4, 7.8, 8.3, 6.8, 8.7, 9.7, 4.9, 15.1, 9.4, 12.0, 6.0, 12.2, 8.7, 3.7, 2.8, 2.6, 6.9, 12.7, 9.9, 9.5, 5.2, 10.0, 7.0, 12.0, 3.1, 9.9, 8.2, 12.6, 5.7, 16.5, 3.1, 9.8, 15.8, 11.4, 5.6, 9.3, 6.2, 11.1, 11.6, 3.9, 3.5, 5.7, 6.8, 4.6, 3.8, 12.6, 3.6, 3.2, 14.0, 7.5, 14.3, 10.5, 5.7, 11.1, 3.8, 9.2, 17.5, 9.1, 4.7, 11.7, 11.5, 9.0, 8.0, 8.6, 10.5, 15.0, 6.4, 3.2, 10.4, 4.6, 7.4, 15.3, 15.0, 12.0, 8.0, 8.6, 5.1, 14.7, 23.0, 18.4, 9.6, 10.7, 6.9, 13.1, 7.3, 1.9, 16.5, 6.9, 13.1, 5.3, 5.5, 8.3, 8.1, 15.1, 11.5, 13.7, 5.6, 11.3, 12.7, 11.9, 10.1, 9.0, 9.1, 12.9, 3.5, 3.8, 4.2, 6.7, 5.2, 12.0, 13.0, 12.1, 6.8, 3.3, 3.9, 14.2, 7.1, 14.0, 8.6, 4.5, 12.1, 8.0, 10.4, 13.3, 7.0, 7.1, 11.7, 13.4, 7.4, 5.3, 5.8, 6.6, 18.6, 9.6, 7.8, 10.7, 9.6, 11.7, 5.6, 8.1, 10.7, 9.3, 17.1, 2.2, 4.3, 6.4, 8.1, 9.8, 7.1, 3.9, 4.5, 4.3, 7.8, 15.3, 8.0, 12.5, 1.8, 12.7, 6.5, 4.5, 11.3, 15.6, 2.0, 8.0, 9.5, 3.8, 6.0, 4.4, 17.9, 2.2, 6.2, 3.7, 6.7, 7.8, 7.4, 7.3, 6.7, 4.3, 16.0, 5.5, 5.4, 4.3, 8.2, 7.1, 13.7, 15.1, 15.1, 8.5, 11.6, 13.4, 9.7, 6.3, 5.5, 10.5, 8.5, 9.2, 2.9, 9.6, 8.9, 9.3, 6.9, 8.1, 14.3, 8.3, 11.7, 8.0, 14.0, 11.3, 4.8, 5.6, 6.0, 2.9, 9.9, 9.5, 8.5, 6.6, 8.7, 10.7, 10.0, 3.5, 2.3, 11.8, 8.6, 7.4, 15.7, 16.3, 8.1, 6.5, 14.6, 3.5, 4.1, 9.4, 7.2, 5.0, 3.7, 8.6, 8.7, 5.3, 15.8, 6.2, 3.1, 7.2, 10.7, 8.9, 15.7, 4.1, 13.1, 13.1, 10.8, 4.8, 12.5, 6.1, 14.4, 18.0, 8.1, 7.5, 6.0, 8.9, 4.3, 9.0, 4.0, 10.3, 10.6, 14.6, 7.0, 9.0, 6.8, 5.8, 6.1, 9.3, 7.0, 12.2, 16.2, 13.3, 10.9, 8.0, 15.7, 16.2, 5.2, 11.0, 6.7, 5.7, 13.2, 7.2, 7.8, 8.0, 4.8, 6.4, 17.2, 12.9, 17.1, 2.2, 11.9, 5.7, 4.2, 8.6, 8.0, 18.4, 15.8, 4.7, 14.3, 7.6, 4.8, 7.3, 8.0, 9.3, 3.6, 9.0, 7.0, 4.3, 4.0, 14.2, 5.9, 10.1, 5.6, 10.8, 15.4, 15.4, 21.3, 3.2, 8.3, 4.7, 7.6, 7.2, 5.2, 5.7, 3.6, 4.5, 7.9, 17.0, 8.2, 14.0, 16.9, 7.0, 2.8, 6.5, 13.7, 4.7, 8.0, 5.8, 4.8, 6.9, 9.9, 7.4, 11.3, 7.8, 29.1, 2.1, 7.9, 12.6, 15.6, 4.6, 9.4, 3.8, 3.0, 6.8, 6.9, 2.8, 8.3, 7.0, 10.3, 7.1, 4.6, 10.1, 6.6, 8.0, 13.8, 13.3, 8.5, 10.6, 6.3, 2.4, 2.9, 9.4, 14.8, 10.1, 7.4, 9.1, 6.5, 8.2, 8.7, 7.5, 8.1, 5.0, 9.4, 9.9, 15.9, 9.2, 12.7, 11.7, 10.6, 16.1, 9.9, 12.7, 11.2, 11.3, 10.2, 6.1, 7.9, 7.2, 8.8, 6.9, 6.5, 5.5, 5.5, 7.8, 5.0, 8.6, 5.3, 3.1, 7.1, 8.9, 10.0, 13.2, 9.3, 20.5, 13.4, 5.4, 4.7, 17.6, 9.1, 6.7, 11.9, 13.9, 3.8, 13.0, 8.8, 8.2, 6.7, 17.7, 4.5, 6.2, 5.8, 5.9, 7.5, 7.9, 17.2, 17.3, 8.2, 12.4, 11.1, 7.9, 6.4, 3.4, 8.0, 9.2, 4.4, 14.8, 8.5, 12.0, 8.2, 12.1, 4.8, 13.7, 11.4, 11.1, 2.7, 13.5, 6.7, 15.5, 11.3, 10.6, 7.0, 10.2, 6.2, 7.8, 4.9, 16.0, 10.6, 9.6, 6.2, 5.0, 3.1, 6.8, 11.5, 11.8, 14.2, 5.2, 7.6, 9.2, 12.2, 1.8, 6.5, 7.3, 6.4, 8.2, 4.4, 3.7, 14.4, 4.6, 8.0, 19.9, 3.3, 11.3, 6.7, 12.5, 5.6, 8.2, 5.8, 13.8, 2.3, 10.0, 5.3, 3.2, 7.0, 5.3, 1.8, 5.9, 10.0, 12.0, 5.7, 9.0, 2.5, 6.9, 6.9, 3.1, 5.0, 7.8, 3.3, 16.5, 9.7, 8.9, 14.4, 18.5, 22.4, 5.7, 8.0, 3.5, 6.0, 5.3, 11.0, 10.0, 9.5, 17.0, 13.8, 5.9, 6.4, 8.7, 10.9, 8.7, 17.4, 7.9, 14.4, 12.8, 9.7, 5.8, 10.5, 3.0, 10.4, 4.1, 7.8, 10.7, 6.7, 17.5, 6.5, 8.7, 6.1, 4.9, 10.9, 13.8, 11.4, 8.7, 7.4, 12.0, 4.9, 6.7, 3.3, 8.7, 1.1, 4.3, 12.8, 14.0, 5.2, 10.8, 15.5, 6.4, 9.0, 14.4, 14.1, 9.3, 6.3, 5.1, 7.7, 9.2, 4.1, 20.6, 8.8, 5.3, 8.6, 6.9, 10.4, 5.1, 5.3, 8.2, 5.6, 14.7, 8.7, 2.4, 5.2, 7.8, 9.6, 3.6, 0.9, 11.2, 4.9, 10.5, 6.7, 10.5, 9.2, 7.7, 3.8, 6.5, 7.5, 10.0, 6.7, 5.6, 6.0, 10.3, 9.5, 11.7, 2.4, 14.2, 19.1, 2.9, 8.6, 10.4, 12.5, 3.9, 8.5, 8.7, 5.8, 20.3, 11.5, 16.4, 16.3, 6.3, 12.1, 9.6, 14.3, 8.4, 15.1, 17.9, 5.4, 5.7, 5.3, 7.2, 8.2, 9.3, 4.4, 13.7, 3.5, 4.4, 8.6, 3.0, 7.1, 8.3, 14.9, 15.2, 5.7, 5.2, 6.2, 13.6, 6.5, 10.6, 3.6, 1.3, 18.7, 5.5, 11.5, 11.9, 12.8, 16.0, 6.4, 12.5, 1.8, 8.7, 5.6, 15.0, 15.5, 14.3, 13.7, 11.1, 6.5, 9.2, 10.7, 5.5, 7.2, 12.5, 7.4, 4.9, 6.1, 7.6, 12.8, 16.0, 4.7, 9.2, 5.6, 22.8, 9.6, 8.3, 13.7, 13.7, 3.7, 8.5, 10.2, 5.4, 14.9, 8.2, 7.1, 7.4, 17.7, 5.5, 6.3, 2.9, 10.5, 6.3, 6.6, 10.9, 4.1, 9.1, 5.5, 12.1, 6.3, 10.3, 8.1, 15.2, 4.7, 7.8, 16.6, 19.3, 5.3, 6.9, 10.8, 19.0, 3.8, 10.8, 5.8, 9.5, 6.2, 12.9, 8.0, 12.8, 8.2, 3.8, 7.9, 8.4, 21.0, 10.4, 10.4, 8.8, 8.3, 8.2, 2.6, 7.6, 12.0, 6.0, 11.6, 7.9, 5.5, 9.4, 3.6, 7.6, 10.3, 17.8, 9.2, 7.1, 8.2, 19.1, 6.8, 10.2, 10.1, 13.6, 8.5, 6.9, 14.1, 6.2, 8.2, 14.3, 12.7, 8.1, 3.1, 8.6, 8.0, 5.7, 10.9, 8.6, 10.5, 12.3, 13.0, 10.1, 14.8, 14.9, 12.5, 9.4, 18.0, 15.3, 3.6, 9.6, 6.1, 7.5, 5.6, 10.1, 12.0, 6.3, 3.9, 7.8, 7.0, 13.2, 5.9, 4.4, 17.8, 11.3, 4.8, 12.1, 9.1, 6.2, 11.9, 7.8, 6.9, 8.8, 10.0, 9.5, 13.6, 7.7, 6.4, 5.3, 3.5, 20.9, 11.3, 4.4, 5.3, 8.2, 6.3, 8.9, 10.5, 6.5, 13.4, 10.4, 7.6, 13.3, 10.7, 7.8, 8.9, 3.1, 8.9, 14.1, 8.1, 9.6, 5.7, 13.1, 7.2, 13.5, 6.9, 7.2, 13.8, 7.0, 10.6, 1.4, 6.7, 3.3, 8.5, 18.2, 8.4, 6.5, 11.3, 12.3, 12.5, 9.9, 10.4, 11.5, 9.1, 9.6, 8.0, 3.6, 3.8, 4.9, 9.1, 9.6, 6.0, 4.3, 4.5, 2.4, 12.1, 4.5, 6.4, 9.6, 4.6, 18.5, 14.0, 2.9, 6.8, 18.2, 12.5, 7.5, 6.0, 8.7, 4.7, 9.6, 3.2, 7.9, 2.5, 7.6, 3.9, 9.9, 16.3, 5.7, 8.1, 3.3, 7.6, 11.6, 3.9, 6.0, 10.4, 14.2, 2.5, 5.7, 16.2, 7.7, 6.4, 6.7, 6.8, 9.4, 24.5, 10.1, 6.5, 9.0, 14.2, 15.3, 5.8, 6.4, 4.4, 8.5, 9.9, 11.1, 5.9, 7.8, 4.9, 6.1, 10.6, 9.9, 13.7, 9.5, 10.7, 4.3, 5.1, 4.1, 4.4, 11.5, 20.1, 8.0, 13.6, 7.4, 4.6, 5.0, 9.6, 11.7, 13.8, 11.9, 4.5, 4.1, 7.3, 3.1, 10.7, 6.4, 4.1, 8.7, 6.0, 7.9, 9.0, 3.9, 5.1, 9.6, 10.6, 6.4, 4.0, 4.1, 6.3, 4.2, 11.7, 9.7, 6.1, 4.9, 9.9, 16.9, 4.1, 19.0, 12.5, 7.0, 15.6, 10.2, 8.5, 7.8, 6.2, 10.5, 5.8, 9.1, 12.3, 9.6, 6.9, 10.6, 4.9, 8.9, 10.6, 9.9, 7.2, 13.2, 6.1, 2.7, 12.7, 4.0, 2.9, 6.0, 1.6, 6.8, 4.9, 13.0, 4.2, 3.7, 2.6, 11.7, 6.2, 12.1, 11.4, 10.5, 5.4, 6.0, 4.0, 5.9, 7.7, 9.4, 3.3, 3.2, 5.3, 5.7, 6.5, 8.4, 8.0, 5.3, 8.5, 8.6, 12.1, 10.9, 4.8, 16.5, 10.7, 10.0, 6.9, 8.4, 3.8, 6.8, 7.3, 6.4, 9.1, 5.9, 9.8, 8.1, 11.1, 7.0, 7.9, 8.6, 3.0, 8.7, 11.8, 2.2, 6.3, 16.2, 9.2, 18.0, 17.2, 11.1, 10.3, 5.0, 14.8, 14.4, 9.9, 7.4, 3.4, 4.7, 7.0, 4.7, 8.2, 14.8, 7.2, 4.5, 10.9, 3.9, 8.7, 10.4, 7.4, 6.0, 12.7, 2.4, 10.8, 6.2, 9.6, 6.5, 3.1, 14.5, 10.1, 2.1, 4.6, 12.3, 10.1, 18.6, 5.2, 10.5, 4.6, 13.8, 8.7, 5.6, 16.5, 7.8, 7.0, 8.2, 2.8, 8.5, 7.3, 15.8, 9.7, 8.5, 9.1, 4.4, 15.2, 9.7, 13.1, 22.3, 3.4, 13.2, 9.8, 8.1, 7.8, 4.3, 11.1, 12.9, 5.0, 9.5, 8.1, 12.5, 6.2, 12.7, 4.3, 10.9, 3.9, 18.9, 9.7, 6.9, 10.3, 11.9, 6.7, 7.2, 5.2, 13.6, 13.4, 8.3, 17.4, 10.3, 5.2, 2.7, 3.4, 12.4, 4.3, 3.5, 6.7, 4.1, 12.7, 2.8, 2.2, 6.4, 3.1, 23.3, 5.5, 4.3, 6.4, 10.6, 5.5, 11.7, 5.4, 7.7, 4.7, 10.0, 6.5, 7.5, 5.5, 9.6, 16.9, 7.6, 7.4, 7.4, 6.8, 16.2, 10.3, 10.6, 2.8, 12.8, 8.0, 3.4, 9.5, 9.0, 7.6, 12.6, 10.8, 5.0, 4.9, 8.3, 16.2, 8.2, 13.1, 8.0, 6.5, 4.9, 7.5, 4.8, 9.3, 3.4, 8.8, 4.6, 14.8, 13.5, 9.3, 21.7, 15.6, 1.9, 12.5, 9.3, 11.5, 16.9, 5.9, 7.2, 10.3, 9.8, 10.2, 12.8, 10.8, 10.2, 4.4, 18.4, 4.9, 5.3, 19.4, 4.7, 16.5, 3.0, 3.9, 11.7, 4.4, 9.1, 5.6, 15.7, 11.3, 7.0, 8.7, 11.5, 3.5, 6.1, 12.4, 2.7, 4.3, 15.7, 4.2, 11.5, 18.5, 2.5, 4.1, 5.2, 8.3, 3.1, 9.3, 6.2, 17.2, 1.5, 5.4, 16.5, 7.5, 10.2, 5.1, 8.7, 19.1, 4.7, 10.2, 8.1, 7.3, 9.6, 12.1, 5.8, 2.8, 6.9, 8.1, 8.9, 4.7, 7.6, 3.8, 5.6, 7.3, 6.7, 5.0, 5.7, 8.8, 6.1, 7.0, 5.7, 7.9, 11.2, 11.5, 8.6, 2.0, 7.1, 7.0, 4.6, 12.3, 5.4, 12.6, 15.0, 10.4, 8.7, 5.2, 7.7, 7.2, 10.2, 3.4, 11.8, 7.4, 10.8, 19.0, 13.8, 4.4, 7.8, 17.1, 7.6, 13.6, 4.2, 5.1, 6.8, 7.1, 14.2, 10.3, 5.5, 16.6, 3.8, 14.9, 6.2, 8.3, 6.4, 2.8, 5.9, 9.2, 7.8, 14.6, 13.1, 5.6, 12.1, 8.6, 8.6, 5.0, 11.2, 11.8, 14.0, 10.2, 9.4, 6.2, 12.3, 22.9, 13.8, 9.2, 16.7, 8.4, 18.8, 9.5, 10.7, 4.0, 6.2, 4.7, 16.3, 13.3, 10.7, 5.6, 18.8, 9.8, 8.5, 7.1, 9.5, 4.7, 6.3, 4.9, 7.4, 17.0, 14.6, 11.5, 6.0, 5.4, 13.5, 9.0, 4.9, 18.8, 6.4, 8.8, 20.2, 4.2, 5.1, 3.9, 7.7, 3.3, 4.4, 7.4, 6.4, 16.7, 9.6, 14.4, 8.8, 4.4, 7.2, 10.0, 8.2, 14.3, 9.6, 10.3, 9.1, 10.5, 12.3, 12.0, 13.6, 9.5, 23.8, 9.3, 13.3, 7.4, 16.4, 9.9, 19.6, 7.8, 14.7, 9.9, 7.2, 9.2, 5.3, 11.9, 10.0, 12.1, 14.4, 2.8, 3.2, 7.5, 10.7, 7.8, 4.9, 7.5, 3.9, 5.9, 10.9, 10.3, 6.3, 11.8, 13.5, 11.7, 6.7, 14.5, 13.4, 2.8, 7.9, 9.8, 3.0, 16.3, 9.7, 7.2, 4.8, 10.3, 10.2, 4.2, 17.2, 8.2, 8.9, 8.9, 6.9, 10.0, 11.4, 6.7, 5.6, 6.9, 6.4, 8.5, 8.4, 13.3, 8.9, 6.0, 4.2, 5.7, 2.7, 4.6, 3.6, 4.0, 6.1, 3.6, 4.8, 3.6, 8.4, 5.8, 6.3, 11.1, 11.8, 4.6, 11.5, 5.8, 3.2, 10.8, 1.1, 2.0, 9.0, 13.2, 5.9, 5.8, 8.4, 3.7, 15.0, 7.5, 2.4, 8.6, 11.2, 15.9, 4.2, 8.9, 4.1, 18.2, 4.8, 10.7, 11.1, 7.6, 6.7, 12.1, 9.8, 17.1, 8.8, 4.8, 13.9, 1.1, 8.1, 7.9, 19.4, 7.3, 19.6, 1.5, 13.2, 21.7, 14.8, 12.9, 3.8, 6.5, 11.4, 9.7, 16.3, 3.2, 4.8, 3.2, 5.3, 9.0, 8.7, 11.1, 4.6, 14.5, 5.7, 7.7, 18.8, 11.3, 2.7, 15.3, 5.4, 3.6, 13.7, 10.2, 4.1, 5.5, 17.2, 13.6, 9.3, 13.2, 12.1, 7.1, 7.4, 6.4, 11.9, 4.8, 13.4, 6.2, 7.5, 11.8, 4.3, 12.1, 4.4, 12.9, 9.0, 14.8, 7.9, 7.3, 8.2, 6.2, 16.3, 5.0, 5.1, 5.4, 12.9, 9.5, 5.6, 15.7, 5.9, 9.9, 8.3, 3.8, 5.7, 10.9, 7.1, 8.4, 6.4, 3.8, 8.5, 14.2, 12.3, 11.8, 9.8, 4.7, 11.9, 6.5, 9.5, 6.3, 6.4, 10.6, 8.9, 7.0, 6.9, 6.6, 18.0, 13.0, 6.8, 13.4, 15.6, 3.8, 7.8, 8.8, 8.2, 7.1, 10.2, 11.0, 6.4, 3.0, 8.2, 4.2, 13.0, 8.4, 3.9, 3.2, 6.6, 8.2, 9.4, 13.7, 3.4, 9.3, 7.6, 16.5, 5.3, 10.9, 16.6, 8.9, 4.3, 5.1, 8.4, 9.1, 10.7, 19.3, 8.4, 9.8, 13.9, 15.0, 10.4, 5.9, 8.5, 6.7, 9.9, 12.2, 10.5, 5.3, 8.8, 7.1, 3.6, 17.4, 6.2, 4.8, 8.3, 6.3, 8.6, 4.8, 11.1, 8.6, 10.8, 10.0, 9.5, 4.9, 7.3, 2.6, 3.9, 6.0, 9.0, 9.8, 9.0, 2.0, 4.0, 9.9, 3.4, 6.9, 9.3, 7.5, 19.4, 4.4, 15.3, 9.8, 8.6, 13.9, 8.2, 3.9, 7.1, 8.2, 15.7, 18.6, 9.3, 6.5, 9.9, 5.9, 7.1, 25.5, 9.7, 9.4, 9.9, 2.9, 15.0, 15.5, 2.9, 6.7, 5.9, 6.0, 6.8, 16.4, 5.7, 6.0, 24.5, 10.3, 13.9, 5.2, 11.6, 11.9, 2.1, 7.7, 8.9, 10.6, 18.2, 7.0, 15.4, 8.9, 9.5, 7.0, 8.4, 8.6, 8.8, 4.7, 9.5, 3.2, 7.4, 3.3, 11.0, 4.7, 10.3, 11.9, 12.5, 7.9, 7.2, 6.6, 6.8, 8.0, 4.7, 10.1, 8.8, 6.9, 5.3, 6.7, 10.3, 12.2, 7.7, 4.5, 10.2, 8.0, 9.6, 11.3, 13.8, 7.9, 12.3, 7.5, 5.1, 6.7, 9.7, 4.9, 22.0, 12.4, 6.6, 2.7, 7.5, 10.2, 17.8, 4.8, 9.5, 12.8, 5.2, 20.8, 8.0, 11.6, 10.9, 4.3, 8.4, 7.8, 5.4, 5.5, 1.8, 7.7, 5.5, 13.1, 8.0, 10.4, 6.2, 12.0, 12.3, 18.7, 6.3, 7.1, 8.4, 3.4, 15.6, 4.7, 6.5, 8.4, 10.5, 7.5, 11.7, 8.4, 6.1, 5.9, 6.0, 8.7, 5.1, 4.8, 11.6, 3.7, 9.3, 6.9, 15.5, 7.7, 7.3, 10.4, 9.2, 16.0, 16.4, 6.9, 11.5, 8.3, 13.4, 16.5, 4.2, 5.9, 7.6, 10.2, 6.3, 20.9, 18.2, 13.5, 7.5, 4.7, 9.3, 8.7, 2.8, 9.7, 17.2, 5.0, 11.2, 15.0, 15.9, 25.3, 14.9, 4.7, 10.1, 4.2, 19.4, 7.2, 8.0, 11.8, 7.0, 9.8, 8.2, 9.4, 4.9], CRIT = 16.92;
+  const Q_MEN = 3.6, Q_POOL = 1906;
+  const cv = document.getElementById("chicv"), ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  const L = 60, R = 16, T = 22, B = 40;
+  const XMAX = 24.5;
+  const X = v => L + (v / XMAX) * (W - L - R);
+  const BINS = 48, counts = new Array(BINS).fill(0);
+  let over = 0;
+  SIM.forEach(x => { if (x < 24) counts[Math.floor(x * 2)]++; else over++; });
+  const maxc = Math.max(...counts, over);
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const barw = (W - L - R) / (BINS + 1);
+    for (let i = 0; i < BINS + 1; i++) {
+      const c = i < BINS ? counts[i] : over;
+      const h = (c / maxc) * (H - T - B);
+      ctx.fillStyle = "rgba(148,163,184,.65)";
+      ctx.fillRect(X(i * 0.5) + 1, H - B - h, barw - 2, h);
+    }
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(L, H - B); ctx.lineTo(W - R, H - B); ctx.stroke();
+    ctx.fillStyle = "#5b6678"; ctx.font = "12px sans-serif";
+    for (let v = 0; v <= 24; v += 6) ctx.fillText(String(v), X(v) - 5, H - B + 16);
+    ctx.fillText("test statistic Q", L + (W - L - R) / 2 - 40, H - 6);
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = "#FF7A5C"; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(X(CRIT), T); ctx.lineTo(X(CRIT), H - B); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#c25a40"; ctx.font = "12.5px sans-serif";
+    ctx.fillText("top 5% begins: " + CRIT.toFixed(1), X(CRIT) + 6, T + 12);
+  }
+  function setQ(val, src) {
+    const hit = val > CRIT;
+    const reached = SIM.filter(x => x >= val).length;
+    const share = reached / SIM.length;
+    document.getElementById("chiq").textContent = val.toFixed(1);
+    document.getElementById("chisrc").textContent = src;
+    const verd = document.getElementById("chiverd");
+    verd.textContent = hit ? "past the top 5%: reject" : "inside the wobble: indistinguishable";
+    verd.style.color = hit ? "#FF7A5C" : "#00A88F";
+    const reachTxt = reached === 0 ? "0 of " + SIM.length
+        : Math.round(share * 100) + "% of " + SIM.length;
+    document.getElementById("chinote").textContent =
+        "p = P(Q ≥ " + val.toFixed(1) + " | H0): " + reachTxt +
+        " honest surveys reached a Q this big or bigger";
+    draw();
+    const xv = document.getElementById("chicv");
+    const c2 = xv.getContext("2d");
+    const px = L + (Math.min(val, XMAX) / XMAX) * (W - L - R);
+    c2.strokeStyle = "#1C355E"; c2.lineWidth = 2;
+    c2.beginPath(); c2.moveTo(px, T); c2.lineTo(px, H - B); c2.stroke();
+    c2.fillStyle = "#1C355E";
+    c2.fillText("Q = " + val.toFixed(1) + (val > XMAX ? "  (off scale)" : ""),
+        Math.min(px + 6, W - 90), T - 8);
+  }
+  const knob = document.getElementById("chiknob");
+  knob.addEventListener("input", () =>
+      setQ(SIM[knob.value], "simulated survey #" + (+knob.value + 1) + " of " + SIM.length));
+  document.getElementById("chimen").addEventListener("click", () =>
+      setQ(Q_MEN, "the 799 real men, measured"));
+  document.getElementById("chipool").addEventListener("click", () =>
+      setQ(Q_POOL, "the 1,629 real people, men + women"));
+  setQ(SIM[+knob.value], "simulated survey #" + (+knob.value + 1) + " of " + SIM.length);
+})();
+</script>
 </div>
 </div>
-</div>
-<p>Invent 20,000 surveys of 799 men drawn from the claimed bell, so the claim is true by construction. Every one of them still lands its slices a little off, so every one of them still has a <span class="math inline">\(Q\)</span>.</p>
-<div class="cardbox teal">
-<p><span class="math inline">\(Q\)</span> is never zero, even when nothing is wrong. It averages 9.0. What the men’s <span class="math inline">\(Q\)</span> has to be compared against is this whole pile, not zero.</p>
-</div>
+<p><span class="math inline">\(Q\)</span> is never zero, even when nothing is wrong: it averages 9.0, and 4.9% of the honest surveys land past 16.9 — the men’s <span class="math inline">\(Q\)</span> is compared against all 5,000 surveys, not against zero.</p>
 <aside class="notes">
-<p>Delivery mode only. The key idea, and the one people skip: under a true null Q is still a random variable. This is the slide that earns the next one, so do not rush it. Nothing about the real men has been used yet; these are invented surveys of an invented population that obeys the claim exactly. The next slide puts a name on the pile.</p>
+<p>Delivery mode only. The key idea, and the one people skip: under a true null Q is still a random variable. The widget runs the experiment on screen with the same 5,000-survey, seed-0 simulation the lab’s Exercise 0.5 asks students to rebuild, so what they see here is what they compute there. Nothing about the real men has been used yet; these are invented surveys of an invented population that obeys the claim exactly.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -954,26 +1065,16 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="that-wobble-is-the-chi-squared-distribution" class="slide level2">
-<h2>That wobble is the chi-squared distribution</h2>
-<div id="adef67aa" class="cell" data-fig-width="9" data-execution_count="16">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-17-output-1.png" width="981" height="318"></p>
-</figure>
-</div>
-</div>
-</div>
+<section id="the-wobble-has-a-name" class="slide level2">
+<h2>The wobble has a name</h2>
 <ul>
-<li class="fragment">Its one setting is the degrees of freedom, 9 here rather than 10</li>
-<li class="fragment">Nine slice counts and the total fix the tenth, so only 9 can move</li>
+<li class="fragment">The 5,000 simulated <span class="math inline">\(Q\)</span>’s form a <strong>chi-squared distribution</strong>, set by 9 degrees of freedom</li>
+<li class="fragment">Nine slice counts can move on their own; the tenth is fixed by the total of 799</li>
+<li class="fragment">4.9% of them land past 16.9, and that cut is the <strong>critical value</strong></li>
 </ul>
-<div class="cardbox teal">
-<p>This is the null distribution of <span class="math inline">\(Q\)</span>, and it is a <strong>sampling distribution</strong>: the spread a number picks up purely from being computed on a sample. Knowing it is what turns one number into a decision.</p>
-</div>
+<p><span class="math inline">\(\alpha = 0.05\)</span> is the false-alarm rate you accept, fixed before looking at the data: reject <span class="math inline">\(H_0\)</span> if <span class="math inline">\(Q\)</span> lands past 16.9. The critical value is the 95th percentile of the null — a quantile from segment B — and the whole simulated set is a <strong>sampling distribution</strong>.</p>
 <aside class="notes">
-<p>Delivery mode only. The curve is not a new claim, it is a name for the histogram already on the screen, and it lies on it because the claim was stated in advance rather than fitted to the men. Fitting the centre and the width instead spends two more degrees of freedom: simulated the same way, that pile averages 7.4 rather than 9.0, and the deck would owe the room a correction. Say “sampling distribution” out loud, because the picture returns twice: on Day 1 as the plus-or-minus 1.96 over root T band on an ACF, and on Day 2 as the standard error of a coverage rate. Same idea, different statistic each time. The next slide cuts this shape at 5%.</p>
+<p>Delivery mode only. The curve is not a new claim, it is a name for the histogram the previous slide just built, and it lies on it because the claim was stated in advance rather than fitted to the men. Fitting the centre and the width instead spends two more degrees of freedom: simulated the same way, that pile averages 7.4 rather than 9.0, and the deck would owe the room a correction. A sampling distribution is the spread a number picks up purely from being computed on a sample. Say “sampling distribution” out loud, because the picture returns twice: on Day 1 as the plus-or-minus 1.96 over root T band on an ACF, and on Day 2 as the standard error of a coverage rate. Same idea, different statistic each time. If anyone has read ahead, head off the collision: deck 4 reuses the letter alpha for a quantile level rather than a false-alarm rate. Same letter, unrelated job.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -986,39 +1087,9 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="the-critical-value-is-where-the-top-5-begins" class="slide level2" data-auto-animate="true">
-<h2 data-id="quarto-animate-title">The critical value is where the top 5% begins</h2>
-<p>Alpha is the false-alarm rate you accept: <span class="math inline">\(\alpha = 0.05\)</span> means accepting a 5% chance of rejecting the claim when it is true. It is fixed before the data is looked at.</p>
-<div id="4c52bcbd" class="cell" data-fig-width="9" data-execution_count="17">
-<div class="cell-output cell-output-display">
-<div>
-<figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-18-output-1.png" width="989" height="252"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Of those invented surveys, 5.1% landed past 16.9: alpha, counted.</p>
-<div class="cardbox teal">
-<p>The critical value is the 95th percentile of the null: a quantile, cut from segment B. Reject <span class="math inline">\(H_0\)</span> if <span class="math inline">\(Q\)</span> lands past 16.9.</p>
-</div>
-<aside class="notes">
-<p>Delivery mode only. Alpha is a choice, not a property of the data, and 0.05 is this course’s. Name the link back to segment B out loud: the critical value is a quantile of the null distribution, the same cut in a different sorted list. If anyone has read ahead, head off the collision: deck 4 reuses the letter alpha for a quantile level rather than a false-alarm rate, so its alpha runs over the whole ladder from 0.025 to 0.975 and means the cut itself. Same letter, unrelated job. The next slide is the verdict on the honest survey.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
-<section id="the-mens-q-lands-inside-the-wobble" class="slide level2" data-auto-animate="true">
-<h2 data-id="quarto-animate-title">The men’s Q lands inside the wobble</h2>
-<div id="db2cfcd0" class="cell" data-fig-width="9" data-execution_count="18">
+<section id="the-mens-q-lands-inside-the-wobble" class="slide level2">
+<h2>The men’s Q lands inside the wobble</h2>
+<div id="63e81329" class="cell" data-fig-width="9" data-execution_count="18">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -1028,10 +1099,10 @@
 </div>
 </div>
 <div class="cardbox teal">
-<p><span class="math inline">\(Q\)</span> is 3.6 against a critical value of 16.9. These men are indistinguishable from the claim, which is not the same as showing the claim is true.</p>
+<p><span class="math inline">\(Q\)</span> is 3.6 against a critical value of 16.9. These men are <strong>indistinguishable from</strong> the claim, which is not the same as showing the claim is true: they are also indistinguishable from a claim of 175.4 cm, and both cannot be true.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. Same picture as the slide before it, so the observed line drops onto a chart the room is already reading. Say “indistinguishable from”, never “accept H0”: this sample is also indistinguishable from a claim of 175.4, and both cannot be true. Worth naming that this is real measured data passing a real test, not a sample built to pass one. The next slide runs the same test on the same survey with its women added back in.</p>
+<p>Delivery mode only. Say “indistinguishable from”, never “accept H0”. Worth naming that this is real measured data passing a real test, not a sample built to pass one. The next slide runs the same test on the same survey with its women added back in.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1044,9 +1115,9 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="add-the-women-back-and-q-lands-far-out-in-the-tail" class="slide level2">
-<h2>Add the women back and Q lands far out in the tail</h2>
-<div id="31c79e6e" class="cell" data-fig-width="9" data-execution_count="19">
+<section id="add-the-women-back" class="slide level2">
+<h2>Add the women back</h2>
+<div id="5d21a9bc" class="cell" data-fig-width="9" data-execution_count="19">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -1063,7 +1134,7 @@
 <p>The same test, the same claim, one sample holding two populations. One number now says what segment C needed two pictures to show.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. The verdict, and the payoff of the segment: the test caught the failure segment C had to eyeball. Worth noting what it cannot catch: this test looks only at the shape, so a sample with the right shape and the wrong pairs, which is Galton’s brothers two segments ago, sails through it. A test answers one question. The next segment takes apart the number the verdict was read off.</p>
+<p>Delivery mode only. The verdict, and the payoff of the segment: the test caught the failure segment C had to eyeball. Worth noting what it cannot catch: this test looks only at the shape, so a sample with the right shape and the wrong pairs, which is Galton’s brothers two segments ago, sails through it. A test answers one question.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1081,22 +1152,18 @@
 <h1>E. The p-value</h1>
 <p>What it is, how to read it off the null, and the misreadings</p>
 </section>
-<section id="the-p-value-is-how-often-this-extreme-happens-under-h0" class="slide level2">
-<h2>The p-value is how often this extreme happens under H0</h2>
-<div class="fragment strike" data-fragment-index="1">
-<p><span class="math display">\[p = P\big(Q \ge Q_{\text{obs}}\big)\]</span></p>
-</div>
+<section id="the-p-value" class="slide level2">
+<h2>The p-value</h2>
 <div class="fragment" data-fragment-index="1">
+<p><span class="math display">\[p = P\big(Q \ge Q_{\text{obs}}\big) \qquad \color{#FF7A5C}{\text{under what?}}\]</span></p>
+</div>
+<div class="fragment">
+<div class="fragment" data-fragment-index="2">
 <p><span class="math display">\[p = P\big(Q \ge Q_{\text{obs}} \;\big|\; H_0\big)\]</span></p>
 </div>
-<p>How often a statistic at least this extreme turns up, when the claim is true.</p>
-<div class="fragment">
-<p>Read the bar as <strong>given</strong>: <span class="math inline">\(P(A \mid B)\)</span> is how often <span class="math inline">\(A\)</span> happens <em>among the cases where <span class="math inline">\(B\)</span> holds</em>, which is not how often <span class="math inline">\(A\)</span> happens.</p>
-<div class="cardbox teal">
-<p><span class="math inline">\(p\)</span> conditions on <span class="math inline">\(H_0\)</span>. It measures how surprising the data would be if the claim were true, and nothing else.</p>
-</div>
+<p>How often a statistic at least this extreme turns up, when the claim is true. Read the bar as <strong>given</strong>: it restricts the question to the cases where <span class="math inline">\(H_0\)</span> holds.</p>
 <aside class="notes">
-<p>Delivery mode only. The first line is what most people carry around, and it is struck out for a reason: the probability of a statistic this extreme is not a quantity anyone can compute without saying under what. Read the second line out in words, left to right, including the bar as “given”. The P is segment A’s, a share of a pile, and the only new mark is the bar, so spend the time there: it restricts which pile is being shared out. Concretely, the pile is the 20,000 invented surveys segment D simulated, every one of which obeys the claim. The conditioning is the whole slide, and the two misreadings later both come from dropping it. The next slide reads p off the picture.</p>
+<p>Delivery mode only. The first line is what most people carry around, and it is flagged because the probability of a statistic this extreme is not a quantity anyone can compute without saying under what. Read the second line out in words, left to right, including the bar as “given”: <span class="math inline">\(P(A \mid B)\)</span> is how often <span class="math inline">\(A\)</span> happens among the cases where <span class="math inline">\(B\)</span> holds, which is not how often <span class="math inline">\(A\)</span> happens. The P is segment A’s, a share of all possible values, and the only new mark is the bar, so spend the time there: it restricts which set is being shared out. The next slide reads p off the picture, at the observed value.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1110,23 +1177,20 @@
       }</style></aside>
 </div>
 </section>
-<section id="read-it-off-the-null-distribution-at-the-observed-value" class="slide level2">
-<h2>Read it off the null distribution, at the observed value</h2>
-<div id="601b726a" class="cell" data-fig-width="9" data-execution_count="20">
+<section id="reading-p-off-the-null" class="slide level2">
+<h2>Reading p off the null</h2>
+<div id="5862e467" class="cell" data-fig-width="9" data-execution_count="20">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-21-output-1.png" width="981" height="318"></p>
+<p><img data-src="00_statistics_refresher_files/figure-revealjs/cell-21-output-1.png" width="981" height="307"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>Or count it instead: 94% of the 20,000 invented surveys produced a <span class="math inline">\(Q\)</span> at least this big. The area and the count are the same number.</p>
-<div class="cardbox teal">
-<p>The <span class="math inline">\(p\)</span>-value is the tail area beyond the observed <span class="math inline">\(Q\)</span>, under the null. Here it is 0.94, so a <span class="math inline">\(Q\)</span> this big or bigger happens 94% of the time when the claim is true.</p>
-</div>
+<p>Or count it instead: 93% of the 5,000 honest surveys produced a <span class="math inline">\(Q\)</span> at least this big. The count <strong>is</strong> the <span class="math inline">\(p\)</span>-value; read off the curve exactly, it is 0.94.</p>
 <aside class="notes">
-<p>Delivery mode only. Same chart as the segment’s critical-value slide, now with the tail as the quantity of interest rather than the threshold. This is also where the alpha of 0.05 and the p-value connect: p past the threshold and Q past the critical value are the same statement. The next slides are the misreadings.</p>
+<p>Delivery mode only. Same picture as the critical-value slide of the last segment, now with the tail as the quantity of interest rather than the threshold. This is also where alpha and p connect: p past the threshold and Q past the critical value are the same statement. The next slides are the misreadings.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1145,7 +1209,7 @@
 <div class="column" style="width:50%;">
 <p><strong>What <span class="math inline">\(p\)</span> measures</strong></p>
 <p><span class="math display">\[P(\text{data this extreme} \mid H_0)\]</span></p>
-<p>A share of the 20,000 invented surveys, every one of which obeys the claim.</p>
+<p>A share of the 5,000 honest surveys, every one of which obeys the claim.</p>
 </div><div class="column" style="width:50%;">
 <p><strong>What people hear</strong></p>
 <p><span class="math display">\[P(H_0 \mid \text{data})\]</span></p>
@@ -1157,7 +1221,7 @@
 <p>Both misreadings drop the conditioning bar. <span class="math inline">\(p\)</span> is a tail area under an assumed null, not a verdict on the null and not a probability of the data.</p>
 </div>
 <aside class="notes">
-<p>Delivery mode only. These are the two most common misreadings and they have the same cause, which is why they share a slide. If the room wants the probability the claim is true, that is a Bayesian question and it needs a prior. The next slide is the third misreading, and it needs a picture.</p>
+<p>Delivery mode only. These are the two most common misreadings and they have the same cause, which is why they share a slide. If the room wants the probability the claim is true, that is a Bayesian question and it needs a prior.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1174,7 +1238,7 @@
 <section id="a-small-p-means-detectable-not-large" class="slide level2">
 <h2>A small p means detectable, not large</h2>
 <p>One wrong claim, 1.8 cm below what these men measure, tested on all 799 of them and then on the first 50. Same error both times: how far apart can the two <span class="math inline">\(p\)</span>-values be?</p>
-<div id="7487604b" class="cell" data-fig-width="9.5" data-execution_count="21">
+<div id="57163c47" class="cell" data-fig-width="9.5" data-execution_count="21">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -1184,7 +1248,7 @@
 </div>
 </div>
 <div class="cardbox coral">
-<p>6e-09 against 0.57. <span class="math inline">\(p\)</span> answers a question about sample size as much as about the size of the difference, so it ranks nothing. Never sort competing claims by <span class="math inline">\(p\)</span>.</p>
+<p>6e-09 against 0.57. <span class="math inline">\(p\)</span> answers a question about sample size as much as about the size of the difference — never sort claims by <span class="math inline">\(p\)</span>.</p>
 </div>
 <aside class="notes">
 <p>Delivery mode only. Both panels lean the same way, too few short men and too many tall ones, because it is one set of men measured against one wrong claim; only how many were counted changed. This is the T factor in the Q formula coming back. Say the reverse out loud too: on a very large sample, a difference too small to care about will still reject. The no-ranking fence in the card is the one that bites on Day 2, where the best benchmark model in the course has the smallest p of any of them, because p answers a question about detectability rather than quality.</p>
@@ -1200,14 +1264,12 @@
           display:block!important;
       }</style></aside>
 </section>
-<section id="a-tiny-p-means-unfinished-not-very-wrong" class="slide level2">
-<h2>A tiny p means unfinished, not very wrong</h2>
+<section id="a-tiny-p-means-unfinished" class="slide level2">
+<h2>A tiny p means unfinished</h2>
 <p>The pooled survey’s <span class="math inline">\(Q\)</span> is 1,906, so far into the tail that its <span class="math inline">\(p\)</span> underflows to zero. That does not make the claim worthless: it means one bell cannot describe two populations, and the test can tell.</p>
-<div class="cardbox teal">
-<p>Every method in this course leaves something behind, and a test is how you find out whether it is more than luck. A tiny <span class="math inline">\(p\)</span> means unfinished.</p>
-</div>
+<p>Every method in this course leaves something behind, and a test is how you find out whether it is more than luck. A tiny <span class="math inline">\(p\)</span> means <strong>unfinished</strong>.</p>
 <aside class="notes">
-<p>Delivery mode only. The payoff of the deck. Both halves matter: unfinished, because something is left unaccounted for; not worthless, because the same claim described the men perfectly well two slides ago. On Day 2 the p is about 1e-240 for the hardest benchmark in the course to beat, and that pair of facts is the opening for Day 3. The next slide maps every idea back into the decks.</p>
+<p>Delivery mode only. The payoff of the deck. Both halves matter: unfinished, because something is left unaccounted for; not worthless, because the same claim described the men perfectly well two slides ago. On Day 2 the p is about 1e-240 for the hardest benchmark in the course to beat, and that pair of facts is the opening for Day 3.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -1253,7 +1315,7 @@
 </tr>
 <tr class="even">
 <td>Hypothesis testing, and the sampling distribution under it</td>
-<td>24 lag checks by eye become one number (deck 3); the same simulated pile is the <span class="math inline">\(\pm 1.96/\sqrt{T}\)</span> band on an ACF (deck 2) and the standard error of a coverage rate (deck 4)</td>
+<td>24 lag checks by eye become one number (deck 3); the same simulated set is the <span class="math inline">\(\pm 1.96/\sqrt{T}\)</span> band on an ACF (deck 2) and the standard error of a coverage rate (deck 4)</td>
 </tr>
 <tr class="odd">
 <td>The p-value</td>

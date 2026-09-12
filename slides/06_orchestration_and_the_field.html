@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-06">
+  <meta name="dcterms.date" content="2026-09-12">
   <title>Orchestration &amp; the Field</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -98,7 +98,7 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-98a181cbe320dee6f668343ff9832aea.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -206,7 +206,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-06</p>
+  <p class="date">2026-09-12</p>
 </section>
 <section id="yesterdays-floor-is-still-standing" class="slide level2">
 <h2>Yesterday’s floor is still standing</h2>
@@ -224,14 +224,14 @@
 <p><strong>This morning’s result</strong></p>
 </div>
 <div class="callout-content">
-<p>ETS matched the floor on MASE and lost on the distribution. The seasonal naive is still the best-calibrated model in the room.</p>
+<p>ETS tied the floor on MASE, lost on the distribution. The seasonal naive is still the best-calibrated model in the room.</p>
 </div>
 </div>
 </div>
 <aside class="notes">
-<p>Take thirty seconds to put the morning back up. They fitted ETS, read its components, scored it over the same eight folds, and found a tie on the point forecast and a loss on scaled CRPS with an 80 percent band that covered 87.5.</p>
-<p>Two parts this afternoon. Part A is hands-on: the fitting step handed to a tool, and a reading lesson on what that tool hands back. Part B is a map, read aloud, so they leave knowing what the names mean when they meet them.</p>
-<p>Say the shape of the day out loud once more, because it is the argument of the whole course: transparent first, orchestrated second. Every model this afternoon’s tool fits is one they have built by hand or watched get built, and that is the only reason its output is readable.</p>
+<p>Thirty seconds to put the morning back up: ETS, the same eight folds, a tie on the point forecast, a loss on scaled CRPS, an 80 percent band that covered 87.5.</p>
+<p>Two parts this afternoon: Part A hands the fitting step to a tool and teaches what it hands back; Part B is a map, read aloud, so the names mean something when they meet them later.</p>
+<p>Say the shape of the day once more, because it is the argument of the whole course: transparent first, orchestrated second. Every model this tool fits is one they have built by hand, and that is the only reason its output is readable.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -266,9 +266,8 @@
 <p>Same job. The question of the afternoon: when the tool picks the model and scores it, what is still yours?</p>
 </div>
 <aside class="notes">
-<p>Open with the contrast, because the contrast is the lesson. The left block is the four lines they wrote this morning: one model, chosen by hand, scored over eight folds by their own harness. That is the right amount of code on one series, and it is the right amount because the judgment is theirs.</p>
-<p>The right block is the same job in two calls. The first names the horizon and the metric; the second fits a list of models inside a time budget and prints a ranking. Nothing about the job changed. What changed is who picks the model and who scores it, and this segment is about exactly those two decisions.</p>
-<p>Do not name the tool yet beyond the import line; the next three slides are the tool’s interface, and the log and the leaderboard after that are its output.</p>
+<p>Open with the contrast, because the contrast is the lesson. Left: the four lines from this morning, one model, chosen by hand, scored by their own harness. Right: the same job in two calls, a list of models inside a time budget and a printed ranking.</p>
+<p>Nothing about the job changed. What changed is who picks the model and who scores it; this segment is about exactly those two decisions. Do not name the tool yet beyond the import line; the next slides are its interface, then its output.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -319,10 +318,8 @@
 <span id="cb3-2"><a></a>tsdf <span class="op">=</span> TimeSeriesDataFrame.from_data_frame(</span>
 <span id="cb3-3"><a></a>    ag_long, id_column<span class="op">=</span><span class="st">"item_id"</span>, timestamp_column<span class="op">=</span><span class="st">"timestamp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <aside class="notes">
-<p>Two renames and a constructor. That is the entire conceptual content of the conversion, and it is worth showing precisely because it is so thin: the long format this course has used since the first hour is the format every serious forecasting library expects, under different names.</p>
-<p>Say the general lesson, since it outlives this library. When you meet a new forecasting tool, the first question is what it calls the three columns and whether it wants one frame or many. If the answer is long format, which it almost always is, you already know how to feed it.</p>
-<p>One detail the docs state plainly and it is worth ten seconds: a TimeSeriesDataFrame holds a panel of series, and every forecast is per series. There are no cross-series interactions; it is not multivariate forecasting. On the spine the panel holds exactly one item, which is why the lab can feed it the same frame everything else used.</p>
-<p>The <code>slice_by_timestep</code> call in the notebook is how AutoGluon cuts a holdout. It is their <code>train_test</code>, with a different name.</p>
+<p>Two renames and a constructor. Worth showing precisely because it is so thin: the long format of the first hour is the format every serious forecasting library expects, under different names. The general lesson: when you meet a new tool, ask what it calls the three columns. If it wants long format, which it almost always does, you already know how to feed it.</p>
+<p>Ten seconds: a TimeSeriesDataFrame holds a panel of series and every forecast is per series, with no cross-series interaction. On the spine the panel holds exactly one item, so the lab feeds it the same frame everything else used. <code>slice_by_timestep</code> in the notebook is their <code>train_test</code>, renamed.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -341,13 +338,11 @@
 <span id="cb4-2"><a></a>       <span class="st">"AutoARIMA"</span>: {}, <span class="st">"Theta"</span>: {}}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="fragment">
 <div class="cardbox teal">
-<p>Three you built: two Day 2 benchmarks and this morning’s ETS. Two you have not: ARIMA and Theta, both on the map in fifteen minutes.</p>
+<p>Three you built: two Day 2 benchmarks and this morning’s ETS. Two you have not: ARIMA and Theta, on the map in fifteen minutes.</p>
 </div>
 <aside class="notes">
-<p>Read the zoo aloud, one name at a time, and let the room sort them. Naive and SeasonalNaive are Day 2’s benchmarks. AutoETS is this morning. Those three they can read a result for without help.</p>
-<p>AutoARIMA and Theta they cannot, and saying so is the honest version of this slide. A framework will fit whatever is in its catalogue, including families nobody has taught you, and the map in Part B is where those two get their names. That gap is not a flaw in the tool; it is the reason the map exists.</p>
-<p>Two practical notes for the lab. The zoo is pinned to local models on purpose, so nothing neural downloads and nothing needs a GPU; the tool’s own presets reach for deep models and the two minute budget would not cover them. And <code>time_limit</code> is a budget, not a target, so the run stops when the clock runs out.</p>
-<p>Warn them again about the runtime reset wiping the install.</p>
+<p>Read the zoo aloud, one name at a time, and let the room sort them. Naive and SeasonalNaive are Day 2’s benchmarks; AutoETS is this morning. Those three they can read a result for without help. AutoARIMA and Theta they cannot, and saying so is the honest version of this slide: a framework fits whatever is in its catalogue, and the map in Part B is where those two get their names.</p>
+<p>Two practical notes: the zoo is pinned to local models on purpose, so nothing neural downloads and nothing needs a GPU. And <code>time_limit</code> is a budget, not a target. Warn them again about the runtime reset wiping the install.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -371,12 +366,12 @@
 </ul>
 <div class="fragment">
 <div class="cardbox teal">
-<p>The docs’ presets run from <code>fast_training</code> to <code>best_quality</code>. This lab pins the zoo instead, so every row that comes back is a model you can read.</p>
+<p>The docs’ presets run from <code>fast_training</code> to <code>best_quality</code>. This lab pins the zoo, so every row that comes back is a model you can read.</p>
 </div>
 <aside class="notes">
-<p>Say what fit does, in order, because the order is the design. The models run one after another in the order the zoo gives them. Each is handed a share of whatever budget is left, which is why the ensemble fitted last gets whatever survived, and why a slow model starves the ones behind it. The next slide shows the arithmetic in the tool’s own log.</p>
-<p>The last bullet is the one that pays off in the two slides after it: all of this is ranked on a single internal validation split. The tool has the machinery for more windows; the lab leaves it at one on purpose, so the leaderboard slide can show the gap.</p>
-<p>One line to save for the Colab run: the docs list the exponential smoothing model under the zoo key <code>ETS</code>, while the lab writes <code>AutoETS</code> after statsforecast. If the fit complains about an unknown model name, that is the first line to change, and changing it is a useful lesson about reading a tool’s catalogue.</p>
+<p>Say what fit does, in order, because the order is the design: models run in turn, each handed a share of whatever budget is left, so the ensemble fitted last gets whatever survived and a slow model starves the ones behind it. The next slide shows the arithmetic in the tool’s own log.</p>
+<p>The last bullet pays off two slides after: all of this is ranked on a single internal validation split. The lab leaves it at one on purpose, so the leaderboard slide can show the gap.</p>
+<p>Colab tip: if the fit complains about an unknown model name, try the zoo key <code>ETS</code> instead of <code>AutoETS</code>. Changing it is a useful lesson about reading a tool’s catalogue.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -403,15 +398,15 @@
 <span id="cb5-9"><a></a>Training ensemble model WeightedEnsemble.</span>
 <span id="cb5-10"><a></a>  Ensemble weights: {'Chronos2': 0.43, 'DirectTabular': 0.03, ...}</span>
 <span id="cb5-11"><a></a>  -0.8203       = Validation score (-MASE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The tool’s own quick start, its M4 hourly example. The numbers are not ours; the shape is.</p>
+<p>The tool’s own quick start, its M4 hourly example. The shape is the point.</p>
 <div class="cardbox coral">
 <p>The ensemble is not a black box: the log prints its weights, a plain weighted average of the members.</p>
 </div>
 <aside class="notes">
-<p>Set the frame before the log: this is the tool’s own quick start, run on its M4 hourly example, not on our spine. The numbers are not ours, and that is fine, because the shape is what is on the board.</p>
-<p>Walk the log top to bottom. First line of interest: the tool announces that it has negated the metric so that higher is better, and it tells you how to get the real value back, multiply by minus one. That sentence is in every AutoGluon run, and it is the first thing to check whenever a tool’s ranking surprises you.</p>
-<p>Next, one line per model: the remaining budget it was given, and one validation score. Note the budget arithmetic: each model gets an equal share of what is left, so the ensemble that is fitted last gets whatever survived.</p>
-<p>Last block: the ensemble. It is not a mystery model; the log prints its weights, a plain weighted average of the members, chosen to be best on the same one validation window. If the room asks what the ensemble is, this line is the answer.</p>
+<p>Set the frame first: the tool’s own quick start on its M4 hourly example, not our spine. The numbers are not ours; the shape is.</p>
+<p>Walk the log top to bottom. First line of interest: the tool has negated the metric so that higher is better, and it tells you how to get the real value back, multiply by minus one. That sentence is in every AutoGluon run, and it is the first thing to check whenever a tool’s ranking surprises you.</p>
+<p>Then one line per model: the remaining budget it was given and one validation score, with the budget arithmetic from the last slide.</p>
+<p>Last block: the ensemble, with its weights printed, a plain weighted average of the members. If the room asks what the ensemble is, this line is the answer.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -462,17 +457,17 @@
 </tr>
 </tbody>
 </table>
-<p>The tool’s own quick start, M4 hourly. <strong>Higher is better</strong>: every score is negated, so <code>-1.97</code> is a MASE of 1.97.</p>
+<p>The tool’s own quick start, M4 hourly. <strong>Higher is better</strong>: every score is negated, so <code>-1.97</code> is MASE 1.97.</p>
 <div class="fragment">
 <div class="cardbox navy">
-<p><code>score_val</code> is one validation window. Day 2 spent an hour on why that cannot rank two models. The verdict comes from your harness.</p>
+<p><code>score_val</code> is one validation window. Day 2 spent an hour on why that cannot rank two models. Your harness delivers the verdict.</p>
 </div>
 <aside class="notes">
-<p>Same run, now as the table the lab will show them. The full table has fit times and fit order as well; three columns are on the board because those are the three that carry the lesson.</p>
-<p>The sign: every score is negated, so higher is better. A <code>score_val</code> of -1.97 is a MASE of 1.97. Say it out loud once with a number, because the sign flip is the trap that catches people who have used the library for months.</p>
-<p>The window: <code>score_val</code> comes from one internal validation split, and <code>predictor.leaderboard(tsdf)</code>, the call the lab makes, adds <code>score_test</code>, one more window. That is why both columns are on the board.</p>
-<p>The swap: between validation and test, RecursiveTabular and Toto2 change places on this same example. The tool’s own two windows disagree about which of the two is better. That is not a flaw to work around; it is the reason the ranking is a shortlist, and the next move is to cross-validate the top of it properly, on your harness, over your eight folds.</p>
-<p>The ensemble row beats its members on both windows here. On other data it will not. Note that and move on; it is Part B’s ensembles line arriving early.</p>
+<p>Same run, now as the table the lab will show them; the full one has fit times and fit order too.</p>
+<p>The sign: every score is negated, so higher is better, and a <code>score_val</code> of -1.97 is a MASE of 1.97. Say it once with a number; the sign flip is the trap that catches people who have used the library for months.</p>
+<p>The window: <code>score_val</code> is one internal validation split, and <code>predictor.leaderboard(tsdf)</code>, the call the lab makes, adds <code>score_test</code>, one more window.</p>
+<p>The swap: between validation and test, RecursiveTabular and Toto2 change places. The tool’s own two windows disagree. That is not a flaw to work around; it is why the ranking is a shortlist, and the next move is to cross-validate the top of it on your harness, over your eight folds.</p>
+<p>The ensemble beats its members on both windows here. On other data it will not; that is Part B’s ensembles line arriving early.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -501,7 +496,7 @@
 <ul>
 <li>An evaluation you can trust: one window, one sign</li>
 <li>A reason the winner beats your floor</li>
-<li>Any read on whether its bands are too wide</li>
+<li>A read on whether its bands are too wide</li>
 </ul>
 </div></div>
 <div class="fragment">
@@ -509,10 +504,10 @@
 <p>You have now seen every line this library runs. In industry you hand this step to a framework, and you still own the judgement.</p>
 </div>
 <aside class="notes">
-<p>This is the thesis of the segment, so land it slowly.</p>
-<p>The left column is real and should not be undersold. Five models, tuned and ensembled, inside a fixed budget, with the same code working on 148 series instead of one. On a panel that size orchestration is not optional, and nobody should leave thinking the course disapproves of the tool.</p>
-<p>The right column is what the last three days were for. The tool will always return a winner. It will not tell you whether the winner is better than a seasonal naive, whether its intervals are honest, or whether the margin survives a second window. Those are the questions, and they are yours.</p>
-<p>The card is the line to close on. Say it, then hand over to the map.</p>
+<p>The thesis of the segment; land it slowly.</p>
+<p>The left column is real and should not be undersold: five models, tuned and ensembled, inside a fixed budget, the same code on 148 series. On a panel that size orchestration is not optional; nobody should leave thinking the course disapproves of the tool.</p>
+<p>The right column is what the last three days were for. The tool will always return a winner. It will not tell you whether the winner beats a seasonal naive, whether its intervals are honest, or whether the margin survives a second window. Those questions are yours.</p>
+<p>Say the card, then hand over to the map.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -534,17 +529,17 @@
 <section id="four-more-classical-families-by-name" class="slide level2">
 <h2>Four more classical families, by name</h2>
 <ul>
-<li class="fragment"><strong>Theta</strong> · simple, fast, strong. In AutoGluon’s zoo, and best on this series</li>
-<li class="fragment"><strong>ARIMA</strong> · Ch 9. The other classical family, and where the structure Ljung-Box found on Day 2 actually lives</li>
-<li class="fragment"><strong>Dynamic regression</strong> · Ch 7 and 10, for when you have price or promotions</li>
-<li class="fragment"><strong>Hierarchical</strong> · Ch 11, when state totals must equal the national total</li>
+<li class="fragment"><strong>Theta</strong> · simple, fast, strong; in the zoo, and best on this series</li>
+<li class="fragment"><strong>ARIMA</strong> · Ch 9; where the structure Ljung-Box found on Day 2 lives</li>
+<li class="fragment"><strong>Dynamic regression</strong> · Ch 7, 10; for price or promotions</li>
+<li class="fragment"><strong>Hierarchical</strong> · Ch 11; state totals equal the national total</li>
 </ul>
 <aside class="notes">
-<p>Four names, one line each, and no apology for the brevity. The purpose of the map is recognition: when one of these turns up in a paper or a job spec, they should know roughly what it is and where to read about it.</p>
-<p>Theta first, because it was in the zoo ten minutes ago, it is in the capstone in fifteen, and it makes an honest point about complexity: a very simple method that is about to beat everything the course taught properly.</p>
-<p>ARIMA next, and be straight about why it is a line on a map rather than a segment. It costs differencing, stationarity, AR against MA, and PACF for order selection, which is a diagnostic Day 1 never showed. That is a chapter, and three hours does not have one to spend. What it is worth knowing is that the autocorrelation Ljung-Box found in the seasonal naive’s residuals yesterday is exactly what an MA term consumes. Ch 9 is written to be read on its own.</p>
-<p>Dynamic regression is the one most likely to matter in their actual work. Everything this course did used only the series’ own past. The moment you have a price, a promotion calendar or a holiday flag, that is the chapter. Note that Ch 10 is really Ch 7 plus Ch 9, so regression travels with it.</p>
-<p>Hierarchical is worth naming for anyone forecasting a business with regions or product lines, which is most of them.</p>
+<p>Four names, one line each, and no apology for the brevity. The map is for recognition: when one of these turns up in a paper or a job spec, they know roughly what it is and where to read.</p>
+<p>Theta first: it was in the zoo, it is in the capstone in fifteen, and it makes an honest point about complexity, a very simple method about to beat everything the course taught properly.</p>
+<p>ARIMA is a line on the map, not a segment, on purpose. It costs differencing, stationarity, AR against MA, and PACF for order selection. That is a chapter, and three hours does not have one to spend. What matters: the autocorrelation Ljung-Box found in the seasonal naive’s residuals yesterday is exactly what an MA term consumes. Ch 9 is written to be read on its own.</p>
+<p>Dynamic regression is the one most likely to matter in their actual work: everything this course did used only the series’ own past, and the moment you have a price, a promotion calendar or a holiday flag, that is the chapter. Ch 10 is really Ch 7 plus Ch 9.</p>
+<p>Hierarchical is worth naming for anyone forecasting regions or product lines, which is most of them.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -561,22 +556,22 @@
 <h2>The harness is the part that transfers</h2>
 <ul>
 <li class="fragment"><strong>Lag-feature ML</strong> · LightGBM on lags and rolling stats; no fpppy chapter</li>
-<li class="fragment"><strong>Global neural</strong> · DeepAR, Transformers. One model across many series</li>
-<li class="fragment"><strong>Foundation models</strong> · Chronos, Moirai, TimeGPT. Pretrained, zero fitting</li>
-<li class="fragment"><strong>Ensembles</strong> · combine forecasts; AutoGluon’s <code>WeightedEnsemble</code> is one</li>
+<li class="fragment"><strong>Global neural</strong> · DeepAR, Transformers; one model across many series</li>
+<li class="fragment"><strong>Foundation models</strong> · Chronos, Moirai, TimeGPT; pretrained, zero fitting</li>
+<li class="fragment"><strong>Ensembles</strong> · combine forecasts; <code>WeightedEnsemble</code> is one</li>
 </ul>
 <div class="fragment">
 <div class="cardbox purple">
 <p>Every one of these still gets scored by the harness you built. That is the part that transfers.</p>
 </div>
 <aside class="notes">
-<p>The second half of the map, and the half with the most hype attached, so keep the tone level.</p>
-<p>Lag features are how most working data scientists actually do this: build a tabular frame of lags and rolling statistics, then fit a gradient booster. fpppy has no chapter on it. The zoo log from Part A already showed the two AutoGluon versions of it, RecursiveTabular and DirectTabular, so the name has a face. Warn them once about the trap Day 2 covered, which is computing a feature over data the fold was not allowed to see.</p>
-<p>Neural models are global: one model across many series, learning shared structure. On one series with 441 points they are the wrong tool, which is worth saying plainly because the instinct runs the other way.</p>
-<p>Foundation models are the genuinely new thing. Pretrained on many series, and they forecast a series they have never seen with no fitting at all. On Colab, Chronos-Bolt-small or Moirai-small run on CPU; TimeGPT needs an API key and Moirai needs weights from Hugging Face.</p>
-<p>The newest of them have moved past one series at a time. TimesFM 3 is pretrained for multivariate forecasting and accepts past and known-future covariates, so a promotion calendar or a holiday flag arrives with no fitting step at all. That is the cross-link at the bottom of these notes, minus the fit. Google’s write-up is at https://research.google/blog/timesfm-3-a-zero-shot-foundation-model-for-multivariate-forecasting/ and it reports the top of GIFT-Eval and FEV-Bench among foundation models. Quote the ranking, then say what to do with it, because that is the part they own: a leaderboard is somebody else’s series and somebody else’s folds. They have a harness, so the question is whether it beats their own seasonal naive on their own data. That is the closing chart of this deck, pointed at a model nobody in the room has run.</p>
-<p>Ensembles last, because it is the cheapest reliable win in forecasting and the least glamorous, and they have now seen one with its weights printed in a log.</p>
-<p>One cross-link worth making if the room is with you: the covariates support in AutoGluon, known covariates like promotions and holidays, is where dynamic regression lives inside a framework. The chapter name and the framework flag are the same idea.</p>
+<p>The half with the most hype attached; keep the tone level.</p>
+<p>Lag features are how most working data scientists actually do this: a tabular frame of lags and rolling statistics, then a gradient booster. fpppy has no chapter on it, but the zoo log from Part A already showed both AutoGluon versions, RecursiveTabular and DirectTabular. Warn them once about the trap Day 2 covered: computing a feature over data the fold was not allowed to see.</p>
+<p>Neural models are global, one model across many series. On one series with 441 points they are the wrong tool; say it plainly, because the instinct runs the other way.</p>
+<p>Foundation models are the genuinely new thing: pretrained on many series, they forecast a series they have never seen with no fitting at all. On Colab, Chronos-Bolt-small or Moirai-small run on CPU; TimeGPT needs an API key and Moirai needs weights from Hugging Face.</p>
+<p>TimesFM 3 has moved past one series at a time: pretrained for multivariate forecasting, it takes past and known-future covariates, so a promotion calendar arrives with no fitting step at all. Google reports the top of GIFT-Eval and FEV-Bench among foundation models. Quote the ranking, then say what to do with it: a leaderboard is somebody else’s series and folds, and the question is whether it beats their seasonal naive on their own data.</p>
+<p>Ensembles last: the cheapest reliable win in forecasting, and the least glamorous, and they have seen one with its weights printed in a log.</p>
+<p>Cross-link if the room is with you: AutoGluon’s known-covariates support is where dynamic regression lives inside a framework. Same idea, two names.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -599,11 +594,11 @@
 <p><span class="flownode navy"><span class="flowtitle">Score them the same way</span><span class="flownote">rolling folds, a proper score</span></span></p>
 </div>
 <div class="fragment">
-<p>The first move on any new series is still the benchmark floor.</p>
+<p>First move on any new series: the benchmark floor.</p>
 <aside class="notes">
-<p>If the room remembers one slide of Part B, this is the one to make it.</p>
-<p>The three inputs at the top are the questions that actually decide the family: how many series, how related they are, and whether you have anything to regress on. Everything else is detail.</p>
-<p>The bottom node is the part that does not change with the family, and it is what the course was really about. A neural model and a seasonal naive get scored by the same harness, over the same folds, on the same proper score, or you cannot compare them at all.</p>
+<p>If the room remembers one slide of Part B, make it this one.</p>
+<p>The three inputs decide the family: how many series, how related they are, whether you have anything to regress on. Everything else is detail.</p>
+<p>The bottom node does not change with the family, and it is what the course was really about: a neural model and a seasonal naive get scored by the same harness, over the same folds, on the same proper score, or you cannot compare them at all.</p>
 <p>Then the closing line, which should sound almost too simple by now: fit the benchmarks first. The next slide is why.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -620,7 +615,7 @@
 </section>
 <section id="one-model-beat-the-floor-two-did-not" class="slide level2">
 <h2>One model beat the floor; two did not</h2>
-<div id="03c4fc9d" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="950a1e4a" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -630,14 +625,13 @@
 </div>
 </div>
 <div class="cardbox navy">
-<p>Off this chart: naive 0.081, drift 0.090, mean 0.348. Those three were never in contention.</p>
+<p>Off this chart: naive 0.081, drift 0.090, mean 0.348.</p>
 </div>
 <aside class="notes">
 <p>Seven models, three days, one series, one metric that scores the whole forecast distribution. Give them a moment to read it before you say anything.</p>
-<p>Read the axis out loud once, because it is not the usual one. Zero is yesterday’s seasonal naive, every bar is a percentage against it, and left is better. The raw scores are all between 0.029 and 0.034, which on an ordinary axis is three bars of the same length; measured against the floor they spread over seventeen points.</p>
-<p>Say what the chart leaves out and why: the naive, the drift and the mean were never in contention. The card carries their numbers.</p>
-<p>Then walk the right-hand side. ETS, which got a ninety-minute deck this morning and every parameter fitted from the data, is worse than the floor. Yesterday’s decomposition route is worse.</p>
-<p>One bar is on the left, and it belongs to the model nobody lectured about – the one that turned up inside the framework’s zoo an hour ago and got a single line on the map.</p>
+<p>Read the axis out loud once, because it is not the usual one: zero is yesterday’s seasonal naive, every bar is a percentage against it, and left is better. The raw scores run 0.029 to 0.034; against the floor they spread over seventeen points.</p>
+<p>Say what the chart leaves out: the naive, the drift and the mean were never in contention. The card carries their numbers.</p>
+<p>Walk the right-hand side: ETS, a ninety-minute deck with every parameter fitted from the data, is worse than the floor. Yesterday’s decomposition route is worse. One bar is on the left, and it belongs to the model nobody lectured about, the one that turned up in the framework’s zoo an hour ago.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -673,10 +667,10 @@
 </ul>
 <aside class="notes">
 <p>Two things to land, and they pull in opposite directions on purpose.</p>
-<p>First, the floor held. Across ETS and the decomposition route, a model that takes one line and no fitting time was better calibrated than both. This is why the benchmark floor is the first thing you build on a new series. Not as a formality. As the thing that most of your candidates will fail to beat.</p>
-<p>Second, the one model that did beat it is the simple one. Theta is simpler than ETS, got no lecture at all, and won on both metrics. If complexity ordered forecast accuracy, this chart would read the other way around.</p>
-<p>What did order it was whether each model’s uncertainty was priced honestly, and that is not visible from the model, only from the evaluation. Which is the third bullet, and the whole point of Day 2.</p>
-<p>Then hand to the lab: the capstone is where they score a model of their own against this same floor, and Theta is one of the options.</p>
+<p>First, the floor held. A model that takes one line and no fitting time was better calibrated than ETS and the decomposition route. That is why the benchmark floor is the first thing you build on a new series: not a formality, the thing most candidates will fail to beat.</p>
+<p>Second, the one model that did beat it is the simple one. Theta is simpler than ETS, got no lecture, and won on both metrics. If complexity ordered forecast accuracy, this chart would read the other way.</p>
+<p>What did order it was whether each model’s uncertainty was priced honestly, visible only from the evaluation. That is the third bullet, and the whole point of Day 2.</p>
+<p>Then hand to the lab: in the capstone they score a model of their own against this same floor, and Theta is one of the options.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -690,8 +684,8 @@
       }</style></aside>
 </div>
 </section>
-<section id="rightarrow-lab-g-orchestration-and-one-of-your-own" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Lab G · Orchestration, and one of your own</h2>
+<section id="rightarrow-lab-f-orchestration-and-one-of-your-own" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab F · Orchestration, and one of your own</h2>
 <p>Back to <code>labs/03_day3_models_and_orchestration.ipynb</code></p>
 <table class="caption-top">
 <tbody>
@@ -733,7 +727,7 @@
 <h2>Lecture summary</h2>
 <ul>
 <li class="fragment">A framework brings its own frame, its own budget and its own sign. The judgement stays yours</li>
-<li class="fragment">The map is a reading list. The harness is what transfers to every model on it</li>
+<li class="fragment">The map is a reading list. The harness transfers to everything on it</li>
 </ul>
 <div class="fragment">
 <div class="cardbox navy">
@@ -741,8 +735,8 @@
 </div>
 <aside class="notes">
 <p>Close the lecture, not the course; the course closes after the lab.</p>
-<p>Walk the two bullets quickly, then stop on the card. That sentence is the actual deliverable of three days. Not ETS, not AutoGluon, not the seasonal naive. The ability to take a model nobody taught you, score it the same way as everything else, and defend the ranking.</p>
-<p>If you have a minute left, ask the room what they would fit first on a series from their own work. The answer you want is the benchmarks, and by now it usually is.</p>
+<p>Walk the two bullets quickly, then stop on the card. That sentence is the actual deliverable of three days: not ETS, not AutoGluon, not the seasonal naive, but the ability to take a model nobody taught you, score it the same way as everything else, and defend the ranking.</p>
+<p>If a minute is left, ask what they would fit first on a series from their own work. The answer you want is the benchmarks, and by now it usually is.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;

@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-06">
+  <meta name="dcterms.date" content="2026-09-12">
   <title>Exponential Smoothing &amp; ETS</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -98,7 +98,7 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-98a181cbe320dee6f668343ff9832aea.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -206,7 +206,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-06</p>
+  <p class="date">2026-09-12</p>
 </section>
 <section id="day-2-ended-with-a-floor.-today-we-go-after-it" class="slide level2">
 <h2>Day 2 ended with a floor. Today we go after it</h2>
@@ -335,7 +335,7 @@
 </section>
 <section id="ses-on-its-own-gives-you-a-flat-line" class="slide level2">
 <h2>SES on its own gives you a flat line</h2>
-<div id="beeac3e7" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="ec2a728e" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -393,7 +393,7 @@
 </section>
 <section id="holt-adds-a-slope-but-not-a-december" class="slide level2">
 <h2>Holt adds a slope but not a December</h2>
-<div id="6d0c883c" class="cell" data-fig-width="10" data-execution_count="3">
+<div id="9d29ab0a" class="cell" data-fig-width="10" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -423,7 +423,7 @@
 </section>
 <section id="extrapolate-a-straight-line-far-enough-and-it-lies" class="slide level2">
 <h2>Extrapolate a straight line far enough and it lies</h2>
-<div id="741bd7cd" class="cell" data-fig-width="10" data-execution_count="4">
+<div id="13e5a3fa" class="cell" data-fig-width="10" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -552,7 +552,7 @@
 </section>
 <section id="holt-winters-has-the-right-shape" class="slide level2">
 <h2>Holt-Winters has the right shape</h2>
-<div id="8cf3f37e" class="cell" data-fig-width="10" data-execution_count="5">
+<div id="59c6a8ab" class="cell" data-fig-width="10" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -728,7 +728,7 @@
 </section>
 <section id="the-season-changes-the-score.-the-trend-does-not" class="slide level2">
 <h2>The season changes the score. The trend does not</h2>
-<div id="c9bf458a" class="cell" data-fig-width="9" data-execution_count="6">
+<div id="da137a4a" class="cell" data-fig-width="9" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -758,7 +758,7 @@
 </section>
 <section id="what-it-picked-has-no-trend-term" class="slide level2">
 <h2>What it picked has no trend term</h2>
-<div id="b100d232" class="cell" data-execution_count="7">
+<div id="0f60a1c6" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-stdout">
 <pre><code>selected      : ETS(M,N,A)
 alpha (level) : 0.525
@@ -787,7 +787,7 @@ gamma (season): 0.321</code></pre>
 </section>
 <section id="the-states-it-learned-are-a-decomposition" class="slide level2">
 <h2>The states it learned are a decomposition</h2>
-<div id="e6573481" class="cell" data-fig-width="10" data-execution_count="8">
+<div id="bca3df17" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -879,7 +879,7 @@ gamma (season): 0.321</code></pre>
 </section>
 <section id="ets-wins-on-one-window-and-ties-over-eight-folds" class="slide level2">
 <h2>ETS wins on one window and ties over eight folds</h2>
-<div id="3bdbd7a4" class="cell" data-fig-width="10" data-execution_count="9">
+<div id="01dc6b1a" class="cell" data-fig-width="10" data-execution_count="9">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -910,7 +910,7 @@ gamma (season): 0.321</code></pre>
 </section>
 <section id="its-80-band-covers-87.5" class="slide level2">
 <h2>Its 80% band covers 87.5%</h2>
-<div id="4641b9de" class="cell" data-fig-width="9" data-execution_count="10">
+<div id="fb3dd483" class="cell" data-fig-width="9" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -941,7 +941,7 @@ gamma (season): 0.321</code></pre>
 </section>
 <section id="the-wider-band-scores-worse" class="slide level2">
 <h2>The wider band scores worse</h2>
-<div id="4a1680ee" class="cell" data-fig-width="10" data-execution_count="11">
+<div id="a59ef6e1" class="cell" data-fig-width="10" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -1029,8 +1029,8 @@ gamma (season): 0.321</code></pre>
       }</style></aside>
 </div>
 </section>
-<section id="rightarrow-lab-f-fit-ets-then-score-it-honestly" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
-<h2><span class="math inline">\(\rightarrow\)</span> Lab F · Fit ETS, then score it honestly</h2>
+<section id="rightarrow-lab-e-fit-ets-then-score-it-honestly" class="slide level2 sdaia-dark" data-background-gradient="linear-gradient(135deg, #1C355E, #625D9C)">
+<h2><span class="math inline">\(\rightarrow\)</span> Lab E · Fit ETS, then score it honestly</h2>
 <p>Open <code>labs/03_day3_models_and_orchestration.ipynb</code></p>
 <table class="caption-top">
 <tbody>

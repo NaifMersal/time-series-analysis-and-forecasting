@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.9.38">
 
-  <meta name="dcterms.date" content="2026-09-06">
+  <meta name="dcterms.date" content="2026-09-12">
   <title>Getting Started &amp; Time Series Patterns</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -98,7 +98,7 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-92ce2a9a7202aa81d3f1ba526dfb5543.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-98a181cbe320dee6f668343ff9832aea.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -206,7 +206,7 @@
 <div class="quarto-title-authors">
 </div>
 
-  <p class="date">2026-09-06</p>
+  <p class="date">2026-09-12</p>
 </section>
 <section id="where-we-are-going" class="slide level2">
 <h2>Where we are going</h2>
@@ -411,7 +411,7 @@
 <ul id="tabset-1" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-1-1">Plot</a></li><li><a href="#tabset-1-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1">
-<div id="76a72394" class="cell" data-fig-width="10" data-execution_count="2">
+<div id="0a7c3bb7" class="cell" data-fig-width="10" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -485,32 +485,62 @@
 <p>Decomposition cannot separate trend from cycle, so <span class="math inline">\(T_t\)</span> carries both. That is why it is written trend-cycle.</p>
 </div>
 </section>
+<section id="seeing-the-three-pieces-side-by-side" class="slide level2">
+<h2>Seeing the three pieces side by side</h2>
+<div class="panel-tabset">
+<ul id="tabset-7" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-7-1">Plot</a></li><li><a href="#tabset-7-2">Code</a></li></ul>
+<div class="tab-content">
+<div id="tabset-7-1">
+<div id="da308a3f" class="cell" data-fig-width="9" data-execution_count="3">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-4-output-1.png" width="1002" height="452"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-7-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine())</span></span>
+<span id="cb2-2"><a></a><span class="co"># Classical additive decomposition, period = 12 months</span></span>
+<span id="cb2-3"><a></a><span class="im">from</span> statsmodels.tsa.seasonal <span class="im">import</span> seasonal_decompose</span>
+<span id="cb2-4"><a></a></span>
+<span id="cb2-5"><a></a>dec <span class="op">=</span> seasonal_decompose(spine[<span class="st">"y"</span>], model<span class="op">=</span><span class="st">"additive"</span>, period<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb2-6"><a></a>dcmp <span class="op">=</span> spine.assign(</span>
+<span id="cb2-7"><a></a>    trend<span class="op">=</span>np.asarray(dec.trend),</span>
+<span id="cb2-8"><a></a>    seasonal<span class="op">=</span>np.asarray(dec.seasonal),</span>
+<span id="cb2-9"><a></a>    remainder<span class="op">=</span>np.asarray(dec.resid),</span>
+<span id="cb2-10"><a></a>)</span>
+<span id="cb2-11"><a></a>fig, axes <span class="op">=</span> P.decomposition_plot(</span>
+<span id="cb2-12"><a></a>    dcmp, [<span class="st">"y"</span>, <span class="st">"trend"</span>, <span class="st">"seasonal"</span>, <span class="st">"remainder"</span>],</span>
+<span id="cb2-13"><a></a>    <span class="st">"Additive decomposition: $y_t = T_t + S_t + R_t$"</span>, panel_height<span class="op">=</span><span class="fl">0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <section id="expanding-swings-require-multiplicative-models" class="slide level2">
 <h2>Expanding swings require multiplicative models</h2>
 <div class="panel-tabset">
 <ul id="tabset-2" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-2-1">Plot</a></li><li><a href="#tabset-2-2">Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1">
-<div id="eb3547d3" class="cell" data-fig-width="9.5" data-execution_count="3">
+<div id="87a95a03" class="cell" data-fig-width="9.5" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-4-output-1.png" width="1057" height="353"></p>
+<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-5-output-1.png" width="1057" height="353"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
 <div id="tabset-2-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a><span class="co"># Datasets:</span></span>
-<span id="cb2-2"><a></a><span class="co"># 1. Australian beer production (last 10 years / 120 obs): beer.tail(120)</span></span>
-<span id="cb2-3"><a></a><span class="co"># 2. Souvenir shop sales: souvenirs = D.souvenirs()</span></span>
-<span id="cb2-4"><a></a></span>
-<span id="cb2-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.1</span>))</span>
-<span id="cb2-6"><a></a>P.plot_series(beer.tail(<span class="dv">120</span>), ax<span class="op">=</span>axes[<span class="dv">0</span>], color<span class="op">=</span>P.BLUE, ylabel<span class="op">=</span><span class="st">"megalitres"</span>,</span>
-<span id="cb2-7"><a></a>              title<span class="op">=</span><span class="st">"Additive: swing size is constant"</span>)</span>
-<span id="cb2-8"><a></a>P.plot_series(souvenirs, ax<span class="op">=</span>axes[<span class="dv">1</span>], color<span class="op">=</span>P.ORANGE, ylabel<span class="op">=</span><span class="st">"sales ($)"</span>,</span>
-<span id="cb2-9"><a></a>              title<span class="op">=</span><span class="st">"Multiplicative: swing grows with level"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a><span class="co"># Datasets:</span></span>
+<span id="cb3-2"><a></a><span class="co"># 1. Australian beer production (last 10 years / 120 obs): beer.tail(120)</span></span>
+<span id="cb3-3"><a></a><span class="co"># 2. Souvenir shop sales: souvenirs = D.souvenirs()</span></span>
+<span id="cb3-4"><a></a></span>
+<span id="cb3-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.1</span>))</span>
+<span id="cb3-6"><a></a>P.plot_series(beer.tail(<span class="dv">120</span>), ax<span class="op">=</span>axes[<span class="dv">0</span>], color<span class="op">=</span>P.BLUE, ylabel<span class="op">=</span><span class="st">"megalitres"</span>,</span>
+<span id="cb3-7"><a></a>              title<span class="op">=</span><span class="st">"Additive: swing size is constant"</span>)</span>
+<span id="cb3-8"><a></a>P.plot_series(souvenirs, ax<span class="op">=</span>axes[<span class="dv">1</span>], color<span class="op">=</span>P.ORANGE, ylabel<span class="op">=</span><span class="st">"sales ($)"</span>,</span>
+<span id="cb3-9"><a></a>              title<span class="op">=</span><span class="st">"Multiplicative: swing grows with level"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -533,14 +563,59 @@
           overflow: hidden!important;
           display:block!important;
       }</style></aside>
-</section></section>
-<section>
+</section>
+<section id="a-log-transform-flattens-the-growing-swing" class="slide level2">
+<h2>A log transform flattens the growing swing</h2>
+<div class="panel-tabset">
+<ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
+<div class="tab-content">
+<div id="tabset-3-1">
+<div id="442e0da9" class="cell" data-fig-width="10" data-execution_count="5">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-6-output-1.png" width="1112" height="320"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-3-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (spine = D.spine())</span></span>
+<span id="cb4-2"><a></a><span class="co"># Log transform: a multiplicative series becomes additive on the log scale</span></span>
+<span id="cb4-3"><a></a>yt <span class="op">=</span> np.log(spine[<span class="st">"y"</span>].to_numpy())</span>
+<span id="cb4-4"><a></a></span>
+<span id="cb4-5"><a></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">2.8</span>))</span>
+<span id="cb4-6"><a></a>P.plot_series(spine, ax<span class="op">=</span>axes[<span class="dv">0</span>], title<span class="op">=</span><span class="st">"Original: expanding swing"</span>, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>)</span>
+<span id="cb4-7"><a></a>P.plot_series(spine.assign(y<span class="op">=</span>yt), ax<span class="op">=</span>axes[<span class="dv">1</span>], color<span class="op">=</span>P.ORANGE,</span>
+<span id="cb4-8"><a></a>              ylabel<span class="op">=</span><span class="st">"log turnover"</span>, title<span class="op">=</span><span class="st">"Log scale: constant swing"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+<ul>
+<li class="fragment">When the swing grows with the level, take a <strong>log transform</strong> before decomposing</li>
+<li class="fragment">On the log scale a multiplicative series is <strong>additive</strong>: the swing stops growing</li>
+<li class="fragment">Back-transforming returns the <strong>median</strong>, not the mean (Ch 5.6)</li>
+</ul>
+<aside class="notes">
+<p>Deck 1 named the diagnosis: the swing grows with the level, so the series is multiplicative, and the fix is the log transform. This slide is that fix, applied: the annual swing is now a constant size, and the sixfold trend has become a near-straight climb. Everything after this slide in the segment runs on the log-transformed series.</p>
+<p>Box-Cox is the generalised version: a family of transforms indexed by lambda, with the log at lambda = 0. For this series the optimal lambda is about 0.07, so the log is the honest choice. Do not teach Box-Cox today; it comes back on Day 3 with ETS, where a fitted lambda is part of the model.</p>
+<p>The median-vs-mean point is the one they will trip over in production: if a regional total is the sum of 40 back-transformed store forecasts, that total is biased low unless you correct it.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
 <section id="c.-seeing-the-patterns" class="title-slide slide level1 sdaia-dark center" data-background-gradient="linear-gradient(135deg, #1C355E, #9B8EC0)">
 <h1>C. Seeing the patterns</h1>
-<p>Ch 2.2–2.5 · The four plots</p>
-</section>
-<section id="four-plots-four-questions" class="slide level2">
-<h2>Four plots, four questions</h2>
+<p>Ch 2.2–2.5 · The four plots ## Four plots, four questions</p>
 <table class="caption-top">
 <thead>
 <tr class="header">
@@ -586,24 +661,24 @@
 <section id="time-plots-reveal-long-term-trend-and-variance-growth" class="slide level2">
 <h2>Time plots reveal long-term trend and variance growth</h2>
 <div class="panel-tabset">
-<ul id="tabset-3" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-3-1">Plot</a></li><li><a href="#tabset-3-2">Code</a></li></ul>
+<ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-3-1">
-<div id="d8db5225" class="cell" data-fig-width="9.5" data-execution_count="4">
+<div id="tabset-4-1">
+<div id="bfeec0a8" class="cell" data-fig-width="9.5" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-5-output-1.png" width="1057" height="342"></p>
+<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-7-output-1.png" width="1057" height="342"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-3-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a><span class="co"># Data: Victorian takeaway food turnover (D.spine())</span></span>
-<span id="cb3-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.0</span>))</span>
-<span id="cb3-3"><a></a>P.plot_series(spine, ax<span class="op">=</span>ax, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>,</span>
-<span id="cb3-4"><a></a>              title<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>D<span class="sc">.</span>SPINE_ID<span class="sc">}</span><span class="ss">, monthly"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-4-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a><span class="co"># Data: Victorian takeaway food turnover (D.spine())</span></span>
+<span id="cb5-2"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.0</span>))</span>
+<span id="cb5-3"><a></a>P.plot_series(spine, ax<span class="op">=</span>ax, ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>,</span>
+<span id="cb5-4"><a></a>              title<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>D<span class="sc">.</span>SPINE_ID<span class="sc">}</span><span class="ss">, monthly"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -629,28 +704,28 @@
 <section id="seasonal-plots-expose-repeating-annual-shapes" class="slide level2">
 <h2>Seasonal plots expose repeating annual shapes</h2>
 <div class="panel-tabset">
-<ul id="tabset-4" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-4-1">Plot</a></li><li><a href="#tabset-4-2">Code</a></li></ul>
+<ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-4-1">
-<div id="c52746eb" class="cell" data-fig-width="10" data-execution_count="5">
+<div id="tabset-5-1">
+<div id="f79f0233" class="cell" data-fig-width="10" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-6-output-1.png" width="1057" height="419"></p>
+<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-8-output-1.png" width="1057" height="419"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-4-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (last 10 years):</span></span>
-<span id="cb4-2"><a></a><span class="co"># spine = D.spine(); sp = D.add_calendar(spine)</span></span>
-<span id="cb4-3"><a></a>recent <span class="op">=</span> sp[sp[<span class="st">"year"</span>] <span class="op">&gt;=</span> sp[<span class="st">"year"</span>].<span class="bu">max</span>() <span class="op">-</span> <span class="dv">9</span>]</span>
-<span id="cb4-4"><a></a></span>
-<span id="cb4-5"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.7</span>))</span>
-<span id="cb4-6"><a></a>P.seasonal_plot(recent, <span class="st">"year"</span>, <span class="st">"month"</span>, ax<span class="op">=</span>ax, season_labels<span class="op">=</span>P.MONTH_LABELS,</span>
-<span id="cb4-7"><a></a>                ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>, xlabel<span class="op">=</span><span class="st">""</span>, colorbar<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb4-8"><a></a>                title<span class="op">=</span><span class="st">"One line per year, last 10 years"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-5-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a><span class="co"># Dataset: Victorian retail takeaway turnover (last 10 years):</span></span>
+<span id="cb6-2"><a></a><span class="co"># spine = D.spine(); sp = D.add_calendar(spine)</span></span>
+<span id="cb6-3"><a></a>recent <span class="op">=</span> sp[sp[<span class="st">"year"</span>] <span class="op">&gt;=</span> sp[<span class="st">"year"</span>].<span class="bu">max</span>() <span class="op">-</span> <span class="dv">9</span>]</span>
+<span id="cb6-4"><a></a></span>
+<span id="cb6-5"><a></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">9.5</span>, <span class="fl">3.7</span>))</span>
+<span id="cb6-6"><a></a>P.seasonal_plot(recent, <span class="st">"year"</span>, <span class="st">"month"</span>, ax<span class="op">=</span>ax, season_labels<span class="op">=</span>P.MONTH_LABELS,</span>
+<span id="cb6-7"><a></a>                ylabel<span class="op">=</span><span class="st">"turnover ($M)"</span>, xlabel<span class="op">=</span><span class="st">""</span>, colorbar<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb6-8"><a></a>                title<span class="op">=</span><span class="st">"One line per year, last 10 years"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -675,24 +750,24 @@
 <section id="subseries-plots-isolate-pure-seasonal-means" class="slide level2">
 <h2>Subseries plots isolate pure seasonal means</h2>
 <div class="panel-tabset">
-<ul id="tabset-5" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-5-1">Plot</a></li><li><a href="#tabset-5-2">Code</a></li></ul>
+<ul id="tabset-6" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-6-1">Plot</a></li><li><a href="#tabset-6-2">Code</a></li></ul>
 <div class="tab-content">
-<div id="tabset-5-1">
-<div id="3745e2f3" class="cell" data-fig-width="10" data-execution_count="6">
+<div id="tabset-6-1">
+<div id="ab5e8b11" class="cell" data-fig-width="10" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
-<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-7-output-1.png" width="837" height="386"></p>
+<p><img data-src="01_getting_started_and_patterns_files/figure-revealjs/cell-9-output-1.png" width="837" height="386"></p>
 </figure>
 </div>
 </div>
 </div>
 </div>
-<div id="tabset-5-2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a><span class="co"># Dataset: Australian quarterly beer production (1956 to 2010): beer = D.beer()</span></span>
-<span id="cb5-2"><a></a>fig, axes <span class="op">=</span> P.subseries_plot(D.add_calendar(beer), <span class="st">"quarter"</span>,</span>
-<span id="cb5-3"><a></a>                             ylabel<span class="op">=</span><span class="st">"megalitres"</span>, season_labels<span class="op">=</span>P.QUARTER_LABELS,</span>
-<span id="cb5-4"><a></a>                             title<span class="op">=</span><span class="st">"Beer production by quarter, 1956 to 2010 (orange line = quarter mean)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="tabset-6-2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a></a><span class="co"># Dataset: Australian quarterly beer production (1956 to 2010): beer = D.beer()</span></span>
+<span id="cb7-2"><a></a>fig, axes <span class="op">=</span> P.subseries_plot(D.add_calendar(beer), <span class="st">"quarter"</span>,</span>
+<span id="cb7-3"><a></a>                             ylabel<span class="op">=</span><span class="st">"megalitres"</span>, season_labels<span class="op">=</span>P.QUARTER_LABELS,</span>
+<span id="cb7-4"><a></a>                             title<span class="op">=</span><span class="st">"Beer production by quarter, 1956 to 2010 (orange line = quarter mean)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -702,11 +777,11 @@
 </section>
 <section id="verify-timestamp-continuity-before-fitting-models" class="slide level2">
 <h2>Verify timestamp continuity before fitting models</h2>
-<div id="79014d62" class="cell" data-execution_count="7">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a>gaps <span class="op">=</span> spine[<span class="st">"ds"</span>].diff().dt.days</span>
-<span id="cb6-2"><a></a><span class="bu">print</span>(<span class="st">"Inferred frequency :"</span>, pd.infer_freq(spine[<span class="st">"ds"</span>]))</span>
-<span id="cb6-3"><a></a><span class="bu">print</span>(<span class="st">"Duplicate stamps   :"</span>, spine[<span class="st">"ds"</span>].duplicated().<span class="bu">sum</span>())</span>
-<span id="cb6-4"><a></a><span class="bu">print</span>(<span class="st">"Gaps &gt; 1 month     :"</span>, <span class="bu">int</span>((gaps <span class="op">&gt;</span> <span class="dv">32</span>).<span class="bu">sum</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="6bc3b6c4" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a>gaps <span class="op">=</span> spine[<span class="st">"ds"</span>].diff().dt.days</span>
+<span id="cb8-2"><a></a><span class="bu">print</span>(<span class="st">"Inferred frequency :"</span>, pd.infer_freq(spine[<span class="st">"ds"</span>]))</span>
+<span id="cb8-3"><a></a><span class="bu">print</span>(<span class="st">"Duplicate stamps   :"</span>, spine[<span class="st">"ds"</span>].duplicated().<span class="bu">sum</span>())</span>
+<span id="cb8-4"><a></a><span class="bu">print</span>(<span class="st">"Gaps &gt; 1 month     :"</span>, <span class="bu">int</span>((gaps <span class="op">&gt;</span> <span class="dv">32</span>).<span class="bu">sum</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Inferred frequency : MS
 Duplicate stamps   : 0
@@ -772,7 +847,6 @@ Gaps &gt; 1 month     : 0</code></pre>
 <li class="fragment">Forecasts exist to <strong>change decisions</strong></li>
 <li class="fragment"><strong>Trend, Seasonality, Cycle</strong> are distinct patterns</li>
 <li class="fragment">Multiplicative swings become additive under a <strong>log transform</strong></li>
-<li class="fragment"><strong>Order is the data</strong>: never shuffle</li>
 </ul>
 <div class="fragment">
 <div class="cardbox teal">
@@ -780,6 +854,11 @@ Gaps &gt; 1 month     : 0</code></pre>
 </div>
 
 
+</div>
+</section>
+
+</div>
+</div>
 </div>
 </section></section>
     </div>
